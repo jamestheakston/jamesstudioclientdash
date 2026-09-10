@@ -417,30 +417,27 @@
                             <img src="https://assets.puter.site/puter-logo.png" alt="Puter" class="w-16 h-16 mx-auto mb-4">
                             <h4 class="text-lg font-bold mb-2">Powered by Puter</h4>
                             <p class="text-sm text-neutral-600 mb-6 leading-relaxed">
-                                We use a service called Puter for AI features. To use AI features on this site, you'll need to login and agree to the terms.
-                            </p>
-                            <button onclick="authorizePuter()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
-                                Connect with Puter
-                            </button>
-                            <p class="text-xs text-neutral-400 mt-4">
-                                By connecting, you agree to Puter's terms of service.
+                                We use a service called Puter for AI features. When you send your first message, you'll be prompted to login to Puter.
                             </p>
                         </div>
 
                         <!-- Chat Screen (hidden until authorized) -->
-                        <div id="aiChatScreen" class="hidden">
-                            <div id="aiChatMessages" class="space-y-4 mb-4">
+                        <div id="aiChatScreen" class="hidden flex flex-col h-full">
+                            <div id="aiChatMessages" class="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
                                 <div class="bg-[#FAF9F6] p-3 rounded-lg">
                                     <p class="text-sm">Hello! I'm your AI assistant. I can help you edit your website content. What would you like to change?</p>
                                 </div>
                             </div>
                             <div class="border-t border-[#1A1A1A]/10 pt-4">
-                                <div class="flex gap-2">
+                                <div class="flex gap-2 mb-3">
                                     <input type="text" id="aiChatInput" placeholder="Ask me to edit something..." class="flex-1 bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A1A1A]">
                                     <button onclick="sendAIMessage()" class="bg-[#1A1A1A] text-[#FAF9F6] px-4 py-2 rounded-lg text-sm font-bold hover:bg-neutral-800 transition-colors">
                                         Send
                                     </button>
                                 </div>
+                                <button onclick="logoutPuter()" class="w-full text-xs text-neutral-400 hover:text-neutral-600 transition-colors">
+                                    Logout from Puter
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -899,11 +896,32 @@
             }
         }
         
+        function logoutPuter() {
+            isPuterAuthorized = false;
+            document.getElementById('aiChatScreen').classList.add('hidden');
+            document.getElementById('aiAuthScreen').classList.remove('hidden');
+            
+            // Clear chat messages
+            const chatMessages = document.getElementById('aiChatMessages');
+            chatMessages.innerHTML = '<div class="bg-[#FAF9F6] p-3 rounded-lg"><p class="text-sm">Hello! I\'m your AI assistant. I can help you edit your website content. What would you like to change?</p></div>';
+        }
+        
         function sendAIMessage() {
             const input = document.getElementById('aiChatInput');
             const message = input.value.trim();
             
             if (!message) return;
+            
+            // If not authorized, prompt for auth first
+            if (!isPuterAuthorized) {
+                authorizePuter();
+                // Re-add the message after auth
+                setTimeout(() => {
+                    input.value = message;
+                    sendAIMessage();
+                }, 500);
+                return;
+            }
             
             const chatMessages = document.getElementById('aiChatMessages');
             
@@ -932,11 +950,24 @@
             puter.ai.chat(message + '\n\nCurrent website HTML:\n' + currentHTML).then((response) => {
                 const aiMessage = document.createElement('div');
                 aiMessage.className = 'bg-[#FAF9F6] p-3 rounded-lg';
-                aiMessage.textContent = response.message || response;
+                
+                // Handle different response formats
+                let responseText = '';
+                if (typeof response === 'string') {
+                    responseText = response;
+                } else if (response.message && typeof response.message === 'string') {
+                    responseText = response.message;
+                } else if (response.content && typeof response.content === 'string') {
+                    responseText = response.content;
+                } else {
+                    responseText = JSON.stringify(response);
+                }
+                
+                aiMessage.textContent = responseText;
                 chatMessages.appendChild(aiMessage);
                 
                 // If the response contains HTML, try to extract and apply it
-                const htmlMatch = response.message?.match(/```html\n([\s\S]*?)\n```/) || response.match(/<html[\s\S]*<\/html>/);
+                const htmlMatch = responseText.match(/```html\n([\s\S]*?)\n```/) || responseText.match(/<html[\s\S]*<\/html>/);
                 if (htmlMatch) {
                     const newHTML = htmlMatch[1] || htmlMatch[0];
                     if (monacoEditor) {
