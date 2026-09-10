@@ -68,10 +68,10 @@
 
         /* View visibility */
         .view {
-            display: none !important;
+            display: none;
         }
         .view.active {
-            display: block !important;
+            display: flex;
         }
 
         /* Visual Editor Styles */
@@ -412,13 +412,19 @@
         function showView(viewName) {
             // Hide all views
             document.querySelectorAll('.view').forEach(view => {
-                view.classList.remove('active');
+                view.style.display = 'none';
             });
             
-            // Show selected view
+            // Show selected view with appropriate display type
             const targetView = document.getElementById(viewName + 'View');
             if (targetView) {
-                targetView.classList.add('active');
+                if (viewName === 'login') {
+                    targetView.style.display = 'flex';
+                } else if (viewName === 'visualEditor') {
+                    targetView.style.display = 'flex';
+                } else {
+                    targetView.style.display = 'block';
+                }
             }
             
             // Update navigation
