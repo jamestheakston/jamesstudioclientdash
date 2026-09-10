@@ -1,5 +1,16 @@
 # Supabase Setup Guide
 
+## Use Case: Client Dashboard for James Studio Projects
+
+This dashboard is designed for clients who need to access and edit websites that James Studio has created for them. 
+
+**How it works:**
+- James Studio owns the GitHub repositories
+- Clients are granted access to specific repos via the `access` table
+- All GitHub operations use James Studio's PAT (stored securely in Edge Function)
+- Clients can only see/edit repos they've been granted permission to access
+- Clients never see James Studio's GitHub credentials
+
 ## Authentication Setup
 
 ### Enable Email Authentication
@@ -62,12 +73,36 @@ INSERT INTO access (email, repo_name) VALUES
     ('another-client@example.com', 'jamestheakston/montecure-dogs');
 ```
 
-### How It Works
+### How It Works for Client Access
 
-1. When a user logs in, the dashboard fetches their email from the authentication
-2. The system queries the `access` table for all `repo_name` values associated with that email
-3. When fetching GitHub repositories, the system filters to show only repos that match the user's access list
-4. If the access table is empty or the user has no access records, they will see no repositories (in production mode)
+1. **James Studio Setup**: You add entries to the `access` table mapping client emails to specific repository names
+2. **Client Login**: Client signs up/logs in with their email
+3. **Access Check**: System queries the `access` table for repos assigned to that client's email
+4. **GitHub Operations**: All GitHub API calls use James Studio's PAT (via Edge Function)
+5. **Repo Filtering**: Client only sees repos they've been granted access to
+6. **Editing**: Client can edit content using the visual editor
+7. **Saving**: Changes are committed to the repository using James Studio's credentials
+
+### Example Scenario
+
+**James Studio has 3 clients:**
+- Client A (alice@example.com) → Access to `jamestheakston/alice-website`
+- Client B (bob@example.com) → Access to `jamestheakston/bob-website` 
+- Client C (charlie@example.com) → Access to both `jamestheakston/alice-website` and `jamestheakston/bob-website`
+
+**Access table entries:**
+```sql
+INSERT INTO access (email, repo_name) VALUES
+    ('alice@example.com', 'jamestheakston/alice-website'),
+    ('bob@example.com', 'jamestheakston/bob-website'),
+    ('charlie@example.com', 'jamestheakston/alice-website'),
+    ('charlie@example.com', 'jamestheakston/bob-website');
+```
+
+**Result:**
+- Alice only sees alice-website
+- Bob only sees bob-website  
+- Charlie sees both websites
 
 ### Usage Notes
 

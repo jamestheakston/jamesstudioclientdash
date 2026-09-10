@@ -1,8 +1,15 @@
 # Edge Function Setup Guide
 
-## Security Architecture
+## Security Architecture for Client Dashboard
 
-Instead of exposing your GitHub Personal Access Token (PAT) in client-side code, we use Supabase Edge Functions to securely proxy GitHub API requests. This keeps your credentials server-side and protected.
+This Edge Function enables clients to edit their websites without exposing James Studio's GitHub credentials. The architecture:
+
+- **James Studio's GitHub PAT**: Stored securely in Supabase environment variables
+- **Client Access**: Clients only see repos they've been granted access to via the `access` table
+- **Secure Proxy**: All GitHub API calls go through this Edge Function
+- **No Client Credentials**: Clients never see or need their own GitHub tokens
+
+This allows clients to edit their websites while James Studio maintains full control over the repositories.
 
 ## Setup Instructions
 

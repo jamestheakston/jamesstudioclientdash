@@ -15,12 +15,13 @@ serve(async (req) => {
     const requestBody = await req.json()
     const { endpoint, method = 'GET', body: requestBodyData } = requestBody
     
-    // Get GitHub PAT from environment variable
+    // Get James Studio's GitHub PAT from environment variable
+    // This allows clients to edit their sites without needing their own GitHub credentials
     const githubPat = Deno.env.get('GITHUB_PAT')
     
     if (!githubPat) {
       return new Response(
-        JSON.stringify({ error: 'GitHub PAT not configured' }),
+        JSON.stringify({ error: 'GitHub PAT not configured - contact James Studio' }),
         { 
           status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -31,7 +32,7 @@ serve(async (req) => {
     // Construct GitHub API URL
     const githubUrl = `https://api.github.com${endpoint}`
 
-    // Make request to GitHub API
+    // Make request to GitHub API using James Studio's credentials
     const githubHeaders = {
       'Authorization': `token ${githubPat}`,
       'Accept': 'application/vnd.github.v3+json',
