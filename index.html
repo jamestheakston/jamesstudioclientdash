@@ -1003,7 +1003,7 @@
             }, 500);
             
             // Use Puter AI to process the request
-            puter.ai.chat(message + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nIMPORTANT: Only return HTML code in a ```html code block if you have made changes to the HTML. If you are just providing guidance or asking questions, do NOT include the HTML in your response. The user already knows the current HTML.').then((response) => {
+            puter.ai.chat(message + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nIMPORTANT: Only return HTML code in a ```html code block if you have made changes to the HTML. If you are just providing guidance or asking questions, do NOT include the HTML in your response. The user already knows the current HTML.\n\nYou are a website editing assistant. Only help with tasks related to editing, modifying, or improving the website HTML/CSS/JavaScript. If the user asks about topics unrelated to website editing (like general knowledge questions, math, geography, etc.), respond with: "I\'m sorry, but I can\'t help you with that. I\'m designed to help you edit and improve your website content. Please ask me about making changes to your website, styling, layout, or other web development related tasks."').then((response) => {
                 // Clear dot interval
                 clearInterval(dotInterval);
                 
