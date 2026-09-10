@@ -372,6 +372,17 @@
         </div>
     </div>
 
+    <!-- Loading Modal -->
+    <div id="loadingModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl text-center">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#1A1A1A] mb-4"></div>
+            <h3 class="text-xl font-bold mb-2">Publishing Changes</h3>
+            <p class="text-neutral-600 leading-relaxed">
+                Please wait while we publish your changes to your live website...
+            </p>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="border-t border-[#1A1A1A]/10 py-8 px-6 md:px-12 bg-white">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -912,6 +923,7 @@
         // Confirm and execute save
         async function confirmSave() {
             document.getElementById('saveModal').classList.add('hidden');
+            document.getElementById('loadingModal').classList.remove('hidden');
             
             if (SupabaseClient && currentProject && monacoEditor) {
                 try {
@@ -937,12 +949,15 @@
                     // Update the stored SHA with the new one from the commit
                     currentProject.fileSha = commitData.content.sha;
                     
+                    document.getElementById('loadingModal').classList.add('hidden');
                     alert('Changes published successfully to your live website!');
                 } catch (error) {
                     console.error('Error saving to GitHub:', error);
+                    document.getElementById('loadingModal').classList.add('hidden');
                     alert('Failed to publish changes: ' + error.message);
                 }
             } else {
+                document.getElementById('loadingModal').classList.add('hidden');
                 alert('Unable to save changes. Please contact support.');
             }
         }
