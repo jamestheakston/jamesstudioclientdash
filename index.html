@@ -68,10 +68,10 @@
 
         /* View visibility */
         .view {
-            display: none;
+            display: none !important;
         }
         .view.active {
-            display: block;
+            display: block !important;
         }
 
         /* Visual Editor Styles */
@@ -416,7 +416,10 @@
             });
             
             // Show selected view
-            document.getElementById(viewName + 'View').classList.add('active');
+            const targetView = document.getElementById(viewName + 'View');
+            if (targetView) {
+                targetView.classList.add('active');
+            }
             
             // Update navigation
             const userMenu = document.getElementById('userMenu');
@@ -427,6 +430,12 @@
                 userMenu.classList.remove('hidden');
                 userMenu.classList.add('flex');
             }
+            
+            // Close edit panel when switching views
+            document.getElementById('editPanel').classList.add('hidden');
+            document.querySelectorAll('.editable-element').forEach(el => {
+                el.classList.remove('selected');
+            });
         }
 
         // Login Form Handling
