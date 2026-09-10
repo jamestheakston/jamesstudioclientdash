@@ -1119,25 +1119,41 @@
             chatMessages.appendChild(thinkingIndicator);
             chatMessages.scrollTop = chatMessages.scrollHeight;
             
-            // Cycle dots
+            // Cycle through different thinking messages with dots
+            const thinkingMessages = [
+                'Thinking',
+                'Building your next big thing',
+                'Weighing options',
+                'Surfing the web',
+                'Crafting your code',
+                'Analyzing',
+                'Generating ideas',
+                'Processing'
+            ];
+            let messageIndex = 0;
             let dotCount = 0;
-            const dotInterval = setInterval(() => {
+            const messageInterval = setInterval(() => {
                 const indicator = document.getElementById('thinkingIndicator');
                 if (!indicator) {
-                    clearInterval(dotInterval);
+                    clearInterval(messageInterval);
                     return;
                 }
                 const textSpan = indicator.querySelector('span');
                 if (textSpan) {
+                    // Cycle dots every 500ms
                     dotCount = (dotCount + 1) % 4;
-                    textSpan.textContent = 'Thinking' + '.'.repeat(dotCount);
+                    // Change message every 3 dot cycles (1.5 seconds)
+                    if (dotCount === 0) {
+                        messageIndex = (messageIndex + 1) % thinkingMessages.length;
+                    }
+                    textSpan.textContent = thinkingMessages[messageIndex] + '.'.repeat(dotCount);
                 }
             }, 500);
             
             // Use Puter AI to process the request
             puter.ai.chat(message + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nIMPORTANT: Only return HTML code in a ```html code block if you have made changes to the HTML. If you are just providing guidance or asking questions, do NOT include the HTML in your response. The user already knows the current HTML.\n\nYou are a website editing assistant. Only help with tasks related to editing, modifying, or improving the website HTML/CSS/JavaScript. If the user asks about topics unrelated to website editing (like general knowledge questions, math, geography, etc.), respond with: "I\'m sorry, but I can\'t help you with that. I\'m designed to help you edit and improve your website content. Please ask me about making changes to your website, styling, layout, or other web development related tasks."').then((response) => {
-                // Clear dot interval
-                clearInterval(dotInterval);
+                // Clear message interval
+                clearInterval(messageInterval);
                 
                 // Remove thinking indicator
                 const indicator = document.getElementById('thinkingIndicator');
@@ -1209,8 +1225,8 @@
             }).catch((error) => {
                 console.error('Puter AI error:', error);
                 
-                // Clear dot interval
-                clearInterval(dotInterval);
+                // Clear message interval
+                clearInterval(messageInterval);
                 
                 // Remove thinking indicator
                 const indicator = document.getElementById('thinkingIndicator');
@@ -1604,6 +1620,9 @@
                     }
                 });
                 
+                console.log('Draft file data:', draftFileData);
+                console.log('Draft error:', draftError);
+                
                 if (draftError) throw draftError;
                 
                 // Commit to draft branch only
@@ -1620,6 +1639,9 @@
                     }
                 });
                 
+                console.log('Commit data:', commitData);
+                console.log('Commit error:', commitError);
+                
                 if (commitError) throw commitError;
                 
                 // Update the stored SHA
@@ -1628,7 +1650,8 @@
                 alert('Draft saved successfully!');
             } catch (error) {
                 console.error('Error saving draft:', error);
-                alert('Error saving draft: ' + error.message);
+                console.error('Error details:', JSON.stringify(error, null, 2));
+                alert('Error saving draft: ' + (error.message || JSON.stringify(error)));
             }
         }
 
