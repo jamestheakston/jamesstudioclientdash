@@ -1003,7 +1003,7 @@
             }, 500);
             
             // Use Puter AI to process the request
-            puter.ai.chat(message + '\n\nHere is the current website HTML:\n' + currentHTML).then((response) => {
+            puter.ai.chat(message + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nIMPORTANT: Only return HTML code in a ```html code block if you have made changes to the HTML. If you are just providing guidance or asking questions, do NOT include the HTML in your response. The user already knows the current HTML.').then((response) => {
                 // Clear dot interval
                 clearInterval(dotInterval);
                 
