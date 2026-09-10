@@ -441,9 +441,9 @@
                     </div>
 
                     <!-- Panel Content -->
-                    <div id="aiPanelContent" class="flex-1 p-4">
+                    <div id="aiPanelContent" class="flex-1 flex flex-col overflow-hidden">
                         <!-- Authorization Screen -->
-                        <div id="aiAuthScreen" class="text-center py-8">
+                        <div id="aiAuthScreen" class="flex-1 overflow-y-auto p-4 text-center">
                             <img src="https://assets.puter.site/puter-logo.png" alt="Puter" class="w-16 h-16 mx-auto mb-4">
                             <h4 class="text-lg font-bold mb-2">Powered by Puter</h4>
                             <p class="text-sm text-neutral-600 mb-6 leading-relaxed">
@@ -456,12 +456,12 @@
 
                         <!-- Chat Screen (hidden until authorized) -->
                         <div id="aiChatScreen" class="hidden flex flex-col h-full">
-                            <div id="aiChatMessages" class="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
+                            <div id="aiChatMessages" class="flex-1 overflow-y-auto p-4 space-y-4">
                                 <div class="bg-[#FAF9F6] p-3 rounded-lg">
-                                    <p class="text-sm">Hello! I'm your AI assistant. I can help you edit your website content. What would you like to change?</p>
+                                    <p class="text-sm whitespace-pre-wrap">Hello! I'm your AI assistant. I can help you edit your website content. What would you like to change?</p>
                                 </div>
                             </div>
-                            <div class="border-t border-[#1A1A1A]/10 pt-4">
+                            <div class="border-t border-[#1A1A1A]/10 p-4">
                                 <div class="flex gap-2 mb-3">
                                     <input type="text" id="aiChatInput" placeholder="Ask me to edit something..." class="flex-1 bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A1A1A]">
                                     <button onclick="sendAIMessage()" class="bg-[#1A1A1A] text-[#FAF9F6] px-4 py-2 rounded-lg text-sm font-bold hover:bg-neutral-800 transition-colors">
@@ -486,6 +486,9 @@
                     </button>
                     <button onclick="switchEditorTab('code')" id="tab-code" class="px-4 py-3 text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors">
                         Code Editor
+                    </button>
+                    <button onclick="switchEditorTab('preview')" id="tab-preview" class="px-4 py-3 text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors">
+                        Preview
                     </button>
                 </div>
 
@@ -512,6 +515,13 @@
             <!-- Code Editor Panel -->
             <div id="panel-code" class="flex-1 bg-[#1E1E1E] p-4 overflow-auto hidden">
                 <div id="monacoEditorContainer" class="rounded-xl overflow-hidden" style="height: calc(100vh - 260px);"></div>
+            </div>
+
+            <!-- Preview Panel -->
+            <div id="panel-preview" class="flex-1 bg-[#FAF9F6] p-4 overflow-auto hidden">
+                <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden" style="height: calc(100vh - 260px);">
+                    <iframe id="previewFrame" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
+                </div>
             </div>
         </div>
     </main>
@@ -846,33 +856,59 @@
             }
         }
         
+        // Update preview iframe with current HTML
+        function updatePreview() {
+            const previewFrame = document.getElementById('previewFrame');
+            const currentHTML = monacoEditor ? monacoEditor.getValue() : '';
+            
+            if (previewFrame && currentHTML) {
+                const previewDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
+                previewDoc.open();
+                previewDoc.write(currentHTML);
+                previewDoc.close();
+            }
+        }
+        
         // Switch between visual and code editor tabs
         function switchEditorTab(tab) {
             const visualPanel = document.getElementById('panel-visual');
             const codePanel = document.getElementById('panel-code');
+            const previewPanel = document.getElementById('panel-preview');
             const visualTab = document.getElementById('tab-visual');
             const codeTab = document.getElementById('tab-code');
+            const previewTab = document.getElementById('tab-preview');
+            
+            // Hide all panels
+            visualPanel.classList.add('hidden');
+            codePanel.classList.add('hidden');
+            previewPanel.classList.add('hidden');
+            
+            // Reset all tabs
+            visualTab.classList.remove('border-[#1A1A1A]', 'text-[#1A1A1A]');
+            visualTab.classList.add('border-transparent', 'text-neutral-400');
+            codeTab.classList.remove('border-[#1A1A1A]', 'text-[#1A1A1A]');
+            codeTab.classList.add('border-transparent', 'text-neutral-400');
+            previewTab.classList.remove('border-[#1A1A1A]', 'text-[#1A1A1A]');
+            previewTab.classList.add('border-transparent', 'text-neutral-400');
             
             if (tab === 'visual') {
                 visualPanel.classList.remove('hidden');
-                codePanel.classList.add('hidden');
                 visualTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
                 visualTab.classList.remove('border-transparent', 'text-neutral-400');
-                codeTab.classList.remove('border-[#1A1A1A]', 'text-[#1A1A1A]');
-                codeTab.classList.add('border-transparent', 'text-neutral-400');
-                // Update visual preview when switching to visual tab
                 updateVisualPreview();
-            } else {
-                visualPanel.classList.add('hidden');
+            } else if (tab === 'code') {
                 codePanel.classList.remove('hidden');
                 codeTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
                 codeTab.classList.remove('border-transparent', 'text-neutral-400');
-                visualTab.classList.remove('border-[#1A1A1A]', 'text-[#1A1A1A]');
-                visualTab.classList.add('border-transparent', 'text-neutral-400');
                 // Resize Monaco editor when showing
                 if (monacoEditor) {
                     monacoEditor.layout();
                 }
+            } else if (tab === 'preview') {
+                previewPanel.classList.remove('hidden');
+                previewTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
+                previewTab.classList.remove('border-transparent', 'text-neutral-400');
+                updatePreview();
             }
         }
         
@@ -987,25 +1023,35 @@
             chatMessages.appendChild(thinkingIndicator);
             chatMessages.scrollTop = chatMessages.scrollHeight;
             
-            // Cycle dots
-            let dotCount = 0;
-            const dotInterval = setInterval(() => {
+            // Cycle through different thinking messages
+            const thinkingMessages = [
+                'Thinking',
+                'Building your next big thing',
+                'Weighing options',
+                'Surfing the web',
+                'Crafting your code',
+                'Analyzing',
+                'Generating ideas',
+                'Processing'
+            ];
+            let messageIndex = 0;
+            const messageInterval = setInterval(() => {
                 const indicator = document.getElementById('thinkingIndicator');
                 if (!indicator) {
-                    clearInterval(dotInterval);
+                    clearInterval(messageInterval);
                     return;
                 }
                 const textSpan = indicator.querySelector('span');
                 if (textSpan) {
-                    dotCount = (dotCount + 1) % 4;
-                    textSpan.textContent = 'Thinking' + '.'.repeat(dotCount);
+                    messageIndex = (messageIndex + 1) % thinkingMessages.length;
+                    textSpan.textContent = thinkingMessages[messageIndex];
                 }
-            }, 500);
+            }, 1500);
             
             // Use Puter AI to process the request
             puter.ai.chat(message + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nIMPORTANT: Only return HTML code in a ```html code block if you have made changes to the HTML. If you are just providing guidance or asking questions, do NOT include the HTML in your response. The user already knows the current HTML.\n\nYou are a website editing assistant. Only help with tasks related to editing, modifying, or improving the website HTML/CSS/JavaScript. If the user asks about topics unrelated to website editing (like general knowledge questions, math, geography, etc.), respond with: "I\'m sorry, but I can\'t help you with that. I\'m designed to help you edit and improve your website content. Please ask me about making changes to your website, styling, layout, or other web development related tasks."').then((response) => {
-                // Clear dot interval
-                clearInterval(dotInterval);
+                // Clear message interval
+                clearInterval(messageInterval);
                 
                 // Remove thinking indicator
                 const indicator = document.getElementById('thinkingIndicator');
@@ -1014,7 +1060,7 @@
                 }
                 
                 const aiMessage = document.createElement('div');
-                aiMessage.className = 'bg-[#FAF9F6] p-3 rounded-lg';
+                aiMessage.className = 'bg-[#FAF9F6] p-3 rounded-lg text-sm whitespace-pre-wrap';
                 
                 // Handle different response formats
                 let responseText = '';
@@ -1074,8 +1120,8 @@
             }).catch((error) => {
                 console.error('Puter AI error:', error);
                 
-                // Clear dot interval
-                clearInterval(dotInterval);
+                // Clear message interval
+                clearInterval(messageInterval);
                 
                 // Remove thinking indicator
                 const indicator = document.getElementById('thinkingIndicator');
