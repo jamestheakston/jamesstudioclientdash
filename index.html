@@ -958,6 +958,12 @@
             if (targetView) {
                 if (viewName === 'login') {
                     targetView.style.display = 'flex';
+                    // Clear project-specific content when showing login
+                    document.getElementById('projectTitle').textContent = 'Project Name';
+                    document.getElementById('projectDescription').textContent = 'Project description goes here';
+                    document.getElementById('projectRepo').textContent = 'repository-name';
+                    document.getElementById('projectLastUpdated').textContent = '-';
+                    document.getElementById('editorProjectName').textContent = 'Project Name';
                 } else if (viewName === 'visualEditor') {
                     targetView.style.display = 'flex';
                 } else {
