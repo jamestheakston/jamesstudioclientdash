@@ -1627,20 +1627,67 @@
                 const repo = currentProject.repo;
                 const filePath = 'index.html';
                 
-                // First, get the current SHA from draft branch
-                const { data: draftFileData, error: draftError } = await SupabaseClient.functions.invoke('github-api', {
-                    body: { 
-                        endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
-                        method: 'GET'
-                    }
-                });
+                // First, try to get the current SHA from draft branch
+                let draftFileData;
+                let draftError;
+                
+                try {
+                    const result = await SupabaseClient.functions.invoke('github-api', {
+                        body: { 
+                            endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
+                            method: 'GET'
+                        }
+                    });
+                    draftFileData = result.data;
+                    draftError = result.error;
+                } catch (e) {
+                    draftError = e;
+                }
                 
                 console.log('Draft file data:', draftFileData);
                 console.log('Draft error:', draftError);
                 
-                if (draftError) throw draftError;
+                // If draft branch doesn't exist (404), create it from main
+                if (draftError || !draftFileData) {
+                    console.log('Draft branch not found, creating from main branch');
+                    
+                    // Get the file from main branch
+                    const { data: mainFileData, error: mainError } = await SupabaseClient.functions.invoke('github-api', {
+                        body: { 
+                            endpoint: `/repos/${repo}/contents/${filePath}`,
+                            method: 'GET'
+                        }
+                    });
+                    
+                    if (mainError) throw mainError;
+                    
+                    // Get the latest commit SHA from main
+                    const { data: refData, error: refError } = await SupabaseClient.functions.invoke('github-api', {
+                        body: {
+                            endpoint: `/repos/${repo}/git/refs/heads/main`,
+                            method: 'GET'
+                        }
+                    });
+                    
+                    if (refError) throw refError;
+                    
+                    // Create draft branch from main
+                    await SupabaseClient.functions.invoke('github-api', {
+                        body: {
+                            endpoint: `/repos/${repo}/git/refs`,
+                            method: 'POST',
+                            body: {
+                                ref: `refs/heads/draft`,
+                                sha: refData.object.sha
+                            }
+                        }
+                    });
+                    
+                    // Use the main file SHA for the first commit
+                    draftFileData = mainFileData;
+                }
                 
-                // Commit to draft branch only
+                // Commit to draft branch
                 const { data: commitData, error: commitError } = await SupabaseClient.functions.invoke('github-api', {
                     body: { 
                         endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
@@ -1698,14 +1745,64 @@
                 
                 if (!newContent) return;
                 
-                const { data: draftFileData, error: draftError } = await SupabaseClient.functions.invoke('github-api', {
-                    body: { 
-                        endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
-                        method: 'GET'
-                    }
-                });
+                // Try to get draft file data
+                let draftFileData;
+                let draftError;
                 
-                if (draftError) return;
+                try {
+                    const result = await SupabaseClient.functions.invoke('github-api', {
+                        body: { 
+                            endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
+                            method: 'GET'
+                        }
+                    });
+                    draftFileData = result.data;
+                    draftError = result.error;
+                } catch (e) {
+                    draftError = e;
+                }
+                
+                // If draft branch doesn't exist, create it from main
+                if (draftError || !draftFileData) {
+                    try {
+                        // Get the file from main branch
+                        const { data: mainFileData, error: mainError } = await SupabaseClient.functions.invoke('github-api', {
+                            body: { 
+                                endpoint: `/repos/${repo}/contents/${filePath}`,
+                                method: 'GET'
+                            }
+                        });
+                        
+                        if (mainError) return;
+                        
+                        // Get the latest commit SHA from main
+                        const { data: refData, error: refError } = await SupabaseClient.functions.invoke('github-api', {
+                            body: {
+                                endpoint: `/repos/${repo}/git/refs/heads/main`,
+                                method: 'GET'
+                            }
+                        });
+                        
+                        if (refError) return;
+                        
+                        // Create draft branch from main
+                        await SupabaseClient.functions.invoke('github-api', {
+                            body: {
+                                endpoint: `/repos/${repo}/git/refs`,
+                                method: 'POST',
+                                body: {
+                                    ref: `refs/heads/draft`,
+                                    sha: refData.object.sha
+                                }
+                            }
+                        });
+                        
+                        draftFileData = mainFileData;
+                    } catch (e) {
+                        console.error('Autosave branch creation error:', e);
+                        return;
+                    }
+                }
                 
                 await SupabaseClient.functions.invoke('github-api', {
                     body: { 
