@@ -616,9 +616,53 @@
         }
 
         // Open Visual Editor
-        function openVisualEditor() {
+        async function openVisualEditor() {
             document.getElementById('editorProjectName').textContent = currentProject.name;
+            
+            // Show loading state
+            const editorPreview = document.getElementById('editorPreview');
+            editorPreview.innerHTML = '<div class="text-center py-12"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A1A1A]"></div><p class="text-neutral-500 mt-4">Loading website content...</p></div>';
+            
             showView('visualEditor');
+            
+            // Fetch the actual index.html from the GitHub repo
+            try {
+                const repo = currentProject.repo;
+                const filePath = 'index.html';
+                
+                const { data: fileData, error } = await SupabaseClient.functions.invoke('github-api', {
+                    body: { 
+                        endpoint: `/repos/${repo}/contents/${filePath}`,
+                        method: 'GET'
+                    }
+                });
+                
+                if (error) throw error;
+                
+                // Decode the base64 content
+                const decodedContent = atob(fileData.content);
+                
+                // Store the SHA for saving changes later
+                currentProject.fileSha = fileData.sha;
+                
+                // Load the content into the editor preview
+                // We'll use an iframe to safely render the HTML
+                editorPreview.innerHTML = `
+                    <div class="w-full h-full">
+                        <div class="mb-4 text-xs text-neutral-500">Editing: index.html</div>
+                        <textarea id="htmlEditor" class="w-full h-96 bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-[#1A1A1A] transition-colors resize-none">${decodedContent}</textarea>
+                    </div>
+                `;
+                
+                // Remove the editable-element styling since we're now editing raw HTML
+                document.querySelectorAll('.editable-element').forEach(el => {
+                    el.classList.remove('editable-element');
+                });
+                
+            } catch (error) {
+                console.error('Error loading file from GitHub:', error);
+                editorPreview.innerHTML = '<p class="text-neutral-500">Error loading website content. Please contact support.</p>';
+            }
         }
 
         // Edit Element
@@ -703,22 +747,14 @@
         async function saveChanges() {
             if (SupabaseClient && currentProject) {
                 try {
-                    // Get the current content of the file
                     const repo = currentProject.repo;
-                    const filePath = 'index.html'; // Assuming we're editing index.html
+                    const filePath = 'index.html';
+                    const newContent = document.getElementById('htmlEditor').value;
                     
-                    // Get the current file content and SHA via Edge Function
-                    const { data: fileData, error: fetchError } = await SupabaseClient.functions.invoke('github-api', {
-                        body: { 
-                            endpoint: `/repos/${repo}/contents/${filePath}`,
-                            method: 'GET'
-                        }
-                    });
-                    
-                    if (fetchError) throw fetchError;
-                    
-                    // Get the modified content from the editor
-                    const editorContent = document.getElementById('editorPreview').innerHTML;
+                    if (!newContent) {
+                        alert('No content to save');
+                        return;
+                    }
                     
                     // Create a commit via Edge Function
                     const { data: commitData, error: commitError } = await SupabaseClient.functions.invoke('github-api', {
@@ -727,13 +763,16 @@
                             method: 'PUT',
                             body: {
                                 message: 'Update website content via James Studio Client Dashboard',
-                                content: btoa(editorContent), // Base64 encode the content
-                                sha: fileData.sha
+                                content: btoa(newContent), // Base64 encode the content
+                                sha: currentProject.fileSha
                             }
                         }
                     });
                     
                     if (commitError) throw commitError;
+                    
+                    // Update the stored SHA with the new one from the commit
+                    currentProject.fileSha = commitData.content.sha;
                     
                     alert('Changes saved successfully to GitHub!');
                 } catch (error) {
