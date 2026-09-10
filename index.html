@@ -320,8 +320,8 @@
                             Project description goes here
                         </p>
                     </div>
-                    <button onclick="openVisualEditor()" class="bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
-                        Edit Site
+                    <button id="editSiteBtn" onclick="openVisualEditor()" class="bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2">
+                        <span>Edit Site</span>
                     </button>
                 </div>
             </div>
@@ -642,7 +642,7 @@
                     value: '',
                     language: 'html',
                     theme: 'vs-dark',
-                    automaticLayout: true,
+                    automaticLayout: false,
                     fontSize: 14,
                     minimap: { enabled: false },
                     scrollBeyondLastLine: false,
@@ -655,6 +655,9 @@
                         indentation: true
                     }
                 });
+                
+                // Force initial layout
+                monacoEditor.layout();
                 
                 // Update visual preview when code changes
                 monacoEditor.onDidChangeModelContent(() => {
@@ -923,9 +926,9 @@
                 codePanel.classList.remove('hidden');
                 codeTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
                 codeTab.classList.remove('border-transparent', 'text-neutral-400');
-                // Resize Monaco editor when showing
+                // Resize Monaco editor when showing with delay to ensure container has dimensions
                 if (monacoEditor) {
-                    monacoEditor.layout();
+                    setTimeout(() => monacoEditor.layout(), 100);
                 }
             } else if (tab === 'preview') {
                 previewPanel.classList.remove('hidden');
@@ -1505,6 +1508,11 @@
             
             document.getElementById('editorProjectName').textContent = currentProject.name;
             
+            // Show loading state on button
+            const editBtn = document.getElementById('editSiteBtn');
+            editBtn.innerHTML = '<div class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div><span>Loading...</span>';
+            editBtn.disabled = true;
+            
             // Fetch the actual index.html from the GitHub repo's draft branch BEFORE showing editor
             try {
                 const repo = currentProject.repo;
@@ -1570,9 +1578,16 @@
                 // Update visual preview
                 updateVisualPreview();
                 
+                // Reset button state
+                editBtn.innerHTML = '<span>Edit Site</span>';
+                editBtn.disabled = false;
+                
             } catch (error) {
                 console.error('Error loading file from GitHub:', error);
                 alert('Error loading website content. Please contact support.');
+                // Reset button state on error
+                editBtn.innerHTML = '<span>Edit Site</span>';
+                editBtn.disabled = false;
             }
         }
         // Show save confirmation modal
