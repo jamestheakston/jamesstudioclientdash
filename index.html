@@ -1611,19 +1611,25 @@
 
         // Save draft to draft branch without merging to main
         async function saveDraft() {
-            if (!monacoEditor) {
-                alert('Editor not initialized');
+            if (isSaving) {
+                alert('A save operation is already in progress. Please wait.');
                 return;
             }
             
-            const newContent = monacoEditor.getValue();
-            
-            if (!newContent) {
-                alert('No content to save');
-                return;
-            }
+            isSaving = true;
             
             try {
+                if (!monacoEditor) {
+                    alert('Editor not initialized');
+                    return;
+                }
+                
+                const newContent = monacoEditor.getValue();
+                
+                if (!newContent) {
+                    alert('No content to save');
+                    return;
+                }
                 const repo = currentProject.repo;
                 const filePath = 'index.html';
                 
@@ -1764,8 +1770,9 @@
                     console.log(`SHA mismatch on attempt ${retries + 1}, retrying...`);
                     retries++;
                     
-                    // Wait a bit before retrying
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    // Exponential backoff: 500ms, 1000ms, 2000ms
+                    const backoffTime = 500 * Math.pow(2, retries - 1);
+                    await new Promise(resolve => setTimeout(resolve, backoffTime));
                 }
                 
                 console.log('Commit data:', commitData);
@@ -1781,18 +1788,21 @@
                 console.error('Error saving draft:', error);
                 console.error('Error details:', JSON.stringify(error, null, 2));
                 alert('Error saving draft: ' + (error.message || JSON.stringify(error)));
+            } finally {
+                isSaving = false;
             }
         }
 
         // Autosave to draft branch every 30 seconds
         let autosaveInterval = null;
+        let isSaving = false; // Mutex lock to prevent concurrent saves
         
         function startAutosave() {
             if (autosaveInterval) {
                 clearInterval(autosaveInterval);
             }
             autosaveInterval = setInterval(() => {
-                if (monacoEditor && currentProject) {
+                if (monacoEditor && currentProject && !isSaving) {
                     saveDraftSilent();
                 }
             }, 30000); // 30 seconds
@@ -1806,6 +1816,13 @@
         }
         
         async function saveDraftSilent() {
+            if (isSaving) {
+                console.log('Autosave skipped: save already in progress');
+                return;
+            }
+            
+            isSaving = true;
+            
             try {
                 const repo = currentProject.repo;
                 const filePath = 'index.html';
@@ -1924,12 +1941,16 @@
                     }
                     
                     retries++;
-                    await new Promise(resolve => setTimeout(resolve, 300));
+                    // Exponential backoff: 300ms, 600ms
+                    const backoffTime = 300 * Math.pow(2, retries - 1);
+                    await new Promise(resolve => setTimeout(resolve, backoffTime));
                 }
                 
                 console.log('Autosaved draft');
             } catch (error) {
                 console.error('Autosave error:', error);
+            } finally {
+                isSaving = false;
             }
         }
 
