@@ -1030,17 +1030,29 @@
                     responseText = JSON.stringify(response);
                 }
                 
-                aiMessage.textContent = responseText;
+                // Extract HTML code block if present
+                const htmlMatch = responseText.match(/```html\n([\s\S]*?)\n```/);
+                let displayText = responseText;
+                let extractedHTML = null;
+                
+                if (htmlMatch) {
+                    extractedHTML = htmlMatch[1];
+                    // Remove the HTML code block from the displayed text
+                    displayText = responseText.replace(/```html\n[\s\S]*?\n```/, '').trim();
+                }
+                
+                // If no text left after removing HTML, show a default message
+                if (!displayText || displayText.length < 10) {
+                    displayText = "I've updated the website HTML with your changes.";
+                }
+                
+                aiMessage.textContent = displayText;
                 chatMessages.appendChild(aiMessage);
                 
-                // If the response contains HTML, try to extract and apply it
-                const htmlMatch = responseText.match(/```html\n([\s\S]*?)\n```/) || responseText.match(/<html[\s\S]*<\/html>/);
-                if (htmlMatch) {
-                    const newHTML = htmlMatch[1] || htmlMatch[0];
-                    if (monacoEditor) {
-                        monacoEditor.setValue(newHTML);
-                        updateVisualPreview();
-                    }
+                // Apply extracted HTML to editor
+                if (extractedHTML && monacoEditor) {
+                    monacoEditor.setValue(extractedHTML);
+                    updateVisualPreview();
                 }
                 
                 // Scroll to bottom
