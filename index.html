@@ -2027,22 +2027,61 @@
                     
                     if (refError) throw refError;
                     
-                    // Merge draft into main
-                    const { error: mergeError } = await SupabaseClient.functions.invoke('github-api', {
-                        body: {
-                            endpoint: `/repos/${repo}/merges`,
-                            method: 'POST',
-                            body: {
-                                head: 'draft',
-                                base: 'main',
-                                commit_message: 'Merge draft changes to main via James Studio'
-                            }
-                        }
-                    });
+                    console.log('Draft commit SHA:', refData.object.sha);
                     
-                    if (mergeError) {
-                        console.warn('Merge failed (might be due to conflicts):', mergeError);
-                        // Continue anyway - the draft was saved successfully
+                    // Merge draft into main
+                    try {
+                        const mergeResult = await SupabaseClient.functions.invoke('github-api', {
+                            body: {
+                                endpoint: `/repos/${repo}/merges`,
+                                method: 'POST',
+                                body: {
+                                    head: 'draft',
+                                    base: 'main',
+                                    commit_message: 'Merge draft changes to main via James Studio'
+                                }
+                            }
+                        });
+                        
+                        console.log('Merge result:', mergeResult);
+                        
+                        if (mergeResult.error) throw mergeResult.error;
+                    } catch (mergeError) {
+                        console.error('Merge error:', mergeError);
+                        console.error('Merge error details:', JSON.stringify(mergeError, null, 2));
+                        
+                        // If merge fails due to conflicts, try to force merge by creating a commit on main
+                        if (mergeError.message && mergeError.message.includes('conflict')) {
+                            console.log('Merge conflict detected, attempting force merge');
+                            
+                            // Get the current main file
+                            const { data: mainFileData, error: mainFileError } = await SupabaseClient.functions.invoke('github-api', {
+                                body: { 
+                                    endpoint: `/repos/${repo}/contents/${filePath}`,
+                                    method: 'GET'
+                                }
+                            });
+                            
+                            if (mainFileError) throw mainFileError;
+                            
+                            // Commit directly to main (force overwrite)
+                            const { data: forceCommitData, error: forceCommitError } = await SupabaseClient.functions.invoke('github-api', {
+                                body: { 
+                                    endpoint: `/repos/${repo}/contents/${filePath}`,
+                                    method: 'PUT',
+                                    body: {
+                                        message: 'Update website content via James Studio Client Dashboard (force merge)',
+                                        content: btoa(newContent),
+                                        sha: mainFileData.sha
+                                    }
+                                }
+                            });
+                            
+                            if (forceCommitError) throw forceCommitError;
+                            console.log('Force merge successful');
+                        } else {
+                            throw mergeError;
+                        }
                     }
                     
                     // Update the stored SHA
