@@ -670,9 +670,18 @@
             if (editPanel) {
                 editPanel.classList.add('hidden');
             }
-            document.querySelectorAll('.editable-element').forEach(el => {
-                el.classList.remove('selected');
-            });
+            
+            // Close visual edit panel
+            const visualEditPanel = document.getElementById('visualEditPanel');
+            if (visualEditPanel) {
+                visualEditPanel.classList.add('hidden');
+            }
+            
+            // Reset visual element selection
+            if (selectedVisualElement) {
+                selectedVisualElement.style.outline = 'none';
+                selectedVisualElement = null;
+            }
         }
 
         // Form toggles
