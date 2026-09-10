@@ -1765,12 +1765,13 @@
                     
                     const result = await SupabaseClient.functions.invoke('github-api', {
                         body: { 
-                            endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
+                            endpoint: `/repos/${repo}/contents/${filePath}`,
                             method: 'PUT',
                             body: {
                                 message: 'Save draft via James Studio Client Dashboard',
                                 content: btoa(newContent),
-                                sha: freshDraftFile.sha
+                                sha: freshDraftFile.sha,
+                                branch: 'draft'
                             }
                         }
                     });
@@ -1941,12 +1942,13 @@
                     
                     const result = await SupabaseClient.functions.invoke('github-api', {
                         body: { 
-                            endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
+                            endpoint: `/repos/${repo}/contents/${filePath}`,
                             method: 'PUT',
                             body: {
                                 message: 'Autosave draft via James Studio Client Dashboard',
                                 content: btoa(newContent),
-                                sha: freshDraftFile.sha
+                                sha: freshDraftFile.sha,
+                                branch: 'draft'
                             }
                         }
                     });
@@ -2005,12 +2007,13 @@
                     // Commit to draft branch
                     const { data: commitData, error: commitError } = await SupabaseClient.functions.invoke('github-api', {
                         body: { 
-                            endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
+                            endpoint: `/repos/${repo}/contents/${filePath}`,
                             method: 'PUT',
                             body: {
                                 message: 'Update website content via James Studio Client Dashboard',
                                 content: btoa(newContent), // Base64 encode the content
-                                sha: draftFileData.sha
+                                sha: draftFileData.sha,
+                                branch: 'draft'
                             }
                         }
                     });
