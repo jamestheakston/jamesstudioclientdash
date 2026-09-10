@@ -433,9 +433,6 @@
         const SUPABASE_URL = 'https://pkqkqijmohbvfxxnzhyy.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_Raqakv5Z4U8Wr7zmzIvLDA_TsnBSFyS';
         
-        // GitHub Configuration
-        const GITHUB_PAT = 'YOUR_GITHUB_PAT'; // Replace with your GitHub Personal Access Token
-        
         // Access control
         let userAccess = []; // Will store repositories user has access to
         
@@ -653,28 +650,26 @@
             }
         }
 
-        // Load Projects from GitHub using PAT
+        // Load Projects from GitHub using Edge Function
         async function loadProjects() {
             const projectsGrid = document.getElementById('projectsGrid');
             
             // First load user's access permissions
             await loadUserAccess();
             
-            if (GITHUB_PAT !== 'YOUR_GITHUB_PAT') {
+            if (SupabaseClient) {
                 try {
-                    // Fetch user's GitHub repositories
-                    const response = await fetch('https://api.github.com/user/repos', {
-                        headers: {
-                            'Authorization': `token ${GITHUB_PAT}`,
-                            'Accept': 'application/vnd.github.v3+json'
+                    // Fetch user's GitHub repositories via Edge Function
+                    const { data, error } = await SupabaseClient.functions.invoke('github-api', {
+                        body: { 
+                            endpoint: '/user/repos',
+                            method: 'GET'
                         }
                     });
                     
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch GitHub repos');
-                    }
+                    if (error) throw error;
                     
-                    const repos = await response.json();
+                    const repos = data;
                     
                     // Filter repos based on user access, or show all if no access restrictions
                     const filteredRepos = userAccess.length > 0 
@@ -693,7 +688,7 @@
                     renderProjects(projects);
                 } catch (error) {
                     console.error('Error loading GitHub repos:', error);
-                    projectsGrid.innerHTML = '<p class="text-neutral-500">Error loading GitHub repositories. Check your PAT.</p>';
+                    projectsGrid.innerHTML = '<p class="text-neutral-500">Error loading GitHub repositories. Please contact support.</p>';
                 }
             } else {
                 // Demo mode
@@ -883,49 +878,41 @@
             selectedElement.classList.remove('selected');
         }
 
-        // Save Changes to GitHub
+        // Save Changes to GitHub via Edge Function
         async function saveChanges() {
-            if (GITHUB_PAT !== 'YOUR_GITHUB_PAT' && currentProject) {
+            if (SupabaseClient && currentProject) {
                 try {
                     // Get the current content of the file
                     const repo = currentProject.repo;
                     const filePath = 'index.html'; // Assuming we're editing index.html
                     
-                    // Get the current file content and SHA
-                    const response = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
-                        headers: {
-                            'Authorization': `token ${GITHUB_PAT}`,
-                            'Accept': 'application/vnd.github.v3+json'
+                    // Get the current file content and SHA via Edge Function
+                    const { data: fileData, error: fetchError } = await SupabaseClient.functions.invoke('github-api', {
+                        body: { 
+                            endpoint: `/repos/${repo}/contents/${filePath}`,
+                            method: 'GET'
                         }
                     });
                     
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch current file');
-                    }
-                    
-                    const fileData = await response.json();
+                    if (fetchError) throw fetchError;
                     
                     // Get the modified content from the editor
                     const editorContent = document.getElementById('editorPreview').innerHTML;
                     
-                    // Create a commit
-                    const commitResponse = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': `token ${GITHUB_PAT}`,
-                            'Accept': 'application/vnd.github.v3+json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            message: 'Update website content via James Studio Client Dashboard',
-                            content: btoa(editorContent), // Base64 encode the content
-                            sha: fileData.sha
-                        })
+                    // Create a commit via Edge Function
+                    const { data: commitData, error: commitError } = await SupabaseClient.functions.invoke('github-api', {
+                        body: { 
+                            endpoint: `/repos/${repo}/contents/${filePath}`,
+                            method: 'PUT',
+                            body: {
+                                message: 'Update website content via James Studio Client Dashboard',
+                                content: btoa(editorContent), // Base64 encode the content
+                                sha: fileData.sha
+                            }
+                        }
                     });
                     
-                    if (!commitResponse.ok) {
-                        throw new Error('Failed to commit changes');
-                    }
+                    if (commitError) throw commitError;
                     
                     alert('Changes saved successfully to GitHub!');
                 } catch (error) {
