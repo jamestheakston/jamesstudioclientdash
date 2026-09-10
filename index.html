@@ -661,6 +661,7 @@
                 
                 // Update visual preview when code changes
                 monacoEditor.onDidChangeModelContent(() => {
+                    hasUnsavedChanges = true;
                     updateVisualPreview();
                 });
             });
@@ -1261,6 +1262,28 @@
         // Update copyright year
         document.getElementById('year').textContent = new Date().getFullYear();
 
+        // Track unsaved changes and ongoing operations
+        let hasUnsavedChanges = false;
+        let abortController = null;
+
+        // Warn before closing if there are unsaved changes
+        window.addEventListener('beforeunload', (e) => {
+            if (hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = '';
+                return '';
+            }
+        });
+
+        // Cancel ongoing operations when starting new ones
+        function cancelOngoingOperations() {
+            if (abortController) {
+                abortController.abort();
+                abortController = null;
+                console.log('Canceled ongoing operation');
+            }
+        }
+
         // View Management
         function showView(viewName) {
             // Hide all views
@@ -1572,6 +1595,7 @@
                             monacoEditor.setValue(decodedContent);
                         }
                     }
+                    hasUnsavedChanges = false;
                 } else if (fileData && fileData.name === 'index.html') {
                     // Load from draft branch
                     const decodedContent = atob(fileData.content);
@@ -1579,6 +1603,7 @@
                     if (monacoEditor) {
                         monacoEditor.setValue(decodedContent);
                     }
+                    hasUnsavedChanges = false;
                 } else {
                     alert('Error: Could not load the correct file from repository.');
                     return;
@@ -1630,6 +1655,9 @@
                 alert('A save operation is already in progress. Please wait.');
                 return;
             }
+            
+            // Cancel any ongoing operations
+            cancelOngoingOperations();
             
             isSaving = true;
             
@@ -1798,6 +1826,8 @@
                 
                 // Update the stored SHA
                 currentProject.fileSha = commitData.content.sha;
+                
+                hasUnsavedChanges = false;
                 
                 alert('Draft saved successfully!');
             } catch (error) {
@@ -1980,11 +2010,15 @@
 
         // Confirm and execute save
         async function confirmSave() {
-            const saveModal = document.getElementById('saveModal');
-            saveModal.querySelector('.modal').classList.remove('show');
-            setTimeout(() => saveModal.classList.add('hidden'), 300);
+            // Cancel any ongoing operations
+            cancelOngoingOperations();
             
+            const modal = document.getElementById('saveModal');
             const loadingModal = document.getElementById('loadingModal');
+            
+            modal.querySelector('.modal').classList.remove('show');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+            
             loadingModal.classList.remove('hidden');
             setTimeout(() => loadingModal.querySelector('.modal').classList.add('show'), 10);
             
@@ -2089,6 +2123,8 @@
                     
                     // Update the stored SHA
                     currentProject.fileSha = commitData.content.sha;
+                    
+                    hasUnsavedChanges = false;
                     
                     loadingModal.querySelector('.modal').classList.remove('show');
                     setTimeout(() => loadingModal.classList.add('hidden'), 300);
