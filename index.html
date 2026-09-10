@@ -204,46 +204,46 @@
 <body class="antialiased selection:bg-[#1A1A1A] selection:text-[#FAF9F6] min-h-screen flex flex-col">
 
     <!-- Navigation -->
-    <nav class="sticky top-0 z-50 bg-[#FAF9F6]/90 backdrop-blur-md border-b border-[#1A1A1A]/10 px-6 py-4 md:px-12 flex justify-between items-center transition-all duration-300">
-        <a href="#" onclick="showView('login')" class="geometric-font text-xl md:text-2xl font-extrabold tracking-tighter flex items-center gap-2">
+    <nav class="sticky top-0 z-50 bg-[#FAF9F6]/90 backdrop-blur-md border-b border-[#1A1A1A]/10 px-4 md:px-6 lg:px-12 py-3 md:py-4 flex justify-between items-center transition-all duration-300">
+        <a href="#" onclick="showView('login')" class="geometric-font text-lg md:text-xl lg:text-2xl font-extrabold tracking-tighter flex items-center gap-2">
             JAMES<span class="text-xs bg-[#1A1A1A] text-[#FAF9F6] px-2 py-0.5 rounded-full uppercase tracking-widest">Studio</span>
         </a>
         
         <!-- Desktop Navigation -->
-        <div class="hidden md:flex items-center gap-8 font-medium text-sm tracking-tight">
+        <div class="hidden md:flex items-center gap-6 md:gap-8 font-medium text-sm tracking-tight">
             <a href="#" onclick="showView('login')" class="hover:text-black/60 transition-colors">Home</a>
             <a href="#" class="hover:text-black/60 transition-colors">Services</a>
             <a href="#" class="hover:text-black/60 transition-colors">Contact</a>
         </div>
         
         <!-- User Menu (hidden by default) -->
-        <div id="userMenu" class="hidden items-center gap-4">
-            <span id="userEmail" class="text-sm text-neutral-600"></span>
+        <div id="userMenu" class="hidden items-center gap-2 md:gap-4">
+            <span id="userEmail" class="text-xs md:text-sm text-neutral-600 truncate max-w-24 md:max-w-none"></span>
             <button onclick="logout()" class="text-xs uppercase font-bold tracking-wider hover:underline">Logout</button>
         </div>
     </nav>
 
     <!-- Login View -->
-    <main id="loginView" class="view active flex-1 flex items-center justify-center px-6 py-12 md:py-20">
+    <main id="loginView" class="view active flex-1 flex items-center justify-center px-4 md:px-6 py-8 md:py-12 lg:py-20">
         <div class="w-full max-w-md">
-            <div class="text-center mb-10">
-                <div class="animate-on-scroll inline-flex items-center gap-2 bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-6">
+            <div class="text-center mb-8 md:mb-10">
+                <div class="animate-on-scroll inline-flex items-center gap-2 bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 md:mb-6">
                     <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
                     Beta Service
                 </div>
-                <h1 class="animate-on-scroll text-4xl md:text-5xl font-extrabold tracking-tight leading-[0.9] text-[#1A1A1A] mb-4">
+                <h1 class="animate-on-scroll text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[0.9] text-[#1A1A1A] mb-3 md:mb-4">
                     Welcome Back
                 </h1>
-                <p class="animate-on-scroll delay-100 text-neutral-600 leading-relaxed">
+                <p class="animate-on-scroll delay-100 text-neutral-600 leading-relaxed text-sm md:text-base">
                     Sign in to access your client dashboard
                 </p>
-                <p class="animate-on-scroll delay-200 text-neutral-500 text-sm leading-relaxed mt-3">
+                <p class="animate-on-scroll delay-200 text-neutral-500 text-xs md:text-sm leading-relaxed mt-2 md:mt-3">
                     Access your GitHub repositories and edit website content directly—no need to contact our team.
                 </p>
             </div>
 
             <!-- Login Form -->
-            <div class="animate-on-scroll delay-200 bg-white p-8 md:p-10 rounded-2xl border border-[#1A1A1A]/10 shadow-sm">
+            <div class="animate-on-scroll delay-200 bg-white p-6 md:p-8 lg:p-10 rounded-2xl border border-[#1A1A1A]/10 shadow-sm">
                 <form id="loginForm" class="space-y-6">
                     <div>
                         <label for="email" class="block text-xs uppercase font-bold tracking-widest mb-2">Email</label>
@@ -275,48 +275,48 @@
     </main>
 
     <!-- Dashboard View -->
-    <main id="dashboardView" class="view flex-1 px-6 py-12 md:py-20">
+    <main id="dashboardView" class="view flex-1 px-4 md:px-6 py-8 md:py-12 lg:py-20">
         <div class="max-w-7xl mx-auto">
-            <div class="mb-12">
+            <div class="mb-8 md:mb-12">
                 <div class="flex items-center gap-3 mb-4">
                     <div class="inline-flex items-center gap-2 bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
                         <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
                         Beta Service
                     </div>
                 </div>
-                <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight leading-[0.9] text-[#1A1A1A] mb-4">
+                <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[0.9] text-[#1A1A1A] mb-3 md:mb-4">
                     Your Projects
                 </h1>
-                <p class="text-neutral-600 leading-relaxed max-w-2xl">
+                <p class="text-neutral-600 leading-relaxed max-w-2xl text-sm md:text-base">
                     Your GitHub repositories are loaded below. Select a project to view details or start editing your website content.
                 </p>
             </div>
 
             <!-- Projects Grid -->
-            <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 <!-- Projects will be loaded here -->
                 <div class="col-span-full text-center py-12">
                     <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A1A1A]"></div>
-                    <p class="text-neutral-500 mt-4">Loading your GitHub repositories...</p>
+                    <p class="text-neutral-500 mt-4 text-sm md:text-base">Loading your GitHub repositories...</p>
                 </div>
             </div>
         </div>
     </main>
 
     <!-- Project Overview View -->
-    <main id="projectOverviewView" class="view flex-1 px-6 py-12 md:py-20">
+    <main id="projectOverviewView" class="view flex-1 px-4 md:px-6 py-8 md:py-12 lg:py-20">
         <div class="max-w-7xl mx-auto">
-            <div class="mb-8">
+            <div class="mb-6 md:mb-8">
                 <button onclick="showView('dashboard')" class="text-sm text-neutral-600 hover:text-black mb-4 flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                     Back to Projects
                 </button>
-                <div class="flex items-center justify-between">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
-                        <h1 id="projectTitle" class="text-4xl md:text-5xl font-extrabold tracking-tight leading-[0.9] text-[#1A1A1A] mb-4">
+                        <h1 id="projectTitle" class="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[0.9] text-[#1A1A1A] mb-3 md:mb-4">
                             Project Name
                         </h1>
-                        <p id="projectDescription" class="text-neutral-600 leading-relaxed max-w-2xl">
+                        <p id="projectDescription" class="text-neutral-600 leading-relaxed max-w-2xl text-sm md:text-base">
                             Project description goes here
                         </p>
                     </div>
