@@ -588,6 +588,15 @@
                 img.style.cursor = 'pointer';
                 img.setAttribute('data-editable', 'true');
                 
+                // Add error handler for failed images
+                img.onerror = function() {
+                    this.style.display = 'none';
+                    const fallback = document.createElement('div');
+                    fallback.style.cssText = 'background: #f0f0f0; border: 2px dashed #ccc; padding: 20px; text-align: center; color: #666; font-size: 14px; min-height: 100px; display: flex; align-items: center; justify-content: center;';
+                    fallback.textContent = 'This image will show up on your live site';
+                    this.parentNode.insertBefore(fallback, this);
+                };
+                
                 img.onclick = function(e) {
                     e.preventDefault();
                     e.stopPropagation();
