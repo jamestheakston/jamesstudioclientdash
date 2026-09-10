@@ -1006,6 +1006,11 @@
             
             currentProject = projectData;
             
+            // Clear Monaco editor content to prevent loading previous project's code
+            if (monacoEditor) {
+                monacoEditor.setValue('');
+            }
+            
             // Update project overview
             document.getElementById('projectTitle').textContent = projectData.name;
             document.getElementById('projectDescription').textContent = projectData.description;
@@ -1017,11 +1022,15 @@
 
         // Open Visual Editor
         async function openVisualEditor() {
+            // Verify user has access to this project
+            if (!userAccess.includes(currentProject.repo)) {
+                alert('You do not have access to edit this project.');
+                return;
+            }
+            
             document.getElementById('editorProjectName').textContent = currentProject.name;
             
-            showView('visualEditor');
-            
-            // Fetch the actual index.html from the GitHub repo
+            // Fetch the actual index.html from the GitHub repo BEFORE showing editor
             try {
                 const repo = currentProject.repo;
                 const filePath = 'index.html';
@@ -1035,19 +1044,27 @@
                 
                 if (error) throw error;
                 
-                // Decode the base64 content
-                const decodedContent = atob(fileData.content);
-                
-                // Store the SHA for saving changes later
-                currentProject.fileSha = fileData.sha;
-                
-                // Load content into Monaco Editor
-                if (monacoEditor) {
-                    monacoEditor.setValue(decodedContent);
+                // Verify the repo matches current project
+                if (fileData && fileData.name === 'index.html') {
+                    // Decode the base64 content
+                    const decodedContent = atob(fileData.content);
+                    
+                    // Store the SHA for saving changes later
+                    currentProject.fileSha = fileData.sha;
+                    
+                    // Load content into Monaco Editor
+                    if (monacoEditor) {
+                        monacoEditor.setValue(decodedContent);
+                    }
+                    
+                    // Only show editor view after successfully loading correct code
+                    showView('visualEditor');
+                    
+                    // Update visual preview
+                    updateVisualPreview();
+                } else {
+                    alert('Error: Could not load the correct file from repository.');
                 }
-                
-                // Update visual preview
-                updateVisualPreview();
                 
             } catch (error) {
                 console.error('Error loading file from GitHub:', error);
