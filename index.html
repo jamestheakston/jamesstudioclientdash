@@ -953,16 +953,6 @@
             }
         }
 
-        // Click outside to close edit panel
-        document.addEventListener('click', (e) => {
-            const editPanel = document.getElementById('editPanel');
-            if (!editPanel.contains(e.target) && !e.target.closest('.editable-element')) {
-                editPanel.classList.add('hidden');
-                document.querySelectorAll('.editable-element').forEach(el => {
-                    el.classList.remove('selected');
-                });
-            }
-        });
 
         // Scroll animations using Intersection Observer
         const observerOptions = {
