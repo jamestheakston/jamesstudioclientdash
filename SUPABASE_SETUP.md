@@ -67,16 +67,16 @@ CREATE POLICY "Allow read access" ON access FOR SELECT USING (true);
 ### Sample Data
 
 ```sql
--- Insert sample access records
+-- Insert sample access records (use just repo name, not full path)
 INSERT INTO access (email, repo_name) VALUES
-    ('client@example.com', 'jamestheakston/classcharts-improver'),
-    ('client@example.com', 'jamestheakston/scouts-car-wash'),
-    ('another-client@example.com', 'jamestheakston/montecure-dogs');
+    ('client@example.com', 'classcharts-improver'),
+    ('client@example.com', 'scouts-car-wash'),
+    ('another-client@example.com', 'montecure-dogs');
 ```
 
 ### How It Works for Client Access
 
-1. **James Studio Setup**: You add entries to the `access` table mapping client emails to specific repository names
+1. **James Studio Setup**: You add entries to the `access` table mapping client emails to specific repository names (just the repo name, not full path)
 2. **Client Login**: Client signs up/logs in with their email
 3. **Access Check**: System queries the `access` table for repos assigned to that client's email
 4. **GitHub Operations**: All GitHub API calls use James Studio's PAT (via Edge Function)
@@ -87,17 +87,17 @@ INSERT INTO access (email, repo_name) VALUES
 ### Example Scenario
 
 **James Studio has 3 clients:**
-- Client A (alice@example.com) → Access to `jamestheakston/alice-website`
-- Client B (bob@example.com) → Access to `jamestheakston/bob-website` 
-- Client C (charlie@example.com) → Access to both `jamestheakston/alice-website` and `jamestheakston/bob-website`
+- Client A (alice@example.com) → Access to `alice-website`
+- Client B (bob@example.com) → Access to `bob-website` 
+- Client C (charlie@example.com) → Access to both `alice-website` and `bob-website`
 
 **Access table entries:**
 ```sql
 INSERT INTO access (email, repo_name) VALUES
-    ('alice@example.com', 'jamestheakston/alice-website'),
-    ('bob@example.com', 'jamestheakston/bob-website'),
-    ('charlie@example.com', 'jamestheakston/alice-website'),
-    ('charlie@example.com', 'jamestheakston/bob-website');
+    ('alice@example.com', 'alice-website'),
+    ('bob@example.com', 'bob-website'),
+    ('charlie@example.com', 'alice-website'),
+    ('charlie@example.com', 'bob-website');
 ```
 
 **Result:**
@@ -107,8 +107,8 @@ INSERT INTO access (email, repo_name) VALUES
 
 ### Usage Notes
 
-- `repo_name` can be either the full repository name (e.g., `owner/repo`) or just the repo name
-- The system checks for both formats when filtering
+- `repo_name` should be just the repository name (e.g., `alice-website`), not the full path
+- The system automatically prepends the owner when making GitHub API calls
 - Multiple access records can exist for the same email (user can access multiple repos)
 - The same repo can be assigned to multiple users
 

@@ -506,6 +506,7 @@
                 
                 if (error) throw error;
                 
+                // Store repo names (just the name, not full path)
                 userAccess = accessData ? accessData.map(item => item.repo_name) : [];
                 console.log('User access loaded:', userAccess);
             } catch (error) {
@@ -536,9 +537,11 @@
                     
                     const repos = data;
                     
-                    // Filter repos based on user access, or show all if no access restrictions
+                    // Filter repos based on user access (just repo name, not full path)
+                    // Access table contains just repo names like "alice-website"
+                    // GitHub returns both repo.name and repo.full_name (owner/repo)
                     const filteredRepos = userAccess.length > 0 
-                        ? repos.filter(repo => userAccess.includes(repo.full_name) || userAccess.includes(repo.name))
+                        ? repos.filter(repo => userAccess.includes(repo.name))
                         : repos;
                     
                     // Transform GitHub repos to project format
