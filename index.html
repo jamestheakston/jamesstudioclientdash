@@ -377,7 +377,7 @@
             <!-- Visual Preview Panel -->
             <div id="panel-visual" class="flex-1 bg-[#FAF9F6] p-4 overflow-auto relative">
                 <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden" style="height: calc(100vh - 260px);">
-                    <iframe id="visualPreview" class="w-full h-full border-0"></iframe>
+                    <iframe id="visualPreview" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
                 </div>
                 
                 <!-- Visual Edit Panel (shown when element is selected) -->
@@ -526,9 +526,14 @@
                 iframeDoc.close();
                 
                 // Add click handlers to editable elements after content loads
+                // Increased delay to ensure iframe content is fully loaded
                 setTimeout(() => {
-                    addVisualEditHandlers(iframeDoc);
-                }, 100);
+                    try {
+                        addVisualEditHandlers(iframeDoc);
+                    } catch (error) {
+                        console.error('Error adding visual edit handlers:', error);
+                    }
+                }, 500);
             }
         }
         
