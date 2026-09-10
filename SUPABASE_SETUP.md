@@ -1,5 +1,31 @@
 # Supabase Setup Guide
 
+## Authentication Setup
+
+### Enable Email Authentication
+
+1. Go to your Supabase project dashboard
+2. Navigate to **Authentication** → **Providers**
+3. Enable **Email** provider
+4. Configure email settings (optional):
+   - Enable email confirmation (recommended for production)
+   - Customize email templates
+   - Set up SMTP if needed
+
+### Authentication Settings
+
+In **Authentication** → **Settings**:
+- **Site URL**: Your dashboard URL (e.g., `https://yourdomain.com`)
+- **Redirect URLs**: Add your dashboard URL to allowed redirects
+
+### User Management
+
+Users can:
+- Sign up with email/password
+- Sign in with existing credentials
+- Reset password via email
+- Session persistence (handled by Supabase)
+
 ## Access Control Table
 
 Create a table called `access` in your Supabase project to manage which users have access to which repositories.
