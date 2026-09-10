@@ -418,9 +418,13 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
                     <span class="hidden md:inline">AI</span>
                 </button>
-                <button onclick="saveChanges()" class="bg-[#1A1A1A] text-[#FAF9F6] px-3 md:px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+                <button onclick="saveDraft()" class="bg-neutral-200 text-[#1A1A1A] px-3 md:px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-300 transition-colors">
                     <span class="hidden md:inline">Save</span>
                     <span class="md:hidden">Save</span>
+                </button>
+                <button onclick="saveChanges()" class="bg-[#1A1A1A] text-[#FAF9F6] px-3 md:px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+                    <span class="hidden md:inline">Publish</span>
+                    <span class="md:hidden">Publish</span>
                 </button>
             </div>
         </div>
@@ -1290,6 +1294,11 @@
                 }
             }
             
+            // Stop autosave when leaving visual editor
+            if (viewName !== 'visualEditor') {
+                stopAutosave();
+            }
+            
             // Close visual edit panel
             const visualEditPanel = document.getElementById('visualEditPanel');
             if (visualEditPanel) {
@@ -1549,6 +1558,9 @@
                 // Only show editor view after successfully loading correct code
                 showView('visualEditor');
                 
+                // Start autosave
+                startAutosave();
+                
                 // Update visual preview
                 updateVisualPreview();
                 
@@ -1574,6 +1586,117 @@
             const modal = document.getElementById('saveModal');
             modal.classList.remove('hidden');
             setTimeout(() => modal.querySelector('.modal').classList.add('show'), 10);
+        }
+
+        // Save draft to draft branch without merging to main
+        async function saveDraft() {
+            if (!monacoEditor) {
+                alert('Editor not initialized');
+                return;
+            }
+            
+            const newContent = monacoEditor.getValue();
+            
+            if (!newContent) {
+                alert('No content to save');
+                return;
+            }
+            
+            try {
+                const repo = currentProject.repo;
+                const filePath = 'index.html';
+                
+                // First, get the current SHA from draft branch
+                const { data: draftFileData, error: draftError } = await SupabaseClient.functions.invoke('github-api', {
+                    body: { 
+                        endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
+                        method: 'GET'
+                    }
+                });
+                
+                if (draftError) throw draftError;
+                
+                // Commit to draft branch only
+                const { data: commitData, error: commitError } = await SupabaseClient.functions.invoke('github-api', {
+                    body: { 
+                        endpoint: `/repos/${repo}/contents/${filePath}`,
+                        method: 'PUT',
+                        body: {
+                            message: 'Save draft via James Studio Client Dashboard',
+                            content: btoa(newContent),
+                            sha: draftFileData.sha,
+                            branch: 'draft'
+                        }
+                    }
+                });
+                
+                if (commitError) throw commitError;
+                
+                // Update the stored SHA
+                currentProject.fileSha = commitData.content.sha;
+                
+                alert('Draft saved successfully!');
+            } catch (error) {
+                console.error('Error saving draft:', error);
+                alert('Error saving draft: ' + error.message);
+            }
+        }
+
+        // Autosave to draft branch every 30 seconds
+        let autosaveInterval = null;
+        
+        function startAutosave() {
+            if (autosaveInterval) {
+                clearInterval(autosaveInterval);
+            }
+            autosaveInterval = setInterval(() => {
+                if (monacoEditor && currentProject) {
+                    saveDraftSilent();
+                }
+            }, 30000); // 30 seconds
+        }
+        
+        function stopAutosave() {
+            if (autosaveInterval) {
+                clearInterval(autosaveInterval);
+                autosaveInterval = null;
+            }
+        }
+        
+        async function saveDraftSilent() {
+            try {
+                const repo = currentProject.repo;
+                const filePath = 'index.html';
+                const newContent = monacoEditor.getValue();
+                
+                if (!newContent) return;
+                
+                const { data: draftFileData, error: draftError } = await SupabaseClient.functions.invoke('github-api', {
+                    body: { 
+                        endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
+                        method: 'GET'
+                    }
+                });
+                
+                if (draftError) return;
+                
+                await SupabaseClient.functions.invoke('github-api', {
+                    body: { 
+                        endpoint: `/repos/${repo}/contents/${filePath}`,
+                        method: 'PUT',
+                        body: {
+                            message: 'Autosave draft via James Studio Client Dashboard',
+                            content: btoa(newContent),
+                            sha: draftFileData.sha,
+                            branch: 'draft'
+                        }
+                    }
+                });
+                
+                console.log('Autosaved draft');
+            } catch (error) {
+                console.error('Autosave error:', error);
+            }
         }
 
         // Cancel save
