@@ -294,59 +294,74 @@
             </div>
 
             <!-- Project Details -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-2">
-                    <div class="bg-white p-8 rounded-2xl border border-[#1A1A1A]/10 shadow-sm mb-8">
-                        <h3 class="text-xl font-bold mb-4">Project Information</h3>
-                        <div class="space-y-4">
-                            <div>
-                                <p class="text-xs uppercase font-bold tracking-widest text-neutral-400 mb-1">Repository</p>
-                                <p id="projectRepo" class="text-sm text-neutral-600">repository-name</p>
-                            </div>
-                            <div>
-                                <p class="text-xs uppercase font-bold tracking-widest text-neutral-400 mb-1">Last Updated</p>
-                                <p id="projectLastUpdated" class="text-sm text-neutral-600">-</p>
-                            </div>
-                            <div>
-                                <p class="text-xs uppercase font-bold tracking-widest text-neutral-400 mb-1">Status</p>
-                                <span class="inline-flex items-center gap-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                                    Active
-                                </span>
-                            </div>
+            <div class="space-y-8">
+                <!-- Analytics Section (3 boxes) -->
+                <div class="bg-neutral-100 p-8 rounded-2xl border border-[#1A1A1A]/10 shadow-sm opacity-60">
+                    <div class="flex items-center gap-3 mb-6">
+                        <svg class="w-6 h-6 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        <h3 class="text-xl font-bold text-neutral-400">Analytics</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white p-6 rounded-xl border border-[#1A1A1A]/10 text-center">
+                            <p class="text-3xl font-bold text-neutral-300 mb-2">—</p>
+                            <p class="text-xs uppercase font-bold tracking-widest text-neutral-400">Visitors</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-[#1A1A1A]/10 text-center">
+                            <p class="text-3xl font-bold text-neutral-300 mb-2">—</p>
+                            <p class="text-xs uppercase font-bold tracking-widest text-neutral-400">Page Views</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-[#1A1A1A]/10 text-center">
+                            <p class="text-3xl font-bold text-neutral-300 mb-2">—</p>
+                            <p class="text-xs uppercase font-bold tracking-widest text-neutral-400">Sessions</p>
                         </div>
                     </div>
-                    
-                    <!-- Analytics Section -->
-                    <div class="bg-neutral-100 p-8 rounded-2xl border border-[#1A1A1A]/10 shadow-sm opacity-60">
-                        <div class="flex items-center gap-3 mb-6">
-                            <svg class="w-6 h-6 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                            <h3 class="text-xl font-bold text-neutral-400">Analytics</h3>
-                        </div>
-                        <div class="text-center py-8">
-                            <p class="text-lg text-neutral-400 font-medium mb-4">Not much to see right now...</p>
-                            <p class="text-sm text-neutral-400 leading-relaxed">
-                                Install the Microsoft Clarity extension on your website to track when and how users interact with your site.
-                            </p>
-                        </div>
+                    <div class="text-center mt-6 pt-6 border-t border-[#1A1A1A]/10">
+                        <p class="text-sm text-neutral-400 leading-relaxed">
+                            Install the Microsoft Clarity extension on your website to track when and how users interact with your site.
+                        </p>
                     </div>
                 </div>
-                <div>
-                    <div class="bg-white p-8 rounded-2xl border border-[#1A1A1A]/10 shadow-sm">
-                        <h3 class="text-xl font-bold mb-4">Quick Actions</h3>
-                        <div class="space-y-3">
-                            <button onclick="openVisualEditor()" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 px-4 py-3 rounded-xl text-sm font-medium hover:border-[#1A1A1A] transition-colors text-left flex items-center gap-3">
-                                <svg class="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                Edit Content
-                            </button>
-                            <button class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 px-4 py-3 rounded-xl text-sm font-medium hover:border-[#1A1A1A] transition-colors text-left flex items-center gap-3">
-                                <svg class="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                                Upload Images
-                            </button>
-                            <button class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 px-4 py-3 rounded-xl text-sm font-medium hover:border-[#1A1A1A] transition-colors text-left flex items-center gap-3">
-                                <svg class="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                                Update Contact Info
-                            </button>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2">
+                        <div class="bg-white p-8 rounded-2xl border border-[#1A1A1A]/10 shadow-sm">
+                            <h3 class="text-xl font-bold mb-4">Project Information</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <p class="text-xs uppercase font-bold tracking-widest text-neutral-400 mb-1">Repository</p>
+                                    <p id="projectRepo" class="text-sm text-neutral-600">repository-name</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs uppercase font-bold tracking-widest text-neutral-400 mb-1">Last Updated</p>
+                                    <p id="projectLastUpdated" class="text-sm text-neutral-600">-</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs uppercase font-bold tracking-widest text-neutral-400 mb-1">Status</p>
+                                    <span class="inline-flex items-center gap-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                                        <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                        Active
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="bg-white p-8 rounded-2xl border border-[#1A1A1A]/10 shadow-sm">
+                            <h3 class="text-xl font-bold mb-4">Quick Actions</h3>
+                            <div class="space-y-3">
+                                <button onclick="openVisualEditor()" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 px-4 py-3 rounded-xl text-sm font-medium hover:border-[#1A1A1A] transition-colors text-left flex items-center gap-3">
+                                    <svg class="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    Edit Content
+                                </button>
+                                <button class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 px-4 py-3 rounded-xl text-sm font-medium hover:border-[#1A1A1A] transition-colors text-left flex items-center gap-3">
+                                    <svg class="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                    Upload Images
+                                </button>
+                                <button class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 px-4 py-3 rounded-xl text-sm font-medium hover:border-[#1A1A1A] transition-colors text-left flex items-center gap-3">
+                                    <svg class="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                    Update Contact Info
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
