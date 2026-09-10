@@ -549,7 +549,7 @@
                         id: repo.id,
                         name: repo.name,
                         description: repo.description || 'No description',
-                        repo: repo.full_name,
+                        repo: repo.full_name, // Store full name for GitHub operations
                         last_updated: new Date(repo.updated_at).toLocaleDateString()
                     }));
                     
@@ -571,25 +571,34 @@
                     id: 1,
                     name: 'ClassCharts Improver',
                     description: 'Browser extension for improving ClassCharts experience',
-                    repo: 'classcharts-improver',
+                    repo: 'jamesstudiowebdev/classcharts-improver', // Full name for GitHub operations
                     last_updated: '2025-01-15'
                 },
                 {
                     id: 2,
                     name: 'Scouts Car Wash',
                     description: 'Website for local car wash business',
-                    repo: 'scouts-car-wash',
+                    repo: 'jamesstudiowebdev/scouts-car-wash',
                     last_updated: '2026-09-01'
                 },
                 {
                     id: 3,
                     name: 'Montecure Dogs',
                     description: 'Dog care services website',
-                    repo: 'montecure-dogs',
+                    repo: 'jamesstudiowebdev/montecure-dogs',
                     last_updated: '2026-09-05'
                 }
             ];
-            renderProjects(demoProjects);
+            
+            // Filter demo projects based on user access if access is set
+            const filteredDemoProjects = userAccess.length > 0
+                ? demoProjects.filter(project => {
+                    const repoName = project.repo.split('/')[1]; // Extract just the repo name
+                    return userAccess.includes(repoName);
+                })
+                : demoProjects;
+                
+            renderProjects(filteredDemoProjects);
         }
 
         // Render Projects
