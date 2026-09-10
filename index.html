@@ -1041,7 +1041,21 @@
                     displayText = responseText.replace(/```html\n[\s\S]*?\n```/, '').trim();
                 }
                 
-                // If no text left after removing HTML, show a default message
+                // Remove all markdown formatting
+                displayText = displayText
+                    .replace(/```[\s\S]*?```/g, '') // Remove all code blocks
+                    .replace(/`([^`]+)`/g, '$1') // Remove inline code
+                    .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
+                    .replace(/\*([^*]+)\*/g, '$1') // Remove italic
+                    .replace(/~~([^~]+)~~/g, '$1') // Remove strikethrough
+                    .replace(/#{1,6}\s/g, '') // Remove headers
+                    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links, keep text
+                    .replace(/^\s*[-*+]\s/gm, '') // Remove list markers
+                    .replace(/^\s*\d+\.\s/gm, '') // Remove numbered list markers
+                    .replace(/\n{3,}/g, '\n\n') // Reduce excessive newlines
+                    .trim();
+                
+                // If no text left after removing HTML and markdown, show a default message
                 if (!displayText || displayText.length < 10) {
                     displayText = "I've updated the website HTML with your changes.";
                 }
