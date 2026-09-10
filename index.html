@@ -363,11 +363,20 @@
         </div>
 
         <!-- Editor Content -->
-        <div class="flex-1 flex">
+        <div class="flex-1 flex flex-col">
+            <!-- Editor Tabs -->
+            <div class="bg-white border-b border-[#1A1A1A]/10 px-4 flex gap-2">
+                <button onclick="switchEditorTab('visual')" id="tab-visual" class="px-4 py-3 text-sm font-bold uppercase tracking-wider border-b-2 border-[#1A1A1A] text-[#1A1A1A]">
+                    Visual Editor
+                </button>
+                <button onclick="switchEditorTab('code')" id="tab-code" class="px-4 py-3 text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors">
+                    Code Editor
+                </button>
+            </div>
+
             <!-- Visual Preview Panel -->
-            <div class="flex-1 bg-[#FAF9F6] p-4 overflow-auto border-r border-[#1A1A1A]/10 relative">
-                <div class="mb-2 text-xs font-bold uppercase tracking-widest text-neutral-400">Visual Preview</div>
-                <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden" style="height: calc(100vh - 200px);">
+            <div id="panel-visual" class="flex-1 bg-[#FAF9F6] p-4 overflow-auto relative">
+                <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden" style="height: calc(100vh - 260px);">
                     <iframe id="visualPreview" class="w-full h-full border-0"></iframe>
                 </div>
                 
@@ -386,9 +395,8 @@
             </div>
 
             <!-- Code Editor Panel -->
-            <div class="flex-1 bg-[#1E1E1E] p-4 overflow-auto">
-                <div class="mb-2 text-xs font-bold uppercase tracking-widest text-neutral-400">Code Editor</div>
-                <div id="monacoEditorContainer" class="rounded-xl overflow-hidden" style="height: calc(100vh - 200px);"></div>
+            <div id="panel-code" class="flex-1 bg-[#1E1E1E] p-4 overflow-auto hidden">
+                <div id="monacoEditorContainer" class="rounded-xl overflow-hidden" style="height: calc(100vh - 260px);"></div>
             </div>
         </div>
     </main>
@@ -526,49 +534,59 @@
         
         // Add click handlers to make elements editable in visual preview
         function addVisualEditHandlers(iframeDoc) {
-            // Make text elements clickable and editable
+            // Remove existing event listeners by cloning and replacing elements
             const editableElements = iframeDoc.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, li, td, th, button');
             
             editableElements.forEach(element => {
                 element.style.cursor = 'pointer';
                 element.style.outline = 'none';
+                element.setAttribute('data-editable', 'true');
                 
-                element.addEventListener('click', function(e) {
+                // Use a wrapper function to handle clicks
+                element.onclick = function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     selectVisualElement(this);
-                });
+                    return false;
+                };
                 
-                element.addEventListener('mouseenter', function() {
-                    this.style.outline = '2px dashed #1A1A1A';
-                });
+                element.onmouseenter = function() {
+                    if (selectedVisualElement !== this) {
+                        this.style.outline = '2px dashed #1A1A1A';
+                    }
+                };
                 
-                element.addEventListener('mouseleave', function() {
+                element.onmouseleave = function() {
                     if (selectedVisualElement !== this) {
                         this.style.outline = 'none';
                     }
-                });
+                };
             });
             
             // Make images clickable
             const images = iframeDoc.querySelectorAll('img');
             images.forEach(img => {
                 img.style.cursor = 'pointer';
-                img.addEventListener('click', function(e) {
+                img.setAttribute('data-editable', 'true');
+                
+                img.onclick = function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     selectVisualElement(this);
-                });
+                    return false;
+                };
                 
-                img.addEventListener('mouseenter', function() {
-                    this.style.outline = '2px dashed #1A1A1A';
-                });
+                img.onmouseenter = function() {
+                    if (selectedVisualElement !== this) {
+                        this.style.outline = '2px dashed #1A1A1A';
+                    }
+                };
                 
-                img.addEventListener('mouseleave', function() {
+                img.onmouseleave = function() {
                     if (selectedVisualElement !== this) {
                         this.style.outline = 'none';
                     }
-                });
+                };
             });
         }
         
@@ -696,6 +714,36 @@
             
             if (monacoEditor) {
                 monacoEditor.setValue(newHtml);
+            }
+        }
+        
+        // Switch between visual and code editor tabs
+        function switchEditorTab(tab) {
+            const visualPanel = document.getElementById('panel-visual');
+            const codePanel = document.getElementById('panel-code');
+            const visualTab = document.getElementById('tab-visual');
+            const codeTab = document.getElementById('tab-code');
+            
+            if (tab === 'visual') {
+                visualPanel.classList.remove('hidden');
+                codePanel.classList.add('hidden');
+                visualTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
+                visualTab.classList.remove('border-transparent', 'text-neutral-400');
+                codeTab.classList.remove('border-[#1A1A1A]', 'text-[#1A1A1A]');
+                codeTab.classList.add('border-transparent', 'text-neutral-400');
+                // Update visual preview when switching to visual tab
+                updateVisualPreview();
+            } else {
+                visualPanel.classList.add('hidden');
+                codePanel.classList.remove('hidden');
+                codeTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
+                codeTab.classList.remove('border-transparent', 'text-neutral-400');
+                visualTab.classList.remove('border-[#1A1A1A]', 'text-[#1A1A1A]');
+                visualTab.classList.add('border-transparent', 'text-neutral-400');
+                // Resize Monaco editor when showing
+                if (monacoEditor) {
+                    monacoEditor.layout();
+                }
             }
         }
         function initSupabase() {
