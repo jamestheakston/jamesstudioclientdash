@@ -1537,17 +1537,32 @@
                     
                     if (mainError) throw mainError;
                     
-                    // Create draft branch from main
-                    await SupabaseClient.functions.invoke('github-api', {
+                    // Get the latest commit SHA from main
+                    const { data: refData, error: refError } = await SupabaseClient.functions.invoke('github-api', {
                         body: {
-                            endpoint: `/repos/${repo}/git/refs`,
-                            method: 'POST',
-                            body: {
-                                ref: `refs/heads/draft`,
-                                sha: mainFileData.sha
-                            }
+                            endpoint: `/repos/${repo}/git/refs/heads/main`,
+                            method: 'GET'
                         }
                     });
+                    
+                    if (refError) throw refError;
+                    
+                    // Try to create draft branch from main
+                    try {
+                        await SupabaseClient.functions.invoke('github-api', {
+                            body: {
+                                endpoint: `/repos/${repo}/git/refs`,
+                                method: 'POST',
+                                body: {
+                                    ref: `refs/heads/draft`,
+                                    sha: refData.object.sha
+                                }
+                            }
+                        });
+                    } catch (createError) {
+                        // If 422, branch might already exist, that's fine
+                        console.log('Branch creation failed, may already exist:', createError);
+                    }
                     
                     // Load from main
                     if (mainFileData && mainFileData.name === 'index.html') {
