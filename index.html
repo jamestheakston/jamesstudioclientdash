@@ -405,21 +405,22 @@
     <!-- Visual Editor View -->
     <main id="visualEditorView" class="view flex-1 flex flex-col">
         <!-- Editor Toolbar -->
-        <div class="bg-white border-b border-[#1A1A1A]/10 px-6 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-4">
+        <div class="bg-white border-b border-[#1A1A1A]/10 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 md:gap-4">
                 <button onclick="showView('projectOverview')" class="text-sm text-neutral-600 hover:text-black flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                    Back
+                    <span class="hidden md:inline">Back</span>
                 </button>
-                <span id="editorProjectName" class="text-sm font-semibold">Project Name</span>
+                <span id="editorProjectName" class="text-xs md:text-sm font-semibold truncate max-w-32 md:max-w-none">Project Name</span>
             </div>
-            <div class="flex items-center gap-3">
-                <button onclick="toggleAIPanel()" class="bg-[#1A1A1A] text-[#FAF9F6] px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors flex items-center gap-2">
+            <div class="flex items-center gap-2">
+                <button onclick="toggleAIPanel()" class="bg-[#1A1A1A] text-[#FAF9F6] px-3 md:px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
-                    AI Assistant
+                    <span class="hidden md:inline">AI</span>
                 </button>
-                <button onclick="saveChanges()" class="bg-[#1A1A1A] text-[#FAF9F6] px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
-                    Save Changes
+                <button onclick="saveChanges()" class="bg-[#1A1A1A] text-[#FAF9F6] px-3 md:px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+                    <span class="hidden md:inline">Save</span>
+                    <span class="md:hidden">Save</span>
                 </button>
             </div>
         </div>
@@ -428,7 +429,7 @@
         <div class="flex-1 flex overflow-hidden">
             <!-- AI Side Panel -->
             <div id="aiSidePanel" class="w-0 bg-white border-r border-[#1A1A1A]/10 transition-all duration-300 ease-in-out overflow-hidden">
-                <div class="h-full flex flex-col w-96">
+                <div class="h-full flex flex-col w-full md:w-96">
                     <!-- Panel Header -->
                     <div class="p-4 border-b border-[#1A1A1A]/10 flex items-center justify-between">
                         <div class="flex items-center gap-3">
@@ -441,7 +442,7 @@
                     </div>
 
                     <!-- Panel Content -->
-                    <div id="aiPanelContent" class="flex-1 flex flex-col overflow-hidden">
+                    <div id="aiPanelContent" class="flex-1 flex flex-col overflow-hidden relative">
                         <!-- Authorization Screen -->
                         <div id="aiAuthScreen" class="flex-1 overflow-y-auto p-4 text-center">
                             <img src="https://assets.puter.site/puter-logo.png" alt="Puter" class="w-16 h-16 mx-auto mb-4">
@@ -468,9 +469,27 @@
                                         Send
                                     </button>
                                 </div>
-                                <button onclick="logoutPuter()" class="w-full text-xs text-neutral-400 hover:text-neutral-600 transition-colors">
+                                <button onclick="showLogoutModal()" class="w-full text-xs text-neutral-400 hover:text-neutral-600 transition-colors">
                                     Logout from Puter
                                 </button>
+                            </div>
+                        </div>
+
+                        <!-- Logout Confirmation Modal -->
+                        <div id="aiLogoutModal" class="hidden absolute inset-0 bg-black/50 flex items-center justify-center p-4 z-20">
+                            <div class="bg-white rounded-xl p-6 max-w-sm w-full">
+                                <h4 class="text-lg font-bold mb-2">Logout from Puter?</h4>
+                                <p class="text-sm text-neutral-600 mb-4">
+                                    This will clear your chat history. Are you sure you want to logout?
+                                </p>
+                                <div class="flex gap-2">
+                                    <button onclick="hideLogoutModal()" class="flex-1 bg-[#FAF9F6] border border-[#1A1A1A]/10 px-4 py-2 rounded-lg text-sm font-medium hover:border-[#1A1A1A] transition-colors">
+                                        Cancel
+                                    </button>
+                                    <button onclick="confirmLogoutPuter()" class="flex-1 bg-[#1A1A1A] text-[#FAF9F6] px-4 py-2 rounded-lg text-sm font-bold hover:bg-neutral-800 transition-colors">
+                                        Logout
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -480,21 +499,21 @@
             <!-- Editor Content -->
             <div class="flex-1 flex flex-col min-w-0">
                 <!-- Editor Tabs -->
-                <div class="bg-white border-b border-[#1A1A1A]/10 px-4 flex gap-2">
-                    <button onclick="switchEditorTab('visual')" id="tab-visual" class="px-4 py-3 text-sm font-bold uppercase tracking-wider border-b-2 border-[#1A1A1A] text-[#1A1A1A]">
-                        Visual Editor
+                <div class="bg-white border-b border-[#1A1A1A]/10 px-2 md:px-4 flex gap-1 md:gap-2 overflow-x-auto">
+                    <button onclick="switchEditorTab('visual')" id="tab-visual" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-[#1A1A1A] text-[#1A1A1A] whitespace-nowrap">
+                        Visual
                     </button>
-                    <button onclick="switchEditorTab('code')" id="tab-code" class="px-4 py-3 text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors">
-                        Code Editor
+                    <button onclick="switchEditorTab('code')" id="tab-code" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors whitespace-nowrap">
+                        Code
                     </button>
-                    <button onclick="switchEditorTab('preview')" id="tab-preview" class="px-4 py-3 text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors">
+                    <button onclick="switchEditorTab('preview')" id="tab-preview" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors whitespace-nowrap">
                         Preview
                     </button>
                 </div>
 
             <!-- Visual Preview Panel -->
-            <div id="panel-visual" class="flex-1 bg-[#FAF9F6] p-4 overflow-auto relative">
-                <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden" style="height: calc(100vh - 260px);">
+            <div id="panel-visual" class="flex-1 bg-[#FAF9F6] p-2 md:p-4 overflow-auto relative">
+                <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden" style="height: calc(100vh - 200px) md:calc(100vh - 260px);">
                     <iframe id="visualPreview" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
                 </div>
                 
@@ -513,13 +532,13 @@
             </div>
 
             <!-- Code Editor Panel -->
-            <div id="panel-code" class="flex-1 bg-[#1E1E1E] p-4 overflow-auto hidden">
-                <div id="monacoEditorContainer" class="rounded-xl overflow-hidden" style="height: calc(100vh - 260px);"></div>
+            <div id="panel-code" class="flex-1 bg-[#1E1E1E] p-2 md:p-4 overflow-auto hidden">
+                <div id="monacoEditorContainer" class="rounded-xl overflow-hidden" style="height: calc(100vh - 200px) md:calc(100vh - 260px);"></div>
             </div>
 
             <!-- Preview Panel -->
-            <div id="panel-preview" class="flex-1 bg-[#FAF9F6] p-4 overflow-auto hidden">
-                <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden" style="height: calc(100vh - 260px);">
+            <div id="panel-preview" class="flex-1 bg-[#FAF9F6] p-2 md:p-4 overflow-auto hidden">
+                <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden" style="height: calc(100vh - 200px) md:calc(100vh - 260px);">
                     <iframe id="previewFrame" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
                 </div>
             </div>
@@ -918,13 +937,21 @@
         
         function toggleAIPanel() {
             const panel = document.getElementById('aiSidePanel');
+            const isMobile = window.innerWidth < 768;
             
             if (isAIPanelOpen) {
-                panel.classList.remove('w-96');
+                panel.classList.remove(isMobile ? 'w-full' : 'w-96');
                 panel.classList.add('w-0');
             } else {
                 panel.classList.remove('w-0');
-                panel.classList.add('w-96');
+                panel.classList.add(isMobile ? 'w-full' : 'w-96');
+                
+                // Check if auth screen has been shown before
+                const authScreenShown = localStorage.getItem('puterAuthScreenShown');
+                if (authScreenShown === 'true' && !isPuterAuthorized) {
+                    // Auto-authorize if screen was shown before
+                    authorizePuter();
+                }
             }
             
             isAIPanelOpen = !isAIPanelOpen;
@@ -938,6 +965,9 @@
                 return;
             }
             
+            // Mark that auth screen has been shown
+            localStorage.setItem('puterAuthScreenShown', 'true');
+            
             // Try to use Puter auth - the API might vary
             try {
                 if (puter.auth && puter.auth.signin) {
@@ -945,6 +975,8 @@
                         isPuterAuthorized = true;
                         document.getElementById('aiAuthScreen').classList.add('hidden');
                         document.getElementById('aiChatScreen').classList.remove('hidden');
+                        // Load saved chats
+                        loadChatsFromStorage();
                     }).catch((error) => {
                         console.error('Puter auth error:', error);
                         alert('Failed to authenticate with Puter. Please try again.');
@@ -955,6 +987,8 @@
                     isPuterAuthorized = true;
                     document.getElementById('aiAuthScreen').classList.add('hidden');
                     document.getElementById('aiChatScreen').classList.remove('hidden');
+                    // Load saved chats
+                    loadChatsFromStorage();
                 }
             } catch (error) {
                 console.error('Puter auth error:', error);
@@ -962,7 +996,22 @@
                 isPuterAuthorized = true;
                 document.getElementById('aiAuthScreen').classList.add('hidden');
                 document.getElementById('aiChatScreen').classList.remove('hidden');
+                // Load saved chats
+                loadChatsFromStorage();
             }
+        }
+        
+        function showLogoutModal() {
+            document.getElementById('aiLogoutModal').classList.remove('hidden');
+        }
+        
+        function hideLogoutModal() {
+            document.getElementById('aiLogoutModal').classList.add('hidden');
+        }
+        
+        function confirmLogoutPuter() {
+            hideLogoutModal();
+            logoutPuter();
         }
         
         function logoutPuter() {
@@ -973,6 +1022,46 @@
             // Clear chat messages
             const chatMessages = document.getElementById('aiChatMessages');
             chatMessages.innerHTML = '<div class="bg-[#FAF9F6] p-3 rounded-lg"><p class="text-sm">Hello! I\'m your AI assistant. I can help you edit your website content. What would you like to change?</p></div>';
+            
+            // Clear localStorage
+            localStorage.removeItem('puterAuthScreenShown');
+            localStorage.removeItem('puterChats');
+        }
+        
+        function loadChatsFromStorage() {
+            const savedChats = localStorage.getItem('puterChats');
+            if (savedChats) {
+                try {
+                    const chats = JSON.parse(savedChats);
+                    const chatMessages = document.getElementById('aiChatMessages');
+                    // Keep the welcome message and add saved chats
+                    const welcomeMessage = chatMessages.innerHTML;
+                    chatMessages.innerHTML = welcomeMessage;
+                    chats.forEach(chat => {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = chat.isUser ? 'bg-[#1A1A1A] text-[#FAF9F6] p-3 rounded-lg ml-8' : 'bg-[#FAF9F6] p-3 rounded-lg text-sm whitespace-pre-wrap';
+                        messageDiv.textContent = chat.text;
+                        chatMessages.appendChild(messageDiv);
+                    });
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                } catch (error) {
+                    console.error('Error loading chats from storage:', error);
+                }
+            }
+        }
+        
+        function saveChatToStorage(text, isUser) {
+            const savedChats = localStorage.getItem('puterChats');
+            let chats = [];
+            if (savedChats) {
+                try {
+                    chats = JSON.parse(savedChats);
+                } catch (error) {
+                    console.error('Error parsing saved chats:', error);
+                }
+            }
+            chats.push({ text, isUser, timestamp: Date.now() });
+            localStorage.setItem('puterChats', JSON.stringify(chats));
         }
         
         function sendAIMessage() {
@@ -999,6 +1088,9 @@
             userMessage.className = 'bg-[#1A1A1A] text-[#FAF9F6] p-3 rounded-lg ml-8';
             userMessage.textContent = message;
             chatMessages.appendChild(userMessage);
+            
+            // Save to localStorage
+            saveChatToStorage(message, true);
             
             input.value = '';
             
@@ -1109,6 +1201,9 @@
                 aiMessage.textContent = displayText;
                 chatMessages.appendChild(aiMessage);
                 
+                // Save to localStorage
+                saveChatToStorage(displayText, false);
+                
                 // Apply extracted HTML to editor
                 if (extractedHTML && monacoEditor) {
                     monacoEditor.setValue(extractedHTML);
@@ -1171,6 +1266,11 @@
                     document.getElementById('projectRepo').textContent = 'repository-name';
                     document.getElementById('projectLastUpdated').textContent = '-';
                     document.getElementById('editorProjectName').textContent = 'Project Name';
+                    // Hide visual editor view
+                    const visualEditorView = document.getElementById('visualEditorView');
+                    if (visualEditorView) {
+                        visualEditorView.style.display = 'none';
+                    }
                 } else if (viewName === 'visualEditor') {
                     targetView.style.display = 'flex';
                 } else {
