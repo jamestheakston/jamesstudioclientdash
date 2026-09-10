@@ -2053,8 +2053,8 @@
                         console.error('Merge error:', mergeError);
                         console.error('Merge error details:', JSON.stringify(mergeError, null, 2));
                         
-                        // If merge fails due to conflicts, try to force merge by creating a commit on main
-                        if (mergeError.message && mergeError.message.includes('conflict')) {
+                        // If merge fails due to conflicts (409 status), try to force merge by creating a commit on main
+                        if (mergeError.status === 409 || (mergeError.message && mergeError.message.toLowerCase().includes('conflict'))) {
                             console.log('Merge conflict detected, attempting force merge');
                             
                             // Get the current main file
