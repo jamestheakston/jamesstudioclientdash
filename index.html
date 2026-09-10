@@ -319,10 +319,23 @@
         <!-- Editor Content -->
         <div class="flex-1 flex">
             <!-- Visual Preview Panel -->
-            <div class="flex-1 bg-[#FAF9F6] p-4 overflow-auto border-r border-[#1A1A1A]/10">
+            <div class="flex-1 bg-[#FAF9F6] p-4 overflow-auto border-r border-[#1A1A1A]/10 relative">
                 <div class="mb-2 text-xs font-bold uppercase tracking-widest text-neutral-400">Visual Preview</div>
                 <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden" style="height: calc(100vh - 200px);">
                     <iframe id="visualPreview" class="w-full h-full border-0"></iframe>
+                </div>
+                
+                <!-- Visual Edit Panel (shown when element is selected) -->
+                <div id="visualEditPanel" class="absolute top-12 right-6 bg-white rounded-xl border border-[#1A1A1A]/10 shadow-lg p-4 hidden w-64 z-10">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-sm font-bold">Edit Element</h4>
+                        <button onclick="closeVisualEditPanel()" class="text-neutral-400 hover:text-black">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                    <div id="visualEditContent">
+                        <!-- Dynamic content based on selected element -->
+                    </div>
                 </div>
             </div>
 
@@ -387,6 +400,7 @@
         let currentProject = null;
         let selectedElement = null;
         let monacoEditor = null;
+        let selectedVisualElement = null;
 
         // Initialize Monaco Editor
         function initMonacoEditor() {
@@ -426,6 +440,186 @@
                 iframeDoc.open();
                 iframeDoc.write(htmlContent);
                 iframeDoc.close();
+                
+                // Add click handlers to editable elements after content loads
+                setTimeout(() => {
+                    addVisualEditHandlers(iframeDoc);
+                }, 100);
+            }
+        }
+        
+        // Add click handlers to make elements editable in visual preview
+        function addVisualEditHandlers(iframeDoc) {
+            // Make text elements clickable and editable
+            const editableElements = iframeDoc.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, li, td, th, button');
+            
+            editableElements.forEach(element => {
+                element.style.cursor = 'pointer';
+                element.style.outline = 'none';
+                
+                element.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    selectVisualElement(this);
+                });
+                
+                element.addEventListener('mouseenter', function() {
+                    this.style.outline = '2px dashed #1A1A1A';
+                });
+                
+                element.addEventListener('mouseleave', function() {
+                    if (selectedVisualElement !== this) {
+                        this.style.outline = 'none';
+                    }
+                });
+            });
+            
+            // Make images clickable
+            const images = iframeDoc.querySelectorAll('img');
+            images.forEach(img => {
+                img.style.cursor = 'pointer';
+                img.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    selectVisualElement(this);
+                });
+                
+                img.addEventListener('mouseenter', function() {
+                    this.style.outline = '2px dashed #1A1A1A';
+                });
+                
+                img.addEventListener('mouseleave', function() {
+                    if (selectedVisualElement !== this) {
+                        this.style.outline = 'none';
+                    }
+                });
+            });
+        }
+        
+        // Select an element in visual preview
+        function selectVisualElement(element) {
+            // Remove outline from previously selected element
+            if (selectedVisualElement) {
+                selectedVisualElement.style.outline = 'none';
+            }
+            
+            selectedVisualElement = element;
+            element.style.outline = '2px solid #1A1A1A';
+            
+            // Show edit panel based on element type
+            showVisualEditPanel(element);
+        }
+        
+        // Show visual edit panel with appropriate controls
+        function showVisualEditPanel(element) {
+            const panel = document.getElementById('visualEditPanel');
+            const content = document.getElementById('visualEditContent');
+            
+            panel.classList.remove('hidden');
+            
+            const tagName = element.tagName.toLowerCase();
+            
+            if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'a', 'li', 'td', 'th', 'button'].includes(tagName)) {
+                // Text element
+                content.innerHTML = `
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs uppercase font-bold tracking-widest mb-1">Text Content</label>
+                            <textarea id="visualEditText" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A1A1A] transition-colors resize-none" rows="3">${element.textContent}</textarea>
+                        </div>
+                        <button onclick="applyVisualTextEdit()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] py-2 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+                            Apply
+                        </button>
+                    </div>
+                `;
+            } else if (tagName === 'img') {
+                // Image element
+                content.innerHTML = `
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs uppercase font-bold tracking-widest mb-1">Image URL</label>
+                            <input type="text" id="visualEditImageSrc" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A1A1A] transition-colors" value="${element.src}">
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase font-bold tracking-widest mb-1">Alt Text</label>
+                            <input type="text" id="visualEditImageAlt" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A1A1A] transition-colors" value="${element.alt || ''}">
+                        </div>
+                        <button onclick="applyVisualImageEdit()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] py-2 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+                            Apply
+                        </button>
+                    </div>
+                `;
+            } else if (tagName === 'a') {
+                // Link element
+                content.innerHTML = `
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs uppercase font-bold tracking-widest mb-1">Link Text</label>
+                            <input type="text" id="visualEditLinkText" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A1A1A] transition-colors" value="${element.textContent}">
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase font-bold tracking-widest mb-1">URL</label>
+                            <input type="text" id="visualEditLinkHref" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A1A1A] transition-colors" value="${element.href}">
+                        </div>
+                        <button onclick="applyVisualLinkEdit()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] py-2 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+                            Apply
+                        </button>
+                    </div>
+                `;
+            }
+        }
+        
+        // Close visual edit panel
+        function closeVisualEditPanel() {
+            document.getElementById('visualEditPanel').classList.add('hidden');
+            if (selectedVisualElement) {
+                selectedVisualElement.style.outline = 'none';
+                selectedVisualElement = null;
+            }
+        }
+        
+        // Apply text edit from visual panel
+        function applyVisualTextEdit() {
+            if (selectedVisualElement) {
+                const newText = document.getElementById('visualEditText').value;
+                selectedVisualElement.textContent = newText;
+                syncVisualToCode();
+                closeVisualEditPanel();
+            }
+        }
+        
+        // Apply image edit from visual panel
+        function applyVisualImageEdit() {
+            if (selectedVisualElement) {
+                const newSrc = document.getElementById('visualEditImageSrc').value;
+                const newAlt = document.getElementById('visualEditImageAlt').value;
+                selectedVisualElement.src = newSrc;
+                selectedVisualElement.alt = newAlt;
+                syncVisualToCode();
+                closeVisualEditPanel();
+            }
+        }
+        
+        // Apply link edit from visual panel
+        function applyVisualLinkEdit() {
+            if (selectedVisualElement) {
+                const newText = document.getElementById('visualEditLinkText').value;
+                const newHref = document.getElementById('visualEditLinkHref').value;
+                selectedVisualElement.textContent = newText;
+                selectedVisualElement.href = newHref;
+                syncVisualToCode();
+                closeVisualEditPanel();
+            }
+        }
+        
+        // Sync visual preview changes to Monaco Editor
+        function syncVisualToCode() {
+            const iframe = document.getElementById('visualPreview');
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            const newHtml = iframeDoc.documentElement.outerHTML;
+            
+            if (monacoEditor) {
+                monacoEditor.setValue(newHtml);
             }
         }
         function initSupabase() {
