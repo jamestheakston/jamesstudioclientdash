@@ -185,34 +185,7 @@
 
                 <div class="mt-6 text-center">
                     <p class="text-xs text-neutral-500">
-                        Don't have an account? <a href="#" onclick="showSignUp()" class="underline hover:text-black">Sign up</a>
-                    </p>
-                </div>
-            </div>
-
-            <!-- Sign Up Form (hidden by default) -->
-            <div id="signUpForm" class="hidden animate-on-scroll delay-200 bg-white p-8 md:p-10 rounded-2xl border border-[#1A1A1A]/10 shadow-sm">
-                <form id="registerForm" class="space-y-6">
-                    <div>
-                        <label for="signupEmail" class="block text-xs uppercase font-bold tracking-widest mb-2">Email</label>
-                        <input required type="email" id="signupEmail" name="signupEmail" placeholder="john@example.com" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A1A1A] transition-colors">
-                    </div>
-                    <div>
-                        <label for="signupPassword" class="block text-xs uppercase font-bold tracking-widest mb-2">Password</label>
-                        <input required type="password" id="signupPassword" name="signupPassword" placeholder="••••••••" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A1A1A] transition-colors">
-                    </div>
-                    <div>
-                        <label for="confirmPassword" class="block text-xs uppercase font-bold tracking-widest mb-2">Confirm Password</label>
-                        <input required type="password" id="confirmPassword" name="confirmPassword" placeholder="••••••••" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A1A1A] transition-colors">
-                    </div>
-                    <button type="submit" class="w-full bg-[#1A1A1A] text-[#FAF9F6] py-4 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
-                        Create Account
-                    </button>
-                </form>
-
-                <div class="mt-6 text-center">
-                    <p class="text-xs text-neutral-500">
-                        Already have an account? <a href="#" onclick="showLogin()" class="underline hover:text-black">Sign in</a>
+                        Contact James Studio for account access
                     </p>
                 </div>
             </div>
@@ -491,21 +464,13 @@
         }
 
         // Form toggles
-        function showSignUp() {
-            document.getElementById('loginForm').parentElement.classList.add('hidden');
-            document.getElementById('signUpForm').classList.remove('hidden');
-            document.getElementById('forgotPasswordForm').classList.add('hidden');
-        }
-
         function showLogin() {
             document.getElementById('loginForm').parentElement.classList.remove('hidden');
-            document.getElementById('signUpForm').classList.add('hidden');
             document.getElementById('forgotPasswordForm').classList.add('hidden');
         }
 
         function showForgotPassword() {
             document.getElementById('loginForm').parentElement.classList.add('hidden');
-            document.getElementById('signUpForm').classList.add('hidden');
             document.getElementById('forgotPasswordForm').classList.remove('hidden');
         }
 
@@ -538,54 +503,6 @@
                 document.getElementById('userEmail').textContent = email;
                 showView('dashboard');
                 loadDemoProjects();
-            }
-        });
-
-        // Sign Up Form Handling
-        document.getElementById('registerForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const email = document.getElementById('signupEmail').value;
-            const password = document.getElementById('signupPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            
-            if (password !== confirmPassword) {
-                alert('Passwords do not match');
-                return;
-            }
-            
-            if (password.length < 6) {
-                alert('Password must be at least 6 characters');
-                return;
-            }
-            
-            if (SupabaseClient) {
-                try {
-                    const { data, error } = await SupabaseClient.auth.signUp({
-                        email: email,
-                        password: password
-                    });
-                    
-                    if (error) throw error;
-                    
-                    if (data.user && !data.session) {
-                        // Email confirmation required
-                        alert('Account created! Please check your email to confirm your account.');
-                        showLogin();
-                    } else if (data.session) {
-                        // Auto sign in
-                        currentUser = data.user;
-                        document.getElementById('userEmail').textContent = email;
-                        showView('dashboard');
-                        loadProjects();
-                    }
-                } catch (error) {
-                    console.error('Sign up error:', error);
-                    alert('Sign up failed: ' + error.message);
-                }
-            } else {
-                // Demo mode
-                alert('Sign up simulated. In demo mode, use any credentials to login.');
-                showLogin();
             }
         });
 
@@ -623,7 +540,9 @@
             currentUser = null;
             userAccess = [];
             showView('login');
-            showLogin(); // Reset to login form
+            // Reset to login form
+            document.getElementById('loginForm').parentElement.classList.remove('hidden');
+            document.getElementById('forgotPasswordForm').classList.add('hidden');
         }
 
         // Load user's access from Supabase

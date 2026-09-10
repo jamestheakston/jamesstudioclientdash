@@ -31,10 +31,11 @@ In **Authentication** → **Settings**:
 
 ### User Management
 
-Users can:
-- Sign up with email/password
-- Sign in with existing credentials
-- Reset password via email
+Account management is handled by James Studio:
+- No public sign-up available
+- James Studio creates accounts manually for clients
+- Clients can sign in with provided credentials
+- Password reset available via email
 - Session persistence (handled by Supabase)
 
 ## Access Control Table
@@ -110,6 +111,14 @@ INSERT INTO access (email, repo_name) VALUES
 - The system checks for both formats when filtering
 - Multiple access records can exist for the same email (user can access multiple repos)
 - The same repo can be assigned to multiple users
+
+### Account Creation for Clients
+
+Since there's no public sign-up, James Studio creates client accounts manually:
+
+1. **Via Supabase Dashboard**: Go to Authentication → Users → Add user
+2. **Via SQL**: Insert directly into auth.users table
+3. **Assign password**: Choose a secure password or use password reset link
 
 ### Admin Management
 
