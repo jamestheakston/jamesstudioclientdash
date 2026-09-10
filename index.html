@@ -983,14 +983,30 @@
             const thinkingIndicator = document.createElement('div');
             thinkingIndicator.className = 'bg-[#FAF9F6] p-3 rounded-lg';
             thinkingIndicator.id = 'thinkingIndicator';
-            thinkingIndicator.innerHTML = '<span class="text-sm">Thinking</span><div class="thinking-dots ml-2"><span></span><span></span><span></span></div>';
-            thinkingIndicator.style.display = 'flex';
-            thinkingIndicator.style.alignItems = 'center';
+            thinkingIndicator.innerHTML = '<span class="text-sm">Thinking</span>';
             chatMessages.appendChild(thinkingIndicator);
             chatMessages.scrollTop = chatMessages.scrollHeight;
             
+            // Cycle dots
+            let dotCount = 0;
+            const dotInterval = setInterval(() => {
+                const indicator = document.getElementById('thinkingIndicator');
+                if (!indicator) {
+                    clearInterval(dotInterval);
+                    return;
+                }
+                const textSpan = indicator.querySelector('span');
+                if (textSpan) {
+                    dotCount = (dotCount + 1) % 4;
+                    textSpan.textContent = 'Thinking' + '.'.repeat(dotCount);
+                }
+            }, 500);
+            
             // Use Puter AI to process the request
-            puter.ai.chat(message + '\n\nCurrent website HTML:\n' + currentHTML).then((response) => {
+            puter.ai.chat(message + '\n\nHere is the current website HTML:\n' + currentHTML).then((response) => {
+                // Clear dot interval
+                clearInterval(dotInterval);
+                
                 // Remove thinking indicator
                 const indicator = document.getElementById('thinkingIndicator');
                 if (indicator) {
@@ -1031,6 +1047,9 @@
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }).catch((error) => {
                 console.error('Puter AI error:', error);
+                
+                // Clear dot interval
+                clearInterval(dotInterval);
                 
                 // Remove thinking indicator
                 const indicator = document.getElementById('thinkingIndicator');
