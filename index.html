@@ -1119,35 +1119,25 @@
             chatMessages.appendChild(thinkingIndicator);
             chatMessages.scrollTop = chatMessages.scrollHeight;
             
-            // Cycle through different thinking messages
-            const thinkingMessages = [
-                'Thinking',
-                'Building your next big thing',
-                'Weighing options',
-                'Surfing the web',
-                'Crafting your code',
-                'Analyzing',
-                'Generating ideas',
-                'Processing'
-            ];
-            let messageIndex = 0;
-            const messageInterval = setInterval(() => {
+            // Cycle dots
+            let dotCount = 0;
+            const dotInterval = setInterval(() => {
                 const indicator = document.getElementById('thinkingIndicator');
                 if (!indicator) {
-                    clearInterval(messageInterval);
+                    clearInterval(dotInterval);
                     return;
                 }
                 const textSpan = indicator.querySelector('span');
                 if (textSpan) {
-                    messageIndex = (messageIndex + 1) % thinkingMessages.length;
-                    textSpan.textContent = thinkingMessages[messageIndex];
+                    dotCount = (dotCount + 1) % 4;
+                    textSpan.textContent = 'Thinking' + '.'.repeat(dotCount);
                 }
-            }, 1500);
+            }, 500);
             
             // Use Puter AI to process the request
             puter.ai.chat(message + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nIMPORTANT: Only return HTML code in a ```html code block if you have made changes to the HTML. If you are just providing guidance or asking questions, do NOT include the HTML in your response. The user already knows the current HTML.\n\nYou are a website editing assistant. Only help with tasks related to editing, modifying, or improving the website HTML/CSS/JavaScript. If the user asks about topics unrelated to website editing (like general knowledge questions, math, geography, etc.), respond with: "I\'m sorry, but I can\'t help you with that. I\'m designed to help you edit and improve your website content. Please ask me about making changes to your website, styling, layout, or other web development related tasks."').then((response) => {
-                // Clear message interval
-                clearInterval(messageInterval);
+                // Clear dot interval
+                clearInterval(dotInterval);
                 
                 // Remove thinking indicator
                 const indicator = document.getElementById('thinkingIndicator');
@@ -1219,8 +1209,8 @@
             }).catch((error) => {
                 console.error('Puter AI error:', error);
                 
-                // Clear message interval
-                clearInterval(messageInterval);
+                // Clear dot interval
+                clearInterval(dotInterval);
                 
                 // Remove thinking indicator
                 const indicator = document.getElementById('thinkingIndicator');
