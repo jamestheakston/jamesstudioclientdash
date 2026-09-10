@@ -35,7 +35,7 @@ Account management is handled by James Studio:
 - No public sign-up available
 - James Studio creates accounts manually for clients
 - Clients can sign in with provided credentials
-- Password reset available via email
+- Password reset handled by James Studio (clients must contact you)
 - Session persistence (handled by Supabase)
 
 ## Access Control Table
@@ -118,7 +118,14 @@ Since there's no public sign-up, James Studio creates client accounts manually:
 
 1. **Via Supabase Dashboard**: Go to Authentication → Users → Add user
 2. **Via SQL**: Insert directly into auth.users table
-3. **Assign password**: Choose a secure password or use password reset link
+3. **Assign password**: Choose a secure password
+4. **Share credentials**: Provide email and password to client securely
+
+### Password Management
+
+- Clients must contact James Studio for password resets
+- James Studio can reset passwords via Supabase Dashboard
+- No self-service password reset available
 
 ### Admin Management
 
