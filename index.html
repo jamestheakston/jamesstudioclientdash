@@ -19,6 +19,9 @@
     <!-- Monaco Editor (VS Code's editor) -->
     <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
     
+    <!-- Canvas Confetti for celebrations -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
     <style>
         body {
             font-family: 'Space Grotesk', sans-serif;
@@ -119,6 +122,49 @@
         }
         .edit-controls button:hover {
             background: rgba(250, 249, 246, 0.3);
+        }
+
+        /* Modal Animations */
+        .modal {
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+        }
+        .modal.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Success checkmark animation */
+        @keyframes checkmark {
+            0% {
+                stroke-dashoffset: 100;
+            }
+            100% {
+                stroke-dashoffset: 0;
+            }
+        }
+        .checkmark-circle {
+            stroke-dasharray: 166;
+            stroke-dashoffset: 166;
+            stroke-width: 2;
+            stroke-miterlimit: 10;
+            stroke: #10B981;
+            fill: none;
+            animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+        .checkmark-check {
+            transform-origin: 50% 50%;
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            stroke: #10B981;
+            fill: none;
+            animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards;
+        }
+        @keyframes stroke {
+            100% {
+                stroke-dashoffset: 0;
+            }
         }
     </style>
 </head>
@@ -349,7 +395,7 @@
 
     <!-- Save Confirmation Modal -->
     <div id="saveModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+        <div class="modal bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
             <div class="mb-6">
                 <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mb-4">
                     <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -374,12 +420,31 @@
 
     <!-- Loading Modal -->
     <div id="loadingModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl text-center">
+        <div class="modal bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl text-center">
             <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#1A1A1A] mb-4"></div>
             <h3 class="text-xl font-bold mb-2">Publishing Changes</h3>
             <p class="text-neutral-600 leading-relaxed">
                 Please wait while we publish your changes to your live website...
             </p>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="modal bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl text-center">
+            <div class="mb-6">
+                <svg class="w-20 h-20 mx-auto mb-4" viewBox="0 0 52 52">
+                    <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+                    <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                </svg>
+                <h3 class="text-2xl font-bold mb-2">Published Successfully!</h3>
+                <p class="text-neutral-600 leading-relaxed">
+                    Your site will be live in a few minutes. Changes have been committed to your repository.
+                </p>
+            </div>
+            <button onclick="closeSuccessModal()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-xl text-sm font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+                Done
+            </button>
         </div>
     </div>
 
@@ -912,18 +977,27 @@
                 return;
             }
             
-            document.getElementById('saveModal').classList.remove('hidden');
+            const modal = document.getElementById('saveModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.querySelector('.modal').classList.add('show'), 10);
         }
 
         // Cancel save
         function cancelSave() {
-            document.getElementById('saveModal').classList.add('hidden');
+            const modal = document.getElementById('saveModal');
+            modal.querySelector('.modal').classList.remove('show');
+            setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
         // Confirm and execute save
         async function confirmSave() {
-            document.getElementById('saveModal').classList.add('hidden');
-            document.getElementById('loadingModal').classList.remove('hidden');
+            const saveModal = document.getElementById('saveModal');
+            saveModal.querySelector('.modal').classList.remove('show');
+            setTimeout(() => saveModal.classList.add('hidden'), 300);
+            
+            const loadingModal = document.getElementById('loadingModal');
+            loadingModal.classList.remove('hidden');
+            setTimeout(() => loadingModal.querySelector('.modal').classList.add('show'), 10);
             
             if (SupabaseClient && currentProject && monacoEditor) {
                 try {
@@ -949,17 +1023,59 @@
                     // Update the stored SHA with the new one from the commit
                     currentProject.fileSha = commitData.content.sha;
                     
-                    document.getElementById('loadingModal').classList.add('hidden');
-                    alert('Changes published successfully to your live website!');
+                    loadingModal.querySelector('.modal').classList.remove('show');
+                    setTimeout(() => loadingModal.classList.add('hidden'), 300);
+                    
+                    // Show success modal with confetti
+                    showSuccessModal();
                 } catch (error) {
                     console.error('Error saving to GitHub:', error);
-                    document.getElementById('loadingModal').classList.add('hidden');
+                    loadingModal.querySelector('.modal').classList.remove('show');
+                    setTimeout(() => loadingModal.classList.add('hidden'), 300);
                     alert('Failed to publish changes: ' + error.message);
                 }
             } else {
-                document.getElementById('loadingModal').classList.add('hidden');
+                loadingModal.querySelector('.modal').classList.remove('show');
+                setTimeout(() => loadingModal.classList.add('hidden'), 300);
                 alert('Unable to save changes. Please contact support.');
             }
+        }
+        
+        // Show success modal with confetti
+        function showSuccessModal() {
+            const successModal = document.getElementById('successModal');
+            successModal.classList.remove('hidden');
+            setTimeout(() => successModal.querySelector('.modal').classList.add('show'), 10);
+            
+            // Trigger confetti
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+            
+            // Additional confetti burst
+            setTimeout(() => {
+                confetti({
+                    particleCount: 50,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 }
+                });
+                confetti({
+                    particleCount: 50,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 }
+                });
+            }, 250);
+        }
+        
+        // Close success modal
+        function closeSuccessModal() {
+            const successModal = document.getElementById('successModal');
+            successModal.querySelector('.modal').classList.remove('show');
+            setTimeout(() => successModal.classList.add('hidden'), 300);
         }
 
 
