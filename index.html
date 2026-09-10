@@ -1711,6 +1711,18 @@
                     }
                 }
                 
+                // Get the current SHA from draft branch right before committing
+                const { data: currentDraftFile, error: currentDraftError } = await SupabaseClient.functions.invoke('github-api', {
+                    body: { 
+                        endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
+                        method: 'GET'
+                    }
+                });
+                
+                if (currentDraftError) throw currentDraftError;
+                
+                console.log('Current draft file SHA:', currentDraftFile.sha);
+                
                 // Commit to draft branch
                 const { data: commitData, error: commitError } = await SupabaseClient.functions.invoke('github-api', {
                     body: { 
@@ -1719,7 +1731,7 @@
                         body: {
                             message: 'Save draft via James Studio Client Dashboard',
                             content: btoa(newContent),
-                            sha: draftFileData.sha
+                            sha: currentDraftFile.sha
                         }
                     }
                 });
@@ -1848,6 +1860,16 @@
                     }
                 }
                 
+                // Get the current SHA from draft branch right before committing
+                const { data: currentDraftFile, error: currentDraftError } = await SupabaseClient.functions.invoke('github-api', {
+                    body: { 
+                        endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
+                        method: 'GET'
+                    }
+                });
+                
+                if (currentDraftError) return;
+                
                 await SupabaseClient.functions.invoke('github-api', {
                     body: { 
                         endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
@@ -1855,7 +1877,7 @@
                         body: {
                             message: 'Autosave draft via James Studio Client Dashboard',
                             content: btoa(newContent),
-                            sha: draftFileData.sha
+                            sha: currentDraftFile.sha
                         }
                     }
                 });
