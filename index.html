@@ -16,6 +16,9 @@
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
+    <!-- Monaco Editor (VS Code's editor) -->
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+    
     <style>
         body {
             font-family: 'Space Grotesk', sans-serif;
@@ -315,55 +318,18 @@
 
         <!-- Editor Content -->
         <div class="flex-1 flex">
-            <!-- Preview Panel -->
-            <div class="flex-1 bg-[#FAF9F6] p-8 overflow-auto">
-                <div id="editorPreview" class="max-w-4xl mx-auto bg-white rounded-2xl border border-[#1A1A1A]/10 shadow-sm p-8">
-                    <!-- Sample website content for editing -->
-                    <div class="editable-element" data-type="heading" data-id="hero-heading">
-                        <div class="edit-controls">
-                            <button onclick="editElement('hero-heading', 'heading')">Edit Text</button>
-                        </div>
-                        <h1 class="text-4xl font-extrabold tracking-tight mb-4">Welcome to Our Website</h1>
-                    </div>
-                    
-                    <div class="editable-element" data-type="text" data-id="hero-subtext">
-                        <div class="edit-controls">
-                            <button onclick="editElement('hero-subtext', 'text')">Edit Text</button>
-                        </div>
-                        <p class="text-neutral-600 leading-relaxed mb-6">This is a sample paragraph that you can edit. Click on any element to modify its content directly.</p>
-                    </div>
-                    
-                    <div class="editable-element" data-type="image" data-id="hero-image">
-                        <div class="edit-controls">
-                            <button onclick="editElement('hero-image', 'image')">Change Image</button>
-                        </div>
-                        <div class="aspect-video bg-neutral-100 rounded-xl mb-6 flex items-center justify-center">
-                            <span class="text-neutral-400">Hero Image</span>
-                        </div>
-                    </div>
-                    
-                    <div class="editable-element" data-type="heading" data-id="section-heading">
-                        <div class="edit-controls">
-                            <button onclick="editElement('section-heading', 'heading')">Edit Text</button>
-                        </div>
-                        <h2 class="text-2xl font-bold mb-4">Our Services</h2>
-                    </div>
-                    
-                    <div class="editable-element" data-type="text" data-id="section-text">
-                        <div class="edit-controls">
-                            <button onclick="editElement('section-text', 'text')">Edit Text</button>
-                        </div>
-                        <p class="text-neutral-600 leading-relaxed">Learn more about what we offer and how we can help your business grow.</p>
-                    </div>
+            <!-- Visual Preview Panel -->
+            <div class="flex-1 bg-[#FAF9F6] p-4 overflow-auto border-r border-[#1A1A1A]/10">
+                <div class="mb-2 text-xs font-bold uppercase tracking-widest text-neutral-400">Visual Preview</div>
+                <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden" style="height: calc(100vh - 200px);">
+                    <iframe id="visualPreview" class="w-full h-full border-0"></iframe>
                 </div>
             </div>
 
-            <!-- Edit Panel -->
-            <div id="editPanel" class="w-80 bg-white border-l border-[#1A1A1A]/10 p-6 hidden">
-                <h3 class="text-lg font-bold mb-4">Edit Element</h3>
-                <div id="editPanelContent">
-                    <!-- Dynamic content based on selected element -->
-                </div>
+            <!-- Code Editor Panel -->
+            <div class="flex-1 bg-[#1E1E1E] p-4 overflow-auto">
+                <div class="mb-2 text-xs font-bold uppercase tracking-widest text-neutral-400">Code Editor</div>
+                <div id="monacoEditorContainer" class="rounded-xl overflow-hidden" style="height: calc(100vh - 200px);"></div>
             </div>
         </div>
     </main>
@@ -420,8 +386,48 @@
         let currentUser = null;
         let currentProject = null;
         let selectedElement = null;
+        let monacoEditor = null;
 
-        // Initialize Supabase
+        // Initialize Monaco Editor
+        function initMonacoEditor() {
+            require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' }});
+            require(['vs/editor/editor.main'], function() {
+                monacoEditor = monaco.editor.create(document.getElementById('monacoEditorContainer'), {
+                    value: '',
+                    language: 'html',
+                    theme: 'vs-dark',
+                    automaticLayout: true,
+                    fontSize: 14,
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    wordWrap: 'on',
+                    lineNumbers: 'on',
+                    renderWhitespace: 'selection',
+                    bracketPairColorization: { enabled: true },
+                    guides: {
+                        bracketPairs: true,
+                        indentation: true
+                    }
+                });
+                
+                // Update visual preview when code changes
+                monacoEditor.onDidChangeModelContent(() => {
+                    updateVisualPreview();
+                });
+            });
+        }
+        
+        // Update visual preview iframe with current code
+        function updateVisualPreview() {
+            if (monacoEditor) {
+                const htmlContent = monacoEditor.getValue();
+                const iframe = document.getElementById('visualPreview');
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                iframeDoc.open();
+                iframeDoc.write(htmlContent);
+                iframeDoc.close();
+            }
+        }
         function initSupabase() {
             try {
                 SupabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -644,10 +650,6 @@
         async function openVisualEditor() {
             document.getElementById('editorProjectName').textContent = currentProject.name;
             
-            // Show loading state
-            const editorPreview = document.getElementById('editorPreview');
-            editorPreview.innerHTML = '<div class="text-center py-12"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A1A1A]"></div><p class="text-neutral-500 mt-4">Loading website content...</p></div>';
-            
             showView('visualEditor');
             
             // Fetch the actual index.html from the GitHub repo
@@ -670,107 +672,27 @@
                 // Store the SHA for saving changes later
                 currentProject.fileSha = fileData.sha;
                 
-                // Load the content into the editor preview
-                // We'll use an iframe to safely render the HTML
-                editorPreview.innerHTML = `
-                    <div class="w-full h-full">
-                        <div class="mb-4 text-xs text-neutral-500">Editing: index.html</div>
-                        <textarea id="htmlEditor" class="w-full h-96 bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-[#1A1A1A] transition-colors resize-none">${decodedContent}</textarea>
-                    </div>
-                `;
+                // Load content into Monaco Editor
+                if (monacoEditor) {
+                    monacoEditor.setValue(decodedContent);
+                }
                 
-                // Remove the editable-element styling since we're now editing raw HTML
-                document.querySelectorAll('.editable-element').forEach(el => {
-                    el.classList.remove('editable-element');
-                });
+                // Update visual preview
+                updateVisualPreview();
                 
             } catch (error) {
                 console.error('Error loading file from GitHub:', error);
-                editorPreview.innerHTML = '<p class="text-neutral-500">Error loading website content. Please contact support.</p>';
+                alert('Error loading website content. Please contact support.');
             }
         }
-
-        // Edit Element
-        function editElement(elementId, type) {
-            selectedElement = document.querySelector(`[data-id="${elementId}"]`);
-            const editPanel = document.getElementById('editPanel');
-            const editPanelContent = document.getElementById('editPanelContent');
-            
-            // Remove selected class from all elements
-            document.querySelectorAll('.editable-element').forEach(el => {
-                el.classList.remove('selected');
-            });
-            
-            // Add selected class to clicked element
-            selectedElement.classList.add('selected');
-            
-            // Show edit panel
-            editPanel.classList.remove('hidden');
-            
-            // Generate edit form based on type
-            if (type === 'heading' || type === 'text') {
-                const currentText = selectedElement.querySelector('h1, h2, h3, p').textContent;
-                editPanelContent.innerHTML = `
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs uppercase font-bold tracking-widest mb-2">Text Content</label>
-                            <textarea id="editTextInput" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A1A1A] transition-colors resize-none" rows="4">${currentText}</textarea>
-                        </div>
-                        <button onclick="applyTextChange()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] py-3 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
-                            Apply Changes
-                        </button>
-                    </div>
-                `;
-            } else if (type === 'image') {
-                editPanelContent.innerHTML = `
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs uppercase font-bold tracking-widest mb-2">Image URL</label>
-                            <input type="text" id="editImageInput" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A1A1A] transition-colors" placeholder="https://example.com/image.jpg">
-                        </div>
-                        <div>
-                            <label class="block text-xs uppercase font-bold tracking-widest mb-2">Or Upload New Image</label>
-                            <input type="file" id="editImageFile" class="w-full text-sm" accept="image/*">
-                        </div>
-                        <button onclick="applyImageChange()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] py-3 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
-                            Apply Changes
-                        </button>
-                    </div>
-                `;
-            }
-        }
-
-        // Apply Text Change
-        function applyTextChange() {
-            const newText = document.getElementById('editTextInput').value;
-            const textElement = selectedElement.querySelector('h1, h2, h3, p');
-            if (textElement) {
-                textElement.textContent = newText;
-            }
-            document.getElementById('editPanel').classList.add('hidden');
-            selectedElement.classList.remove('selected');
-        }
-
-        // Apply Image Change
-        function applyImageChange() {
-            const imageUrl = document.getElementById('editImageInput').value;
-            const imageFile = document.getElementById('editImageFile').files[0];
-            
-            if (imageUrl) {
-                // In a real app, you'd update the actual image
-                alert('Image URL updated to: ' + imageUrl);
-            } else if (imageFile) {
-                // In a real app, you'd upload the file
-                alert('Image file selected: ' + imageFile.name);
-            }
-            
-            document.getElementById('editPanel').classList.add('hidden');
-            selectedElement.classList.remove('selected');
-        }
-
         // Show save confirmation modal
         function saveChanges() {
-            const newContent = document.getElementById('htmlEditor').value;
+            if (!monacoEditor) {
+                alert('Editor not initialized');
+                return;
+            }
+            
+            const newContent = monacoEditor.getValue();
             
             if (!newContent) {
                 alert('No content to save');
@@ -789,11 +711,11 @@
         async function confirmSave() {
             document.getElementById('saveModal').classList.add('hidden');
             
-            if (SupabaseClient && currentProject) {
+            if (SupabaseClient && currentProject && monacoEditor) {
                 try {
                     const repo = currentProject.repo;
                     const filePath = 'index.html';
-                    const newContent = document.getElementById('htmlEditor').value;
+                    const newContent = monacoEditor.getValue();
                     
                     // Create a commit via Edge Function
                     const { data: commitData, error: commitError } = await SupabaseClient.functions.invoke('github-api', {
@@ -881,6 +803,7 @@
 
         // Initialize
         initSupabase();
+        initMonacoEditor();
         checkSession();
     </script>
 </body>
