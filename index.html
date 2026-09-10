@@ -1344,41 +1344,67 @@
             
             document.getElementById('editorProjectName').textContent = currentProject.name;
             
-            // Fetch the actual index.html from the GitHub repo BEFORE showing editor
+            // Fetch the actual index.html from the GitHub repo's draft branch BEFORE showing editor
             try {
                 const repo = currentProject.repo;
                 const filePath = 'index.html';
                 
                 const { data: fileData, error } = await SupabaseClient.functions.invoke('github-api', {
                     body: { 
-                        endpoint: `/repos/${repo}/contents/${filePath}`,
+                        endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
                         method: 'GET'
                     }
                 });
                 
-                if (error) throw error;
-                
-                // Verify the repo matches current project
-                if (fileData && fileData.name === 'index.html') {
-                    // Decode the base64 content
+                // If draft branch doesn't exist or file not found, try main branch
+                if (error || !fileData) {
+                    console.log('Draft branch not found, loading from main branch');
+                    const { data: mainFileData, error: mainError } = await SupabaseClient.functions.invoke('github-api', {
+                        body: { 
+                            endpoint: `/repos/${repo}/contents/${filePath}`,
+                            method: 'GET'
+                        }
+                    });
+                    
+                    if (mainError) throw mainError;
+                    
+                    // Create draft branch from main
+                    await SupabaseClient.functions.invoke('github-api', {
+                        body: {
+                            endpoint: `/repos/${repo}/git/refs`,
+                            method: 'POST',
+                            body: {
+                                ref: `refs/heads/draft`,
+                                sha: mainFileData.sha
+                            }
+                        }
+                    });
+                    
+                    // Load from main
+                    if (mainFileData && mainFileData.name === 'index.html') {
+                        const decodedContent = atob(mainFileData.content);
+                        currentProject.fileSha = mainFileData.sha;
+                        if (monacoEditor) {
+                            monacoEditor.setValue(decodedContent);
+                        }
+                    }
+                } else if (fileData && fileData.name === 'index.html') {
+                    // Load from draft branch
                     const decodedContent = atob(fileData.content);
-                    
-                    // Store the SHA for saving changes later
                     currentProject.fileSha = fileData.sha;
-                    
-                    // Load content into Monaco Editor
                     if (monacoEditor) {
                         monacoEditor.setValue(decodedContent);
                     }
-                    
-                    // Only show editor view after successfully loading correct code
-                    showView('visualEditor');
-                    
-                    // Update visual preview
-                    updateVisualPreview();
                 } else {
                     alert('Error: Could not load the correct file from repository.');
+                    return;
                 }
+                
+                // Only show editor view after successfully loading correct code
+                showView('visualEditor');
+                
+                // Update visual preview
+                updateVisualPreview();
                 
             } catch (error) {
                 console.error('Error loading file from GitHub:', error);
@@ -1427,7 +1453,17 @@
                     const filePath = 'index.html';
                     const newContent = monacoEditor.getValue();
                     
-                    // Create a commit via Edge Function
+                    // First, get the current SHA from draft branch
+                    const { data: draftFileData, error: draftError } = await SupabaseClient.functions.invoke('github-api', {
+                        body: { 
+                            endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
+                            method: 'GET'
+                        }
+                    });
+                    
+                    if (draftError) throw draftError;
+                    
+                    // Commit to draft branch
                     const { data: commitData, error: commitError } = await SupabaseClient.functions.invoke('github-api', {
                         body: { 
                             endpoint: `/repos/${repo}/contents/${filePath}`,
@@ -1435,14 +1471,43 @@
                             body: {
                                 message: 'Update website content via James Studio Client Dashboard',
                                 content: btoa(newContent), // Base64 encode the content
-                                sha: currentProject.fileSha
+                                sha: draftFileData.sha,
+                                branch: 'draft'
                             }
                         }
                     });
                     
                     if (commitError) throw commitError;
                     
-                    // Update the stored SHA with the new one from the commit
+                    // Get the latest commit SHA from draft
+                    const { data: refData, error: refError } = await SupabaseClient.functions.invoke('github-api', {
+                        body: {
+                            endpoint: `/repos/${repo}/git/refs/heads/draft`,
+                            method: 'GET'
+                        }
+                    });
+                    
+                    if (refError) throw refError;
+                    
+                    // Merge draft into main
+                    const { error: mergeError } = await SupabaseClient.functions.invoke('github-api', {
+                        body: {
+                            endpoint: `/repos/${repo}/merges`,
+                            method: 'POST',
+                            body: {
+                                head: 'draft',
+                                base: 'main',
+                                commit_message: 'Merge draft changes to main via James Studio'
+                            }
+                        }
+                    });
+                    
+                    if (mergeError) {
+                        console.warn('Merge failed (might be due to conflicts):', mergeError);
+                        // Continue anyway - the draft was saved successfully
+                    }
+                    
+                    // Update the stored SHA
                     currentProject.fileSha = commitData.content.sha;
                     
                     loadingModal.querySelector('.modal').classList.remove('show');
