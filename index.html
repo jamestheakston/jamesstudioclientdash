@@ -389,6 +389,7 @@
         
         // Access control
         let userAccess = []; // Will store repositories user has access to
+        let allProjects = []; // Store all loaded projects globally
         
         let SupabaseClient = null;
         let currentUser = null;
@@ -473,11 +474,7 @@
                     alert('Login failed: ' + error.message);
                 }
             } else {
-                // Demo mode - mock login
-                currentUser = { email: email };
-                document.getElementById('userEmail').textContent = email;
-                showView('dashboard');
-                loadDemoProjects();
+                alert('System not properly configured. Please contact support.');
             }
         });
 
@@ -494,7 +491,7 @@
         // Load user's access from Supabase
         async function loadUserAccess() {
             if (!SupabaseClient || !currentUser) {
-                console.log('No Supabase client or user, using demo access');
+                console.log('No Supabase client or user');
                 return;
             }
             
@@ -520,6 +517,9 @@
         async function loadProjects() {
             const projectsGrid = document.getElementById('projectsGrid');
             
+            // Show loading state while checking access
+            projectsGrid.innerHTML = '<p class="text-neutral-500">Checking your repository access...</p>';
+            
             // First load user's access permissions
             await loadUserAccess();
             
@@ -542,7 +542,7 @@
                     // GitHub returns both repo.name and repo.full_name (owner/repo)
                     const filteredRepos = userAccess.length > 0 
                         ? repos.filter(repo => userAccess.includes(repo.name))
-                        : repos;
+                        : [];
                     
                     // Transform GitHub repos to project format
                     const projects = filteredRepos.map(repo => ({
@@ -553,53 +553,19 @@
                         last_updated: new Date(repo.updated_at).toLocaleDateString()
                     }));
                     
+                    // Store projects globally for viewProject to access
+                    allProjects = projects;
+                    
                     renderProjects(projects);
                 } catch (error) {
                     console.error('Error loading GitHub repos:', error);
                     projectsGrid.innerHTML = '<p class="text-neutral-500">Error loading GitHub repositories. Please contact support.</p>';
                 }
             } else {
-                // Demo mode
-                loadDemoProjects();
+                projectsGrid.innerHTML = '<p class="text-neutral-500">Unable to load projects. Please contact support.</p>';
             }
         }
 
-        // Demo Projects (used when GitHub PAT is not configured)
-        function loadDemoProjects() {
-            const demoProjects = [
-                {
-                    id: 1,
-                    name: 'ClassCharts Improver',
-                    description: 'Browser extension for improving ClassCharts experience',
-                    repo: 'jamesstudiowebdev/classcharts-improver', // Full name for GitHub operations
-                    last_updated: '2025-01-15'
-                },
-                {
-                    id: 2,
-                    name: 'Scouts Car Wash',
-                    description: 'Website for local car wash business',
-                    repo: 'jamesstudiowebdev/scouts-car-wash',
-                    last_updated: '2026-09-01'
-                },
-                {
-                    id: 3,
-                    name: 'Montecure Dogs',
-                    description: 'Dog care services website',
-                    repo: 'jamesstudiowebdev/montecure-dogs',
-                    last_updated: '2026-09-05'
-                }
-            ];
-            
-            // Filter demo projects based on user access if access is set
-            const filteredDemoProjects = userAccess.length > 0
-                ? demoProjects.filter(project => {
-                    const repoName = project.repo.split('/')[1]; // Extract just the repo name
-                    return userAccess.includes(repoName);
-                })
-                : demoProjects;
-                
-            renderProjects(filteredDemoProjects);
-        }
 
         // Render Projects
         function renderProjects(projects) {
@@ -630,36 +596,14 @@
 
         // View Project Details
         function viewProject(projectId) {
-            // Find project data
-            const projects = document.querySelectorAll('#projectsGrid > div');
-            let projectData = null;
+            // Find project data from global array
+            const projectData = allProjects.find(p => p.id === projectId);
             
-            // In a real app, this would come from your data
-            const demoProjects = [
-                {
-                    id: 1,
-                    name: 'ClassCharts Improver',
-                    description: 'Browser extension for improving ClassCharts experience',
-                    repo: 'classcharts-improver',
-                    last_updated: '2025-01-15'
-                },
-                {
-                    id: 2,
-                    name: 'Scouts Car Wash',
-                    description: 'Website for local car wash business',
-                    repo: 'scouts-car-wash',
-                    last_updated: '2026-09-01'
-                },
-                {
-                    id: 3,
-                    name: 'Montecure Dogs',
-                    description: 'Dog care services website',
-                    repo: 'montecure-dogs',
-                    last_updated: '2026-09-05'
-                }
-            ];
+            if (!projectData) {
+                alert('Project not found');
+                return;
+            }
             
-            projectData = demoProjects.find(p => p.id === projectId) || demoProjects[0];
             currentProject = projectData;
             
             // Update project overview
@@ -797,8 +741,7 @@
                     alert('Failed to save changes: ' + error.message);
                 }
             } else {
-                // Demo mode
-                alert('Changes saved successfully! (Demo mode - no actual commit)');
+                alert('Unable to save changes. Please contact support.');
             }
         }
 
