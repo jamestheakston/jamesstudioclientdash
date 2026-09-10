@@ -156,7 +156,7 @@
                     Sign in to access your client dashboard
                 </p>
                 <p class="animate-on-scroll delay-200 text-neutral-500 text-sm leading-relaxed mt-3">
-                    Edit your website content, images, and contact information directly—no need to contact our team.
+                    Access your GitHub repositories and edit website content directly—no need to contact our team.
                 </p>
             </div>
 
@@ -206,7 +206,7 @@
                     Your Projects
                 </h1>
                 <p class="text-neutral-600 leading-relaxed max-w-2xl">
-                    Select a project to view details or start editing your website content.
+                    Your GitHub repositories are loaded below. Select a project to view details or start editing your website content.
                 </p>
             </div>
 
@@ -215,7 +215,7 @@
                 <!-- Projects will be loaded here -->
                 <div class="col-span-full text-center py-12">
                     <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A1A1A]"></div>
-                    <p class="text-neutral-500 mt-4">Loading your projects...</p>
+                    <p class="text-neutral-500 mt-4">Loading your GitHub repositories...</p>
                 </div>
             </div>
         </div>
@@ -383,19 +383,25 @@
 
     <!-- JavaScript -->
     <script>
-        // Supabase Configuration - Replace with your actual credentials
-        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://pkqkqijmohbvfxxnzhyy.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_Raqakv5Z4U8Wr7zmzIvLDA_TsnBSFyS';
         
-        let supabase = null;
+        // GitHub Configuration
+        const GITHUB_PAT = 'YOUR_GITHUB_PAT'; // Replace with your GitHub Personal Access Token
+        
+        let SupabaseClient = null;
         let currentUser = null;
         let currentProject = null;
         let selectedElement = null;
 
         // Initialize Supabase
         function initSupabase() {
-            if (SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY') {
-                supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            try {
+                SupabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('Supabase initialized successfully');
+            } catch (error) {
+                console.error('Failed to initialize Supabase:', error);
             }
         }
 
@@ -429,9 +435,9 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
-            if (supabase) {
+            if (SupabaseClient) {
                 try {
-                    const { data, error } = await supabase.auth.signInWithPassword({
+                    const { data, error } = await SupabaseClient.auth.signInWithPassword({
                         email: email,
                         password: password
                     });
@@ -457,37 +463,54 @@
 
         // Logout
         async function logout() {
-            if (supabase) {
-                await supabase.auth.signOut();
+            if (SupabaseClient) {
+                await SupabaseClient.auth.signOut();
             }
             currentUser = null;
             showView('login');
         }
 
-        // Load Projects from Supabase
+        // Load Projects from GitHub using PAT
         async function loadProjects() {
             const projectsGrid = document.getElementById('projectsGrid');
             
-            if (supabase) {
+            if (GITHUB_PAT !== 'YOUR_GITHUB_PAT') {
                 try {
-                    const { data: projects, error } = await supabase
-                        .from('projects')
-                        .select('*')
-                        .eq('user_id', currentUser.id);
+                    // Fetch user's GitHub repositories
+                    const response = await fetch('https://api.github.com/user/repos', {
+                        headers: {
+                            'Authorization': `token ${GITHUB_PAT}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    });
                     
-                    if (error) throw error;
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch GitHub repos');
+                    }
+                    
+                    const repos = await response.json();
+                    
+                    // Transform GitHub repos to project format
+                    const projects = repos.map(repo => ({
+                        id: repo.id,
+                        name: repo.name,
+                        description: repo.description || 'No description',
+                        repo: repo.full_name,
+                        last_updated: new Date(repo.updated_at).toLocaleDateString()
+                    }));
                     
                     renderProjects(projects);
                 } catch (error) {
-                    console.error('Error loading projects:', error);
-                    projectsGrid.innerHTML = '<p class="text-neutral-500">Error loading projects</p>';
+                    console.error('Error loading GitHub repos:', error);
+                    projectsGrid.innerHTML = '<p class="text-neutral-500">Error loading GitHub repositories. Check your PAT.</p>';
                 }
             } else {
+                // Demo mode
                 loadDemoProjects();
             }
         }
 
-        // Demo Projects
+        // Demo Projects (used when GitHub PAT is not configured)
         function loadDemoProjects() {
             const demoProjects = [
                 {
@@ -669,10 +692,59 @@
             selectedElement.classList.remove('selected');
         }
 
-        // Save Changes
-        function saveChanges() {
-            // In a real app, this would save to Supabase/GitHub
-            alert('Changes saved successfully!');
+        // Save Changes to GitHub
+        async function saveChanges() {
+            if (GITHUB_PAT !== 'YOUR_GITHUB_PAT' && currentProject) {
+                try {
+                    // Get the current content of the file
+                    const repo = currentProject.repo;
+                    const filePath = 'index.html'; // Assuming we're editing index.html
+                    
+                    // Get the current file content and SHA
+                    const response = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
+                        headers: {
+                            'Authorization': `token ${GITHUB_PAT}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch current file');
+                    }
+                    
+                    const fileData = await response.json();
+                    
+                    // Get the modified content from the editor
+                    const editorContent = document.getElementById('editorPreview').innerHTML;
+                    
+                    // Create a commit
+                    const commitResponse = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `token ${GITHUB_PAT}`,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: 'Update website content via James Studio Client Dashboard',
+                            content: btoa(editorContent), // Base64 encode the content
+                            sha: fileData.sha
+                        })
+                    });
+                    
+                    if (!commitResponse.ok) {
+                        throw new Error('Failed to commit changes');
+                    }
+                    
+                    alert('Changes saved successfully to GitHub!');
+                } catch (error) {
+                    console.error('Error saving to GitHub:', error);
+                    alert('Failed to save changes: ' + error.message);
+                }
+            } else {
+                // Demo mode
+                alert('Changes saved successfully! (Demo mode - no actual commit)');
+            }
         }
 
         // Click outside to close edit panel
