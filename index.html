@@ -958,6 +958,8 @@
                 let responseText = '';
                 if (typeof response === 'string') {
                     responseText = response;
+                } else if (response.message && response.message.content && typeof response.message.content === 'string') {
+                    responseText = response.message.content;
                 } else if (response.message && typeof response.message === 'string') {
                     responseText = response.message;
                 } else if (response.content && typeof response.content === 'string') {
