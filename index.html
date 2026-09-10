@@ -1140,7 +1140,9 @@
         // Open Visual Editor
         async function openVisualEditor() {
             // Verify user has access to this project
-            if (!userAccess.includes(currentProject.repo)) {
+            // Extract repo name from full name (owner/repo -> repo)
+            const repoName = currentProject.repo.split('/')[1];
+            if (!userAccess.includes(repoName)) {
                 alert('You do not have access to edit this project.');
                 return;
             }
