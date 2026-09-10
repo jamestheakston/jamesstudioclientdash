@@ -655,16 +655,21 @@
             
             // Update navigation
             const userMenu = document.getElementById('userMenu');
-            if (viewName === 'login') {
-                userMenu.classList.add('hidden');
-                userMenu.classList.remove('flex');
-            } else {
-                userMenu.classList.remove('hidden');
-                userMenu.classList.add('flex');
+            if (userMenu) {
+                if (viewName === 'login') {
+                    userMenu.classList.add('hidden');
+                    userMenu.classList.remove('flex');
+                } else {
+                    userMenu.classList.remove('hidden');
+                    userMenu.classList.add('flex');
+                }
             }
             
             // Close edit panel when switching views
-            document.getElementById('editPanel').classList.add('hidden');
+            const editPanel = document.getElementById('editPanel');
+            if (editPanel) {
+                editPanel.classList.add('hidden');
+            }
             document.querySelectorAll('.editable-element').forEach(el => {
                 el.classList.remove('selected');
             });
