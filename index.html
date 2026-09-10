@@ -2088,7 +2088,11 @@
                         console.error('Merge error details:', JSON.stringify(mergeError, null, 2));
                         
                         // If merge fails due to conflicts (409 status), try to force merge by creating a commit on main
-                        if (mergeError.status === 409 || (mergeError.message && mergeError.message.toLowerCase().includes('conflict'))) {
+                        const isConflict = mergeError.status === 409 || 
+                                         (mergeError.response && mergeError.response.status === 409) ||
+                                         (mergeError.message && mergeError.message.toLowerCase().includes('conflict'));
+                        
+                        if (isConflict) {
                             console.log('Merge conflict detected, attempting force merge');
                             
                             // Get the current main file
