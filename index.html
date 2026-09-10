@@ -13,6 +13,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
         body {
             font-family: 'Space Grotesk', sans-serif;
@@ -62,26 +65,84 @@
         .animate-on-scroll.delay-300 {
             transition-delay: 0.3s;
         }
+
+        /* View visibility */
+        .view {
+            display: none;
+        }
+        .view.active {
+            display: block;
+        }
+
+        /* Visual Editor Styles */
+        .editable-element {
+            position: relative;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.2s;
+        }
+        .editable-element:hover {
+            border-color: #1A1A1A;
+        }
+        .editable-element.selected {
+            border-color: #1A1A1A;
+            background-color: rgba(26, 26, 26, 0.05);
+        }
+        .edit-controls {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: #1A1A1A;
+            color: #FAF9F6;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            display: none;
+            gap: 8px;
+            z-index: 1000;
+        }
+        .editable-element:hover .edit-controls,
+        .editable-element.selected .edit-controls {
+            display: flex;
+        }
+        .edit-controls button {
+            background: rgba(250, 249, 246, 0.2);
+            border: none;
+            color: #FAF9F6;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .edit-controls button:hover {
+            background: rgba(250, 249, 246, 0.3);
+        }
     </style>
 </head>
 <body class="antialiased selection:bg-[#1A1A1A] selection:text-[#FAF9F6] min-h-screen flex flex-col">
 
     <!-- Navigation -->
     <nav class="sticky top-0 z-50 bg-[#FAF9F6]/90 backdrop-blur-md border-b border-[#1A1A1A]/10 px-6 py-4 md:px-12 flex justify-between items-center transition-all duration-300">
-        <a href="#" class="geometric-font text-xl md:text-2xl font-extrabold tracking-tighter flex items-center gap-2">
+        <a href="#" onclick="showView('login')" class="geometric-font text-xl md:text-2xl font-extrabold tracking-tighter flex items-center gap-2">
             JAMES<span class="text-xs bg-[#1A1A1A] text-[#FAF9F6] px-2 py-0.5 rounded-full uppercase tracking-widest">Studio</span>
         </a>
         
         <!-- Desktop Navigation -->
         <div class="hidden md:flex items-center gap-8 font-medium text-sm tracking-tight">
-            <a href="#" class="hover:text-black/60 transition-colors">Home</a>
+            <a href="#" onclick="showView('login')" class="hover:text-black/60 transition-colors">Home</a>
             <a href="#" class="hover:text-black/60 transition-colors">Services</a>
             <a href="#" class="hover:text-black/60 transition-colors">Contact</a>
         </div>
+        
+        <!-- User Menu (hidden by default) -->
+        <div id="userMenu" class="hidden items-center gap-4">
+            <span id="userEmail" class="text-sm text-neutral-600"></span>
+            <button onclick="logout()" class="text-xs uppercase font-bold tracking-wider hover:underline">Logout</button>
+        </div>
     </nav>
 
-    <!-- Login Section -->
-    <main class="flex-1 flex items-center justify-center px-6 py-12 md:py-20">
+    <!-- Login View -->
+    <main id="loginView" class="view active flex-1 flex items-center justify-center px-6 py-12 md:py-20">
         <div class="w-full max-w-md">
             <div class="text-center mb-10">
                 <div class="animate-on-scroll inline-flex items-center gap-2 bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-6">
@@ -131,6 +192,182 @@
         </div>
     </main>
 
+    <!-- Dashboard View -->
+    <main id="dashboardView" class="view flex-1 px-6 py-12 md:py-20">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-12">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="inline-flex items-center gap-2 bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                        <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
+                        Beta Service
+                    </div>
+                </div>
+                <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight leading-[0.9] text-[#1A1A1A] mb-4">
+                    Your Projects
+                </h1>
+                <p class="text-neutral-600 leading-relaxed max-w-2xl">
+                    Select a project to view details or start editing your website content.
+                </p>
+            </div>
+
+            <!-- Projects Grid -->
+            <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Projects will be loaded here -->
+                <div class="col-span-full text-center py-12">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A1A1A]"></div>
+                    <p class="text-neutral-500 mt-4">Loading your projects...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Project Overview View -->
+    <main id="projectOverviewView" class="view flex-1 px-6 py-12 md:py-20">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-8">
+                <button onclick="showView('dashboard')" class="text-sm text-neutral-600 hover:text-black mb-4 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    Back to Projects
+                </button>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 id="projectTitle" class="text-4xl md:text-5xl font-extrabold tracking-tight leading-[0.9] text-[#1A1A1A] mb-4">
+                            Project Name
+                        </h1>
+                        <p id="projectDescription" class="text-neutral-600 leading-relaxed max-w-2xl">
+                            Project description goes here
+                        </p>
+                    </div>
+                    <button onclick="openVisualEditor()" class="bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+                        Edit Site
+                    </button>
+                </div>
+            </div>
+
+            <!-- Project Details -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2">
+                    <div class="bg-white p-8 rounded-2xl border border-[#1A1A1A]/10 shadow-sm">
+                        <h3 class="text-xl font-bold mb-4">Project Information</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <p class="text-xs uppercase font-bold tracking-widest text-neutral-400 mb-1">Repository</p>
+                                <p id="projectRepo" class="text-sm text-neutral-600">repository-name</p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase font-bold tracking-widest text-neutral-400 mb-1">Last Updated</p>
+                                <p id="projectLastUpdated" class="text-sm text-neutral-600">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase font-bold tracking-widest text-neutral-400 mb-1">Status</p>
+                                <span class="inline-flex items-center gap-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                    Active
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="bg-white p-8 rounded-2xl border border-[#1A1A1A]/10 shadow-sm">
+                        <h3 class="text-xl font-bold mb-4">Quick Actions</h3>
+                        <div class="space-y-3">
+                            <button onclick="openVisualEditor()" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 px-4 py-3 rounded-xl text-sm font-medium hover:border-[#1A1A1A] transition-colors text-left flex items-center gap-3">
+                                <svg class="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                Edit Content
+                            </button>
+                            <button class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 px-4 py-3 rounded-xl text-sm font-medium hover:border-[#1A1A1A] transition-colors text-left flex items-center gap-3">
+                                <svg class="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                Upload Images
+                            </button>
+                            <button class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 px-4 py-3 rounded-xl text-sm font-medium hover:border-[#1A1A1A] transition-colors text-left flex items-center gap-3">
+                                <svg class="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                Update Contact Info
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Visual Editor View -->
+    <main id="visualEditorView" class="view flex-1 flex flex-col">
+        <!-- Editor Toolbar -->
+        <div class="bg-white border-b border-[#1A1A1A]/10 px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button onclick="showView('projectOverview')" class="text-sm text-neutral-600 hover:text-black flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    Back
+                </button>
+                <span id="editorProjectName" class="text-sm font-semibold">Project Name</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="inline-flex items-center gap-2 bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                    <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
+                    Editor Mode
+                </div>
+                <button onclick="saveChanges()" class="bg-[#1A1A1A] text-[#FAF9F6] px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+                    Save Changes
+                </button>
+            </div>
+        </div>
+
+        <!-- Editor Content -->
+        <div class="flex-1 flex">
+            <!-- Preview Panel -->
+            <div class="flex-1 bg-[#FAF9F6] p-8 overflow-auto">
+                <div id="editorPreview" class="max-w-4xl mx-auto bg-white rounded-2xl border border-[#1A1A1A]/10 shadow-sm p-8">
+                    <!-- Sample website content for editing -->
+                    <div class="editable-element" data-type="heading" data-id="hero-heading">
+                        <div class="edit-controls">
+                            <button onclick="editElement('hero-heading', 'heading')">Edit Text</button>
+                        </div>
+                        <h1 class="text-4xl font-extrabold tracking-tight mb-4">Welcome to Our Website</h1>
+                    </div>
+                    
+                    <div class="editable-element" data-type="text" data-id="hero-subtext">
+                        <div class="edit-controls">
+                            <button onclick="editElement('hero-subtext', 'text')">Edit Text</button>
+                        </div>
+                        <p class="text-neutral-600 leading-relaxed mb-6">This is a sample paragraph that you can edit. Click on any element to modify its content directly.</p>
+                    </div>
+                    
+                    <div class="editable-element" data-type="image" data-id="hero-image">
+                        <div class="edit-controls">
+                            <button onclick="editElement('hero-image', 'image')">Change Image</button>
+                        </div>
+                        <div class="aspect-video bg-neutral-100 rounded-xl mb-6 flex items-center justify-center">
+                            <span class="text-neutral-400">Hero Image</span>
+                        </div>
+                    </div>
+                    
+                    <div class="editable-element" data-type="heading" data-id="section-heading">
+                        <div class="edit-controls">
+                            <button onclick="editElement('section-heading', 'heading')">Edit Text</button>
+                        </div>
+                        <h2 class="text-2xl font-bold mb-4">Our Services</h2>
+                    </div>
+                    
+                    <div class="editable-element" data-type="text" data-id="section-text">
+                        <div class="edit-controls">
+                            <button onclick="editElement('section-text', 'text')">Edit Text</button>
+                        </div>
+                        <p class="text-neutral-600 leading-relaxed">Learn more about what we offer and how we can help your business grow.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Panel -->
+            <div id="editPanel" class="w-80 bg-white border-l border-[#1A1A1A]/10 p-6 hidden">
+                <h3 class="text-lg font-bold mb-4">Edit Element</h3>
+                <div id="editPanelContent">
+                    <!-- Dynamic content based on selected element -->
+                </div>
+            </div>
+        </div>
+    </main>
+
     <!-- Footer -->
     <footer class="border-t border-[#1A1A1A]/10 py-8 px-6 md:px-12 bg-white">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -146,8 +383,308 @@
 
     <!-- JavaScript -->
     <script>
+        // Supabase Configuration - Replace with your actual credentials
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        
+        let supabase = null;
+        let currentUser = null;
+        let currentProject = null;
+        let selectedElement = null;
+
+        // Initialize Supabase
+        function initSupabase() {
+            if (SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY') {
+                supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        }
+
         // Update copyright year
         document.getElementById('year').textContent = new Date().getFullYear();
+
+        // View Management
+        function showView(viewName) {
+            // Hide all views
+            document.querySelectorAll('.view').forEach(view => {
+                view.classList.remove('active');
+            });
+            
+            // Show selected view
+            document.getElementById(viewName + 'View').classList.add('active');
+            
+            // Update navigation
+            const userMenu = document.getElementById('userMenu');
+            if (viewName === 'login') {
+                userMenu.classList.add('hidden');
+                userMenu.classList.remove('flex');
+            } else {
+                userMenu.classList.remove('hidden');
+                userMenu.classList.add('flex');
+            }
+        }
+
+        // Login Form Handling
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (supabase) {
+                try {
+                    const { data, error } = await supabase.auth.signInWithPassword({
+                        email: email,
+                        password: password
+                    });
+                    
+                    if (error) throw error;
+                    
+                    currentUser = data.user;
+                    document.getElementById('userEmail').textContent = email;
+                    showView('dashboard');
+                    loadProjects();
+                } catch (error) {
+                    console.error('Login error:', error);
+                    alert('Login failed: ' + error.message);
+                }
+            } else {
+                // Demo mode - mock login
+                currentUser = { email: email };
+                document.getElementById('userEmail').textContent = email;
+                showView('dashboard');
+                loadDemoProjects();
+            }
+        });
+
+        // Logout
+        async function logout() {
+            if (supabase) {
+                await supabase.auth.signOut();
+            }
+            currentUser = null;
+            showView('login');
+        }
+
+        // Load Projects from Supabase
+        async function loadProjects() {
+            const projectsGrid = document.getElementById('projectsGrid');
+            
+            if (supabase) {
+                try {
+                    const { data: projects, error } = await supabase
+                        .from('projects')
+                        .select('*')
+                        .eq('user_id', currentUser.id);
+                    
+                    if (error) throw error;
+                    
+                    renderProjects(projects);
+                } catch (error) {
+                    console.error('Error loading projects:', error);
+                    projectsGrid.innerHTML = '<p class="text-neutral-500">Error loading projects</p>';
+                }
+            } else {
+                loadDemoProjects();
+            }
+        }
+
+        // Demo Projects
+        function loadDemoProjects() {
+            const demoProjects = [
+                {
+                    id: 1,
+                    name: 'ClassCharts Improver',
+                    description: 'Browser extension for improving ClassCharts experience',
+                    repo: 'classcharts-improver',
+                    last_updated: '2025-01-15'
+                },
+                {
+                    id: 2,
+                    name: 'Scouts Car Wash',
+                    description: 'Website for local car wash business',
+                    repo: 'scouts-car-wash',
+                    last_updated: '2026-09-01'
+                },
+                {
+                    id: 3,
+                    name: 'Montecure Dogs',
+                    description: 'Dog care services website',
+                    repo: 'montecure-dogs',
+                    last_updated: '2026-09-05'
+                }
+            ];
+            renderProjects(demoProjects);
+        }
+
+        // Render Projects
+        function renderProjects(projects) {
+            const projectsGrid = document.getElementById('projectsGrid');
+            
+            if (!projects || projects.length === 0) {
+                projectsGrid.innerHTML = '<p class="text-neutral-500">No projects found</p>';
+                return;
+            }
+            
+            projectsGrid.innerHTML = projects.map(project => `
+                <div class="bg-white p-6 rounded-2xl border border-[#1A1A1A]/10 hover:border-[#1A1A1A] transition-all cursor-pointer shadow-sm" onclick="viewProject(${project.id})">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="w-12 h-12 rounded-full bg-neutral-100 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                        </div>
+                        <span class="text-xs uppercase font-bold tracking-widest border border-[#1A1A1A]/10 px-2 py-1 rounded-full">Active</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">${project.name}</h3>
+                    <p class="text-neutral-500 text-sm leading-relaxed mb-4">${project.description}</p>
+                    <div class="flex items-center gap-2 text-xs text-neutral-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Last updated: ${project.last_updated || 'Recently'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // View Project Details
+        function viewProject(projectId) {
+            // Find project data
+            const projects = document.querySelectorAll('#projectsGrid > div');
+            let projectData = null;
+            
+            // In a real app, this would come from your data
+            const demoProjects = [
+                {
+                    id: 1,
+                    name: 'ClassCharts Improver',
+                    description: 'Browser extension for improving ClassCharts experience',
+                    repo: 'classcharts-improver',
+                    last_updated: '2025-01-15'
+                },
+                {
+                    id: 2,
+                    name: 'Scouts Car Wash',
+                    description: 'Website for local car wash business',
+                    repo: 'scouts-car-wash',
+                    last_updated: '2026-09-01'
+                },
+                {
+                    id: 3,
+                    name: 'Montecure Dogs',
+                    description: 'Dog care services website',
+                    repo: 'montecure-dogs',
+                    last_updated: '2026-09-05'
+                }
+            ];
+            
+            projectData = demoProjects.find(p => p.id === projectId) || demoProjects[0];
+            currentProject = projectData;
+            
+            // Update project overview
+            document.getElementById('projectTitle').textContent = projectData.name;
+            document.getElementById('projectDescription').textContent = projectData.description;
+            document.getElementById('projectRepo').textContent = projectData.repo;
+            document.getElementById('projectLastUpdated').textContent = projectData.last_updated || 'Recently';
+            
+            showView('projectOverview');
+        }
+
+        // Open Visual Editor
+        function openVisualEditor() {
+            document.getElementById('editorProjectName').textContent = currentProject.name;
+            showView('visualEditor');
+        }
+
+        // Edit Element
+        function editElement(elementId, type) {
+            selectedElement = document.querySelector(`[data-id="${elementId}"]`);
+            const editPanel = document.getElementById('editPanel');
+            const editPanelContent = document.getElementById('editPanelContent');
+            
+            // Remove selected class from all elements
+            document.querySelectorAll('.editable-element').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked element
+            selectedElement.classList.add('selected');
+            
+            // Show edit panel
+            editPanel.classList.remove('hidden');
+            
+            // Generate edit form based on type
+            if (type === 'heading' || type === 'text') {
+                const currentText = selectedElement.querySelector('h1, h2, h3, p').textContent;
+                editPanelContent.innerHTML = `
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs uppercase font-bold tracking-widest mb-2">Text Content</label>
+                            <textarea id="editTextInput" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A1A1A] transition-colors resize-none" rows="4">${currentText}</textarea>
+                        </div>
+                        <button onclick="applyTextChange()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] py-3 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+                            Apply Changes
+                        </button>
+                    </div>
+                `;
+            } else if (type === 'image') {
+                editPanelContent.innerHTML = `
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs uppercase font-bold tracking-widest mb-2">Image URL</label>
+                            <input type="text" id="editImageInput" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A1A1A] transition-colors" placeholder="https://example.com/image.jpg">
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase font-bold tracking-widest mb-2">Or Upload New Image</label>
+                            <input type="file" id="editImageFile" class="w-full text-sm" accept="image/*">
+                        </div>
+                        <button onclick="applyImageChange()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] py-3 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+                            Apply Changes
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Apply Text Change
+        function applyTextChange() {
+            const newText = document.getElementById('editTextInput').value;
+            const textElement = selectedElement.querySelector('h1, h2, h3, p');
+            if (textElement) {
+                textElement.textContent = newText;
+            }
+            document.getElementById('editPanel').classList.add('hidden');
+            selectedElement.classList.remove('selected');
+        }
+
+        // Apply Image Change
+        function applyImageChange() {
+            const imageUrl = document.getElementById('editImageInput').value;
+            const imageFile = document.getElementById('editImageFile').files[0];
+            
+            if (imageUrl) {
+                // In a real app, you'd update the actual image
+                alert('Image URL updated to: ' + imageUrl);
+            } else if (imageFile) {
+                // In a real app, you'd upload the file
+                alert('Image file selected: ' + imageFile.name);
+            }
+            
+            document.getElementById('editPanel').classList.add('hidden');
+            selectedElement.classList.remove('selected');
+        }
+
+        // Save Changes
+        function saveChanges() {
+            // In a real app, this would save to Supabase/GitHub
+            alert('Changes saved successfully!');
+        }
+
+        // Click outside to close edit panel
+        document.addEventListener('click', (e) => {
+            const editPanel = document.getElementById('editPanel');
+            if (!editPanel.contains(e.target) && !e.target.closest('.editable-element')) {
+                editPanel.classList.add('hidden');
+                document.querySelectorAll('.editable-element').forEach(el => {
+                    el.classList.remove('selected');
+                });
+            }
+        });
 
         // Scroll animations using Intersection Observer
         const observerOptions = {
@@ -168,16 +705,8 @@
             observer.observe(el);
         });
 
-        // Form submission handling
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            
-            // Here you would typically send this to your backend
-            console.log('Login attempt:', { email, password });
-            alert('Login functionality would be implemented here');
-        });
+        // Initialize
+        initSupabase();
     </script>
 </body>
 </html>
