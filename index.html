@@ -390,6 +390,9 @@
         // GitHub Configuration
         const GITHUB_PAT = 'YOUR_GITHUB_PAT'; // Replace with your GitHub Personal Access Token
         
+        // Access control
+        let userAccess = []; // Will store repositories user has access to
+        
         let SupabaseClient = null;
         let currentUser = null;
         let currentProject = null;
@@ -485,9 +488,36 @@
             showView('login');
         }
 
+        // Load user's access from Supabase
+        async function loadUserAccess() {
+            if (!SupabaseClient || !currentUser) {
+                console.log('No Supabase client or user, using demo access');
+                return;
+            }
+            
+            try {
+                const { data: accessData, error } = await SupabaseClient
+                    .from('access')
+                    .select('repo_name')
+                    .eq('email', currentUser.email);
+                
+                if (error) throw error;
+                
+                userAccess = accessData ? accessData.map(item => item.repo_name) : [];
+                console.log('User access loaded:', userAccess);
+            } catch (error) {
+                console.error('Error loading user access:', error);
+                // If table doesn't exist or error occurs, use empty access
+                userAccess = [];
+            }
+        }
+
         // Load Projects from GitHub using PAT
         async function loadProjects() {
             const projectsGrid = document.getElementById('projectsGrid');
+            
+            // First load user's access permissions
+            await loadUserAccess();
             
             if (GITHUB_PAT !== 'YOUR_GITHUB_PAT') {
                 try {
@@ -505,8 +535,13 @@
                     
                     const repos = await response.json();
                     
+                    // Filter repos based on user access, or show all if no access restrictions
+                    const filteredRepos = userAccess.length > 0 
+                        ? repos.filter(repo => userAccess.includes(repo.full_name) || userAccess.includes(repo.name))
+                        : repos;
+                    
                     // Transform GitHub repos to project format
-                    const projects = repos.map(repo => ({
+                    const projects = filteredRepos.map(repo => ({
                         id: repo.id,
                         name: repo.name,
                         description: repo.description || 'No description',
