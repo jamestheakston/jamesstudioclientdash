@@ -381,6 +381,10 @@
                 <span id="editorProjectName" class="text-sm font-semibold">Project Name</span>
             </div>
             <div class="flex items-center gap-3">
+                <button onclick="toggleAIPanel()" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-opacity flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                    AI Assistant
+                </button>
                 <div class="inline-flex items-center gap-2 bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
                     <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
                     Editor Mode
@@ -484,6 +488,60 @@
             </button>
         </div>
     </div>
+
+    <!-- AI Side Panel -->
+    <div id="aiSidePanel" class="fixed inset-y-0 left-0 w-96 bg-white shadow-2xl z-50 transform -translate-x-full transition-transform duration-300 ease-in-out">
+        <div class="h-full flex flex-col">
+            <!-- Panel Header -->
+            <div class="p-4 border-b border-[#1A1A1A]/10 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <img src="https://assets.puter.site/puter-logo.png" alt="Puter" class="w-8 h-8">
+                    <h3 class="font-bold">AI Assistant</h3>
+                </div>
+                <button onclick="toggleAIPanel()" class="text-neutral-400 hover:text-black">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <!-- Panel Content -->
+            <div id="aiPanelContent" class="flex-1 overflow-auto p-4">
+                <!-- Authorization Screen -->
+                <div id="aiAuthScreen" class="text-center py-8">
+                    <img src="https://assets.puter.site/puter-logo.png" alt="Puter" class="w-16 h-16 mx-auto mb-4">
+                    <h4 class="text-lg font-bold mb-2">Powered by Puter</h4>
+                    <p class="text-sm text-neutral-600 mb-6 leading-relaxed">
+                        We use a service called Puter for AI features. To use AI features on this site, you'll need to login and agree to the terms.
+                    </p>
+                    <button onclick="authorizePuter()" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-wider hover:opacity-90 transition-opacity">
+                        Connect with Puter
+                    </button>
+                    <p class="text-xs text-neutral-400 mt-4">
+                        By connecting, you agree to Puter's terms of service.
+                    </p>
+                </div>
+
+                <!-- Chat Screen (hidden until authorized) -->
+                <div id="aiChatScreen" class="hidden">
+                    <div id="aiChatMessages" class="space-y-4 mb-4">
+                        <div class="bg-[#FAF9F6] p-3 rounded-lg">
+                            <p class="text-sm">Hello! I'm your AI assistant. I can help you edit your website content. What would you like to change?</p>
+                        </div>
+                    </div>
+                    <div class="border-t border-[#1A1A1A]/10 pt-4">
+                        <div class="flex gap-2">
+                            <input type="text" id="aiChatInput" placeholder="Ask me to edit something..." class="flex-1 bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A1A1A]">
+                            <button onclick="sendAIMessage()" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90 transition-opacity">
+                                Send
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Panel Overlay -->
+    <div id="aiPanelOverlay" class="fixed inset-0 bg-black/50 z-40 hidden" onclick="toggleAIPanel()"></div>
 
     <!-- Footer -->
     <footer class="border-t border-[#1A1A1A]/10 py-8 px-6 md:px-12 bg-white">
@@ -788,6 +846,65 @@
                     monacoEditor.layout();
                 }
             }
+        }
+        
+        // AI Panel Functions
+        let isAIPanelOpen = false;
+        let isPuterAuthorized = false;
+        
+        function toggleAIPanel() {
+            const panel = document.getElementById('aiSidePanel');
+            const overlay = document.getElementById('aiPanelOverlay');
+            
+            if (isAIPanelOpen) {
+                panel.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            } else {
+                panel.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            }
+            
+            isAIPanelOpen = !isAIPanelOpen;
+        }
+        
+        function authorizePuter() {
+            // For now, simulate authorization
+            // In production, this would integrate with Puter's actual auth flow
+            isPuterAuthorized = true;
+            
+            document.getElementById('aiAuthScreen').classList.add('hidden');
+            document.getElementById('aiChatScreen').classList.remove('hidden');
+        }
+        
+        function sendAIMessage() {
+            const input = document.getElementById('aiChatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            const chatMessages = document.getElementById('aiChatMessages');
+            
+            // Add user message
+            const userMessage = document.createElement('div');
+            userMessage.className = 'bg-gradient-to-r from-purple-500 to-pink-500 text-white p-3 rounded-lg ml-8';
+            userMessage.textContent = message;
+            chatMessages.appendChild(userMessage);
+            
+            input.value = '';
+            
+            // Simulate AI response
+            setTimeout(() => {
+                const aiMessage = document.createElement('div');
+                aiMessage.className = 'bg-[#FAF9F6] p-3 rounded-lg';
+                aiMessage.textContent = 'I understand you want to: "' + message + '". I can help you edit your website content. Let me process that request...';
+                chatMessages.appendChild(aiMessage);
+                
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 1000);
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
         function initSupabase() {
             try {
