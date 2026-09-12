@@ -1281,6 +1281,164 @@
             }
         }
 
+        // Helper to parse FunctionsHttpError and extract actual GitHub API error details
+        async function parseFunctionError(error) {
+            // Default values if we can't parse the error
+            const result = {
+                status: null,
+                message: error.message || 'Unknown error',
+                body: null
+            };
+
+            // If error has a context Response object, read it to get the real status and body
+            if (error.context && typeof error.context.json === 'function') {
+                try {
+                    const body = await error.context.json();
+                    result.status = error.context.status;
+                    result.body = body;
+                    result.message = body.message || error.message;
+                } catch (e) {
+                    // If json() fails, try text()
+                    try {
+                        const text = await error.context.text();
+                        result.status = error.context.status;
+                        result.message = text || error.message;
+                    } catch (e2) {
+                        // If both fail, use what we have
+                        result.status = error.context.status;
+                    }
+                }
+            } else if (error.status) {
+                // Fallback: if error has status directly, use it
+                result.status = error.status;
+            }
+
+            return result;
+        }
+
+        // Reusable function to ensure draft branch exists and return draft file data
+        async function ensureDraftBranch(repo, filePath = 'index.html') {
+            console.log('Ensuring draft branch exists for', repo);
+
+            // First, try to get the file from draft branch
+            const { data: draftFileData, error: draftError } = await SupabaseClient.functions.invoke('github-api', {
+                body: { 
+                    endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
+                    method: 'GET'
+                }
+            });
+
+            // If draft file exists, return it
+            if (!draftError && draftFileData) {
+                console.log('Draft file found, returning it');
+                return { fileData: draftFileData, isNewFile: false };
+            }
+
+            // Parse the error to see if it's a 404 (expected) or something else (real error)
+            const parsedError = await parseFunctionError(draftError);
+            
+            // If it's not a 404, it's a real error - surface it
+            if (parsedError.status !== null && parsedError.status !== 404) {
+                throw new Error(`Failed to access draft branch: ${parsedError.message}`);
+            }
+
+            // 404 means draft branch or file doesn't exist - create from main
+            console.log('Draft branch/file not found (404), creating from main');
+
+            // Get the file from main branch
+            const { data: mainFileData, error: mainError } = await SupabaseClient.functions.invoke('github-api', {
+                body: { 
+                    endpoint: `/repos/${repo}/contents/${filePath}`,
+                    method: 'GET'
+                }
+            });
+
+            // If main file doesn't exist, create a default one
+            if (mainError || !mainFileData) {
+                console.log('File not found on main branch, creating default file');
+                const defaultContent = '<html><head></head><body><p style="cursor: pointer; outline: rgb(26, 26, 26) solid 2px;" data-editable="true">Welcome to my site</p></body></html>';
+                
+                // Get the latest commit SHA from main
+                const { data: refData, error: refError } = await SupabaseClient.functions.invoke('github-api', {
+                    body: {
+                        endpoint: `/repos/${repo}/git/refs/heads/main`,
+                        method: 'GET'
+                    }
+                });
+                
+                if (refError) throw refError;
+                
+                // Create the file on main branch
+                const { data: createFileData, error: createFileError } = await SupabaseClient.functions.invoke('github-api', {
+                    body: {
+                        endpoint: `/repos/${repo}/contents/${filePath}`,
+                        method: 'PUT',
+                        body: {
+                            message: 'Initial commit via James Studio Client Dashboard',
+                            content: btoa(defaultContent),
+                            sha: refData.object.sha
+                        }
+                    }
+                });
+                
+                if (createFileError) throw createFileError;
+                
+                // Create draft branch from main
+                try {
+                    await SupabaseClient.functions.invoke('github-api', {
+                        body: {
+                            endpoint: `/repos/${repo}/git/refs`,
+                            method: 'POST',
+                            body: {
+                                ref: `refs/heads/draft`,
+                                sha: refData.object.sha
+                            }
+                        }
+                    });
+                } catch (createError) {
+                    const parsedCreateError = await parseFunctionError(createError);
+                    // 422 "Reference already exists" is expected - branch already exists
+                    if (parsedCreateError.status !== 422) {
+                        throw createError;
+                    }
+                }
+                
+                return { fileData: createFileData, isNewFile: true };
+            }
+
+            // Get the latest commit SHA from main
+            const { data: refData, error: refError } = await SupabaseClient.functions.invoke('github-api', {
+                body: {
+                    endpoint: `/repos/${repo}/git/refs/heads/main`,
+                    method: 'GET'
+                }
+            });
+
+            if (refError) throw refError;
+
+            // Try to create draft branch from main
+            try {
+                await SupabaseClient.functions.invoke('github-api', {
+                    body: {
+                        endpoint: `/repos/${repo}/git/refs`,
+                        method: 'POST',
+                        body: {
+                            ref: `refs/heads/draft`,
+                            sha: refData.object.sha
+                        }
+                    }
+                });
+            } catch (createError) {
+                const parsedCreateError = await parseFunctionError(createError);
+                // 422 "Reference already exists" is expected - branch already exists
+                if (parsedCreateError.status !== 422) {
+                    throw createError;
+                }
+            }
+
+            return { fileData: mainFileData, isNewFile: false };
+        }
+
         // View Management
         function showView(viewName) {
             // Hide all views
@@ -1532,125 +1690,16 @@
                 const repo = currentProject.repo;
                 const filePath = 'index.html';
                 
-                const { data: fileData, error } = await SupabaseClient.functions.invoke('github-api', {
-                    body: { 
-                        endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
-                        method: 'GET'
-                    }
-                });
+                // Use ensureDraftBranch to get or create the draft branch/file
+                const { fileData, isNewFile } = await ensureDraftBranch(repo, filePath);
                 
-                // If draft branch doesn't exist or file not found, try main branch
-                if (error || !fileData) {
-                    console.log('Draft branch not found, loading from main branch');
-                    const { data: mainFileData, error: mainError } = await SupabaseClient.functions.invoke('github-api', {
-                        body: { 
-                            endpoint: `/repos/${repo}/contents/${filePath}`,
-                            method: 'GET'
-                        }
-                    });
-                    
-                    // If main branch also doesn't have the file, create a default one
-                    if (mainError || !mainFileData) {
-                        console.log('File not found on main branch, creating default file');
-                        const defaultContent = '<html><head></head><body><p style="cursor: pointer; outline: rgb(26, 26, 26) solid 2px;" data-editable="true">Welcome to my site</p></body></html>';
-                        
-                        // Get the latest commit SHA from main
-                        const { data: refData, error: refError } = await SupabaseClient.functions.invoke('github-api', {
-                            body: {
-                                endpoint: `/repos/${repo}/git/refs/heads/main`,
-                                method: 'GET'
-                            }
-                        });
-                        
-                        if (refError) throw refError;
-                        
-                        // Create the file on main branch
-                        const { data: createFileData, error: createFileError } = await SupabaseClient.functions.invoke('github-api', {
-                            body: {
-                                endpoint: `/repos/${repo}/contents/${filePath}`,
-                                method: 'PUT',
-                                body: {
-                                    message: 'Initial commit via James Studio Client Dashboard',
-                                    content: btoa(defaultContent),
-                                    sha: refData.object.sha
-                                }
-                            }
-                        });
-                        
-                        if (createFileError) throw createFileError;
-                        
-                        // Load the newly created file
-                        const decodedContent = defaultContent;
-                        currentProject.fileSha = createFileData.content.sha;
-                        if (monacoEditor) {
-                            monacoEditor.setValue(decodedContent);
-                        }
-                        
-                        // Try to create draft branch from main
-                        try {
-                            await SupabaseClient.functions.invoke('github-api', {
-                                body: {
-                                    endpoint: `/repos/${repo}/git/refs`,
-                                    method: 'POST',
-                                    body: {
-                                        ref: `refs/heads/draft`,
-                                        sha: refData.object.sha
-                                    }
-                                }
-                            });
-                        } catch (createError) {
-                            console.log('Branch creation failed, may already exist:', createError);
-                        }
-                    } else {
-                        // Get the latest commit SHA from main
-                        const { data: refData, error: refError } = await SupabaseClient.functions.invoke('github-api', {
-                            body: {
-                                endpoint: `/repos/${repo}/git/refs/heads/main`,
-                                method: 'GET'
-                            }
-                        });
-                        
-                        if (refError) throw refError;
-                        
-                        // Try to create draft branch from main
-                        try {
-                            await SupabaseClient.functions.invoke('github-api', {
-                                body: {
-                                    endpoint: `/repos/${repo}/git/refs`,
-                                    method: 'POST',
-                                    body: {
-                                        ref: `refs/heads/draft`,
-                                        sha: refData.object.sha
-                                    }
-                                }
-                            });
-                        } catch (createError) {
-                            // If 422, branch might already exist, that's fine
-                            console.log('Branch creation failed, may already exist:', createError);
-                        }
-                        
-                        // Load from main
-                        if (mainFileData && mainFileData.name === 'index.html') {
-                            const decodedContent = atob(mainFileData.content);
-                            currentProject.fileSha = mainFileData.sha;
-                            if (monacoEditor) {
-                                monacoEditor.setValue(decodedContent);
-                            }
-                        }
-                        hasUnsavedChanges = false;
-                    }
-                } else if (fileData && fileData.name === 'index.html') {
-                    // Load from draft branch
-                    const decodedContent = atob(fileData.content);
-                    currentProject.fileSha = fileData.sha;
-                    if (monacoEditor) {
-                        monacoEditor.setValue(decodedContent);
-                    }
-                    hasUnsavedChanges = false;
-                } else {
-                    alert('Error: Could not load the correct file from repository.');
-                    return;
+                // Load the file content into Monaco editor
+                const decodedContent = isNewFile ? fileData.content : atob(fileData.content);
+                currentProject.fileSha = fileData.sha;
+                if (monacoEditor) {
+                    monacoEditor.setValue(decodedContent);
                 }
+                hasUnsavedChanges = false;
                 
                 // Only show editor view after successfully loading correct code
                 showView('visualEditor');
@@ -1716,130 +1765,14 @@
                     alert('No content to save');
                     return;
                 }
+                
                 const repo = currentProject.repo;
                 const filePath = 'index.html';
                 
-                // First, try to get the current SHA from draft branch
-                let draftFileData;
-                let draftError;
+                // Ensure draft branch exists and get current file data
+                const { fileData } = await ensureDraftBranch(repo, filePath);
                 
-                try {
-                    const result = await SupabaseClient.functions.invoke('github-api', {
-                        body: { 
-                            endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
-                            method: 'GET'
-                        }
-                    });
-                    draftFileData = result.data;
-                    draftError = result.error;
-                } catch (e) {
-                    draftError = e;
-                }
-                
-                console.log('Draft file data:', draftFileData);
-                console.log('Draft error:', draftError);
-                
-                // If draft branch doesn't exist, create it from main
-                if (draftError || !draftFileData) {
-                    console.log('Draft branch not found, creating from main branch');
-                    
-                    // Get the file from main branch
-                    const { data: mainFileData, error: mainError } = await SupabaseClient.functions.invoke('github-api', {
-                        body: { 
-                            endpoint: `/repos/${repo}/contents/${filePath}`,
-                            method: 'GET'
-                        }
-                    });
-                    
-                    if (mainError) throw mainError;
-                    
-                    // Get the latest commit SHA from main
-                    const { data: refData, error: refError } = await SupabaseClient.functions.invoke('github-api', {
-                        body: {
-                            endpoint: `/repos/${repo}/git/refs/heads/main`,
-                            method: 'GET'
-                        }
-                    });
-                    
-                    if (refError) throw refError;
-                    
-                    console.log('Ref data from main:', refData);
-                    console.log('SHA to use:', refData.object?.sha);
-                    
-                    // Try to create draft branch from main
-                    try {
-                        const createResult = await SupabaseClient.functions.invoke('github-api', {
-                            body: {
-                                endpoint: `/repos/${repo}/git/refs`,
-                                method: 'POST',
-                                body: {
-                                    ref: `refs/heads/draft`,
-                                    sha: refData.object.sha
-                                }
-                            }
-                        });
-                        console.log('Branch creation result:', createResult);
-                    } catch (createError) {
-                        // If 422, branch might already exist, try to get file from it
-                        console.log('Branch creation failed, checking if it already exists:', createError);
-                        const { data: existingFileData, error: existingFileError } = await SupabaseClient.functions.invoke('github-api', {
-                            body: { 
-                                endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
-                                method: 'GET'
-                            }
-                        });
-                        
-                        if (!existingFileError && existingFileData) {
-                            draftFileData = existingFileData;
-                        } else {
-                            // Branch exists but file doesn't, we'll create the file without needing a SHA
-                            console.log('Branch exists but file does not, will create new file');
-                            draftFileData = null; // This signals we need to create a new file
-                        }
-                    }
-                    
-                    // Use the main file SHA for the first commit if we didn't get it from existing branch
-                    if (!draftFileData) {
-                        draftFileData = mainFileData;
-                    }
-                }
-                
-                // If draftFileData is null, we need to create a new file (no SHA needed)
-                if (!draftFileData) {
-                    console.log('Creating new file on draft branch');
-                    const result = await SupabaseClient.functions.invoke('github-api', {
-                        body: { 
-                            endpoint: `/repos/${repo}/contents/${filePath}`,
-                            method: 'PUT',
-                            body: {
-                                message: 'Save draft via James Studio Client Dashboard',
-                                content: btoa(newContent),
-                                branch: 'draft'
-                            }
-                        }
-                    });
-                    
-                    if (result.error) throw result.error;
-                    
-                    currentProject.fileSha = result.data.content.sha;
-                    hasUnsavedChanges = false;
-                    alert('Draft saved successfully!');
-                    return;
-                }
-                
-                // Get the current SHA from draft branch right before committing
-                const { data: currentDraftFile, error: currentDraftError } = await SupabaseClient.functions.invoke('github-api', {
-                    body: { 
-                        endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
-                        method: 'GET'
-                    }
-                });
-                
-                if (currentDraftError) throw currentDraftError;
-                
-                console.log('Current draft file SHA:', currentDraftFile.sha);
-                
-                // Commit to draft branch with retry logic for 409 errors
+                // Commit to draft branch with retry logic for 409 SHA mismatch errors
                 let commitData;
                 let commitError;
                 let retries = 0;
@@ -1854,7 +1787,28 @@
                         }
                     });
                     
-                    if (freshError) throw freshError;
+                    // If we can't get the file, try creating it without SHA
+                    if (freshError || !freshDraftFile) {
+                        console.log('File not found on draft, creating new file');
+                        const result = await SupabaseClient.functions.invoke('github-api', {
+                            body: { 
+                                endpoint: `/repos/${repo}/contents/${filePath}`,
+                                method: 'PUT',
+                                body: {
+                                    message: 'Save draft via James Studio Client Dashboard',
+                                    content: btoa(newContent),
+                                    branch: 'draft'
+                                }
+                            }
+                        });
+                        
+                        if (result.error) throw result.error;
+                        
+                        currentProject.fileSha = result.data.content.sha;
+                        hasUnsavedChanges = false;
+                        alert('Draft saved successfully!');
+                        return;
+                    }
                     
                     console.log(`Attempt ${retries + 1}: SHA ${freshDraftFile.sha}`);
                     
@@ -1874,7 +1828,11 @@
                     commitData = result.data;
                     commitError = result.error;
                     
-                    if (!commitError || commitError.status !== 409) {
+                    // Parse the error to check if it's a 409 conflict
+                    const parsedError = commitError ? await parseFunctionError(commitError) : null;
+                    
+                    // If no error or not a 409, we're done
+                    if (!commitError || parsedError?.status !== 409) {
                         break;
                     }
                     
@@ -1889,7 +1847,10 @@
                 console.log('Commit data:', commitData);
                 console.log('Commit error:', commitError);
                 
-                if (commitError) throw commitError;
+                if (commitError) {
+                    const parsedError = await parseFunctionError(commitError);
+                    throw new Error(`Failed to save draft: ${parsedError.message}`);
+                }
                 
                 // Update the stored SHA
                 currentProject.fileSha = commitData.content.sha;
@@ -1943,86 +1904,10 @@
                 
                 if (!newContent) return;
                 
-                // Try to get draft file data
-                let draftFileData;
-                let draftError;
+                // Ensure draft branch exists and get current file data
+                const { fileData } = await ensureDraftBranch(repo, filePath);
                 
-                try {
-                    const result = await SupabaseClient.functions.invoke('github-api', {
-                        body: { 
-                            endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
-                            method: 'GET'
-                        }
-                    });
-                    draftFileData = result.data;
-                    draftError = result.error;
-                } catch (e) {
-                    draftError = e;
-                }
-                
-                // If draft branch doesn't exist, create it from main
-                if (draftError || !draftFileData) {
-                    try {
-                        // Get the file from main branch
-                        const { data: mainFileData, error: mainError } = await SupabaseClient.functions.invoke('github-api', {
-                            body: { 
-                                endpoint: `/repos/${repo}/contents/${filePath}`,
-                                method: 'GET'
-                            }
-                        });
-                        
-                        if (mainError) return;
-                        
-                        // Get the latest commit SHA from main
-                        const { data: refData, error: refError } = await SupabaseClient.functions.invoke('github-api', {
-                            body: {
-                                endpoint: `/repos/${repo}/git/refs/heads/main`,
-                                method: 'GET'
-                            }
-                        });
-                        
-                        if (refError) return;
-                        
-                        // Try to create draft branch from main
-                        try {
-                            await SupabaseClient.functions.invoke('github-api', {
-                                body: {
-                                    endpoint: `/repos/${repo}/git/refs`,
-                                    method: 'POST',
-                                    body: {
-                                        ref: `refs/heads/draft`,
-                                        sha: refData.object.sha
-                                    }
-                                }
-                            });
-                        } catch (createError) {
-                            // If 422, branch might already exist, try to get file from it
-                            const { data: existingFileData, error: existingFileError } = await SupabaseClient.functions.invoke('github-api', {
-                                body: { 
-                                    endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
-                                    method: 'GET'
-                                }
-                            });
-                            
-                            if (!existingFileError && existingFileData) {
-                                draftFileData = existingFileData;
-                            } else {
-                                // Branch exists but file doesn't, use main file data
-                                draftFileData = mainFileData;
-                            }
-                        }
-                        
-                        // Use the main file SHA for the first commit if we didn't get it from existing branch
-                        if (!draftFileData) {
-                            draftFileData = mainFileData;
-                        }
-                    } catch (e) {
-                        console.error('Autosave branch creation error:', e);
-                        return;
-                    }
-                }
-                
-                // Commit to draft branch with retry logic for 409 errors
+                // Commit to draft branch with retry logic for 409 SHA mismatch errors
                 let retries = 0;
                 const maxRetries = 2;
                 
@@ -2035,7 +1920,26 @@
                         }
                     });
                     
-                    if (freshError) return;
+                    // If we can't get the file, try creating it without SHA
+                    if (freshError || !freshDraftFile) {
+                        console.log('Autosave: file not found on draft, creating new file');
+                        const result = await SupabaseClient.functions.invoke('github-api', {
+                            body: { 
+                                endpoint: `/repos/${repo}/contents/${filePath}`,
+                                method: 'PUT',
+                                body: {
+                                    message: 'Autosave draft via James Studio Client Dashboard',
+                                    content: btoa(newContent),
+                                    branch: 'draft'
+                                }
+                            }
+                        });
+                        
+                        if (!result.error) {
+                            console.log('Autosaved draft (new file created)');
+                        }
+                        return;
+                    }
                     
                     const result = await SupabaseClient.functions.invoke('github-api', {
                         body: { 
@@ -2050,7 +1954,11 @@
                         }
                     });
                     
-                    if (!result.error || result.error.status !== 409) {
+                    // Parse the error to check if it's a 409 conflict
+                    const parsedError = result.error ? await parseFunctionError(result.error) : null;
+                    
+                    // If no error or not a 409, we're done
+                    if (!result.error || parsedError?.status !== 409) {
                         break;
                     }
                     
@@ -2154,13 +2062,12 @@
                         console.error('Merge error:', mergeError);
                         console.error('Merge error details:', JSON.stringify(mergeError, null, 2));
                         
-                        // If merge fails due to conflicts (409 status), try to force merge by creating a commit on main
-                        const isConflict = mergeError.status === 409 || 
-                                         (mergeError.response && mergeError.response.status === 409) ||
-                                         (mergeError.message && mergeError.message.toLowerCase().includes('conflict'));
+                        // Parse the error to get the actual status and message
+                        const parsedMergeError = await parseFunctionError(mergeError);
                         
-                        if (isConflict) {
-                            console.log('Merge conflict detected, attempting force merge');
+                        // If merge fails due to conflicts (409 status), try to force merge by creating a commit on main
+                        if (parsedMergeError.status === 409) {
+                            console.log('Merge conflict detected (409), attempting force merge');
                             
                             // Get the current main file
                             const { data: mainFileData, error: mainFileError } = await SupabaseClient.functions.invoke('github-api', {
@@ -2188,7 +2095,8 @@
                             if (forceCommitError) throw forceCommitError;
                             console.log('Force merge successful');
                         } else {
-                            throw mergeError;
+                            // Not a 409 conflict - surface the real error to the user
+                            throw new Error(`Failed to merge draft to main: ${parsedMergeError.message}`);
                         }
                     }
                     
