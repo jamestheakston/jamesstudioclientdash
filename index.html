@@ -970,11 +970,17 @@
                 panel.classList.remove('w-0');
                 panel.classList.add(isMobile ? 'w-full' : 'w-96');
                 
-                // Check if auth screen has been shown before
-                const authScreenShown = localStorage.getItem('puterAuthScreenShown');
-                if (authScreenShown === 'true' && !isPuterAuthorized) {
-                    // Auto-authorize if screen was shown before
-                    authorizePuter();
+                // Check if user has an active Puter session using the SDK
+                if (typeof puter !== 'undefined' && puter.auth && puter.auth.isSignedIn) {
+                    const isSignedIn = puter.auth.isSignedIn();
+                    if (isSignedIn) {
+                        // User has a valid session, skip auth screen and show chat
+                        isPuterAuthorized = true;
+                        document.getElementById('aiAuthScreen').classList.add('hidden');
+                        document.getElementById('aiChatScreen').classList.remove('hidden');
+                        loadChatsFromStorage();
+                    }
+                    // If not signed in, show auth screen for user to explicitly authorize
                 }
             }
             
@@ -988,9 +994,6 @@
                 alert('Puter SDK not loaded. Please refresh the page.');
                 return;
             }
-            
-            // Mark that auth screen has been shown
-            localStorage.setItem('puterAuthScreenShown', 'true');
             
             // Try to use Puter auth - the API might vary
             try {
@@ -1039,6 +1042,16 @@
         }
         
         function logoutPuter() {
+            // Call Puter SDK sign-out if available
+            if (typeof puter !== 'undefined' && puter.auth && puter.auth.signout) {
+                puter.auth.signout().then(() => {
+                    console.log('Puter sign-out successful');
+                }).catch((error) => {
+                    console.error('Puter sign-out error:', error);
+                });
+            }
+            
+            // Clear local state
             isPuterAuthorized = false;
             document.getElementById('aiChatScreen').classList.add('hidden');
             document.getElementById('aiAuthScreen').classList.remove('hidden');
