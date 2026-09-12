@@ -1550,44 +1550,96 @@
                         }
                     });
                     
-                    if (mainError) throw mainError;
-                    
-                    // Get the latest commit SHA from main
-                    const { data: refData, error: refError } = await SupabaseClient.functions.invoke('github-api', {
-                        body: {
-                            endpoint: `/repos/${repo}/git/refs/heads/main`,
-                            method: 'GET'
-                        }
-                    });
-                    
-                    if (refError) throw refError;
-                    
-                    // Try to create draft branch from main
-                    try {
-                        await SupabaseClient.functions.invoke('github-api', {
+                    // If main branch also doesn't have the file, create a default one
+                    if (mainError || !mainFileData) {
+                        console.log('File not found on main branch, creating default file');
+                        const defaultContent = '<html><head></head><body><p style="cursor: pointer; outline: rgb(26, 26, 26) solid 2px;" data-editable="true">Welcome to my site</p></body></html>';
+                        
+                        // Get the latest commit SHA from main
+                        const { data: refData, error: refError } = await SupabaseClient.functions.invoke('github-api', {
                             body: {
-                                endpoint: `/repos/${repo}/git/refs`,
-                                method: 'POST',
+                                endpoint: `/repos/${repo}/git/refs/heads/main`,
+                                method: 'GET'
+                            }
+                        });
+                        
+                        if (refError) throw refError;
+                        
+                        // Create the file on main branch
+                        const { data: createFileData, error: createFileError } = await SupabaseClient.functions.invoke('github-api', {
+                            body: {
+                                endpoint: `/repos/${repo}/contents/${filePath}`,
+                                method: 'PUT',
                                 body: {
-                                    ref: `refs/heads/draft`,
+                                    message: 'Initial commit via James Studio Client Dashboard',
+                                    content: btoa(defaultContent),
                                     sha: refData.object.sha
                                 }
                             }
                         });
-                    } catch (createError) {
-                        // If 422, branch might already exist, that's fine
-                        console.log('Branch creation failed, may already exist:', createError);
-                    }
-                    
-                    // Load from main
-                    if (mainFileData && mainFileData.name === 'index.html') {
-                        const decodedContent = atob(mainFileData.content);
-                        currentProject.fileSha = mainFileData.sha;
+                        
+                        if (createFileError) throw createFileError;
+                        
+                        // Load the newly created file
+                        const decodedContent = defaultContent;
+                        currentProject.fileSha = createFileData.content.sha;
                         if (monacoEditor) {
                             monacoEditor.setValue(decodedContent);
                         }
+                        
+                        // Try to create draft branch from main
+                        try {
+                            await SupabaseClient.functions.invoke('github-api', {
+                                body: {
+                                    endpoint: `/repos/${repo}/git/refs`,
+                                    method: 'POST',
+                                    body: {
+                                        ref: `refs/heads/draft`,
+                                        sha: refData.object.sha
+                                    }
+                                }
+                            });
+                        } catch (createError) {
+                            console.log('Branch creation failed, may already exist:', createError);
+                        }
+                    } else {
+                        // Get the latest commit SHA from main
+                        const { data: refData, error: refError } = await SupabaseClient.functions.invoke('github-api', {
+                            body: {
+                                endpoint: `/repos/${repo}/git/refs/heads/main`,
+                                method: 'GET'
+                            }
+                        });
+                        
+                        if (refError) throw refError;
+                        
+                        // Try to create draft branch from main
+                        try {
+                            await SupabaseClient.functions.invoke('github-api', {
+                                body: {
+                                    endpoint: `/repos/${repo}/git/refs`,
+                                    method: 'POST',
+                                    body: {
+                                        ref: `refs/heads/draft`,
+                                        sha: refData.object.sha
+                                    }
+                                }
+                            });
+                        } catch (createError) {
+                            // If 422, branch might already exist, that's fine
+                            console.log('Branch creation failed, may already exist:', createError);
+                        }
+                        
+                        // Load from main
+                        if (mainFileData && mainFileData.name === 'index.html') {
+                            const decodedContent = atob(mainFileData.content);
+                            currentProject.fileSha = mainFileData.sha;
+                            if (monacoEditor) {
+                                monacoEditor.setValue(decodedContent);
+                            }
+                        }
+                        hasUnsavedChanges = false;
                     }
-                    hasUnsavedChanges = false;
                 } else if (fileData && fileData.name === 'index.html') {
                     // Load from draft branch
                     const decodedContent = atob(fileData.content);
