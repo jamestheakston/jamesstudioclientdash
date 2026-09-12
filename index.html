@@ -314,10 +314,8 @@
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
                         <h1 id="projectTitle" class="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[0.9] text-[#1A1A1A] mb-3 md:mb-4">
-                            Project Name
                         </h1>
                         <p id="projectDescription" class="text-neutral-600 leading-relaxed max-w-2xl text-sm md:text-base">
-                            Project description goes here
                         </p>
                     </div>
                     <button id="editSiteBtn" onclick="openVisualEditor()" class="bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2">
@@ -411,7 +409,7 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                     <span class="hidden md:inline">Back</span>
                 </button>
-                <span id="editorProjectName" class="text-xs md:text-sm font-semibold truncate max-w-32 md:max-w-none">Project Name</span>
+                <span id="editorProjectName" class="text-xs md:text-sm font-semibold truncate max-w-32 md:max-w-none"></span>
             </div>
             <div class="flex items-center gap-2">
                 <button onclick="toggleAIPanel()" class="bg-[#1A1A1A] text-[#FAF9F6] px-3 md:px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors flex items-center gap-2">
@@ -1296,12 +1294,6 @@
             if (targetView) {
                 if (viewName === 'login') {
                     targetView.style.display = 'flex';
-                    // Clear project-specific content when showing login
-                    document.getElementById('projectTitle').textContent = 'Project Name';
-                    document.getElementById('projectDescription').textContent = 'Project description goes here';
-                    document.getElementById('projectRepo').textContent = 'repository-name';
-                    document.getElementById('projectLastUpdated').textContent = '-';
-                    document.getElementById('editorProjectName').textContent = 'Project Name';
                     // Hide visual editor view
                     const visualEditorView = document.getElementById('visualEditorView');
                     if (visualEditorView) {
