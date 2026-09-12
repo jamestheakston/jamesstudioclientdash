@@ -1792,8 +1792,9 @@
                         if (!existingFileError && existingFileData) {
                             draftFileData = existingFileData;
                         } else {
-                            // Branch exists but file doesn't, use main file data
-                            draftFileData = mainFileData;
+                            // Branch exists but file doesn't, we'll create the file without needing a SHA
+                            console.log('Branch exists but file does not, will create new file');
+                            draftFileData = null; // This signals we need to create a new file
                         }
                     }
                     
@@ -1801,6 +1802,29 @@
                     if (!draftFileData) {
                         draftFileData = mainFileData;
                     }
+                }
+                
+                // If draftFileData is null, we need to create a new file (no SHA needed)
+                if (!draftFileData) {
+                    console.log('Creating new file on draft branch');
+                    const result = await SupabaseClient.functions.invoke('github-api', {
+                        body: { 
+                            endpoint: `/repos/${repo}/contents/${filePath}`,
+                            method: 'PUT',
+                            body: {
+                                message: 'Save draft via James Studio Client Dashboard',
+                                content: btoa(newContent),
+                                branch: 'draft'
+                            }
+                        }
+                    });
+                    
+                    if (result.error) throw result.error;
+                    
+                    currentProject.fileSha = result.data.content.sha;
+                    hasUnsavedChanges = false;
+                    alert('Draft saved successfully!');
+                    return;
                 }
                 
                 // Get the current SHA from draft branch right before committing
