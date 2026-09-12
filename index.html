@@ -75,6 +75,17 @@
             transition-delay: 0.3s;
         }
 
+        /* Editor panel height with responsive breakpoint */
+        .editor-panel {
+            height: calc(100vh - 200px);
+            min-height: 300px;
+        }
+        @media (min-width: 768px) {
+            .editor-panel {
+                height: calc(100vh - 260px);
+            }
+        }
+
         /* View visibility */
         .view {
             display: none;
@@ -515,7 +526,7 @@
 
             <!-- Visual Preview Panel -->
             <div id="panel-visual" class="flex-1 bg-[#FAF9F6] p-2 md:p-4 overflow-auto relative">
-                <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden" style="height: calc(100vh - 200px) md:calc(100vh - 260px);">
+                <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden editor-panel">
                     <iframe id="visualPreview" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
                 </div>
                 
@@ -535,12 +546,12 @@
 
             <!-- Code Editor Panel -->
             <div id="panel-code" class="flex-1 bg-[#1E1E1E] p-2 md:p-4 overflow-auto hidden">
-                <div id="monacoEditorContainer" class="rounded-xl overflow-hidden" style="height: calc(100vh - 200px) md:calc(100vh - 260px);"></div>
+                <div id="monacoEditorContainer" class="rounded-xl overflow-hidden editor-panel"></div>
             </div>
 
             <!-- Preview Panel -->
             <div id="panel-preview" class="flex-1 bg-[#FAF9F6] p-2 md:p-4 overflow-auto hidden">
-                <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden" style="height: calc(100vh - 200px) md:calc(100vh - 260px);">
+                <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden editor-panel">
                     <iframe id="previewFrame" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
                 </div>
             </div>
@@ -655,6 +666,13 @@
                 
                 // Force initial layout
                 monacoEditor.layout();
+                
+                // Add window resize listener to keep Monaco correctly sized
+                window.addEventListener('resize', () => {
+                    if (monacoEditor) {
+                        monacoEditor.layout();
+                    }
+                });
                 
                 // Update visual preview when code changes
                 monacoEditor.onDidChangeModelContent(() => {
@@ -926,7 +944,8 @@
                 codeTab.classList.remove('border-transparent', 'text-neutral-400');
                 // Resize Monaco editor when showing with delay to ensure container has dimensions
                 if (monacoEditor) {
-                    setTimeout(() => monacoEditor.layout(), 100);
+                    setTimeout(() => monacoEditor.layout(), 150);
+                    requestAnimationFrame(() => monacoEditor.layout());
                 }
             } else if (tab === 'preview') {
                 previewPanel.classList.remove('hidden');
