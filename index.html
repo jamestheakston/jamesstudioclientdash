@@ -238,7 +238,7 @@
                     Sign in to access your client dashboard
                 </p>
                 <p class="animate-on-scroll delay-200 text-neutral-500 text-xs md:text-sm leading-relaxed mt-2 md:mt-3">
-                    Access your GitHub repositories and edit website content directly—no need to contact our team.
+                    Access your projects and edit website content directly—no need to contact our team.
                 </p>
             </div>
 
@@ -288,7 +288,7 @@
                     Your Projects
                 </h1>
                 <p class="text-neutral-600 leading-relaxed max-w-2xl text-sm md:text-base">
-                    Your GitHub repositories are loaded below. Select a project to view details or start editing your website content.
+                    Your projects are loaded below. Select a project to view details or start editing your website content.
                 </p>
             </div>
 
@@ -297,7 +297,7 @@
                 <!-- Projects will be loaded here -->
                 <div class="col-span-full text-center py-12">
                     <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A1A1A]"></div>
-                    <p class="text-neutral-500 mt-4 text-sm md:text-base">Loading your GitHub repositories...</p>
+                    <p class="text-neutral-500 mt-4 text-sm md:text-base">Loading your projects...</p>
                 </div>
             </div>
         </div>
@@ -609,7 +609,7 @@
                 &copy; <span id="year">2026</span> James Studio. All rights reserved.
             </p>
             <div class="flex gap-6 text-xs text-neutral-500">
-                <a href="#" class="hover:underline">Privacy Policy</a>
+                <a href="https://jamesstudio.uk/privacy?type=clientportal" class="hover:underline">Privacy Policy</a>
                 <a href="#" class="hover:underline">Terms of Service</a>
             </div>
         </div>
@@ -1449,8 +1449,8 @@
                     
                     renderProjects(projects);
                 } catch (error) {
-                    console.error('Error loading GitHub repos:', error);
-                    projectsGrid.innerHTML = '<p class="text-neutral-500">Error loading GitHub repositories. Please contact support.</p>';
+                    console.error('Error loading projects:', error);
+                    projectsGrid.innerHTML = '<p class="text-neutral-500">Error loading projects. Please contact support.</p>';
                 }
             } else {
                 projectsGrid.innerHTML = '<p class="text-neutral-500">Unable to load projects. Please contact support.</p>';
@@ -1615,7 +1615,7 @@
                 editBtn.disabled = false;
                 
             } catch (error) {
-                console.error('Error loading file from GitHub:', error);
+                console.error('Error loading website content:', error);
                 alert('Error loading website content. Please contact support.');
                 // Reset button state on error
                 editBtn.innerHTML = '<span>Edit Site</span>';
