@@ -1731,6 +1731,24 @@
 
         // View Management
         function showView(viewName) {
+            // Check if leaving visual editor with unsaved changes
+            const currentView = document.querySelector('.view.active');
+            const isLeavingEditor = currentView && currentView.id === 'visualEditorView' && viewName !== 'visualEditor';
+
+            if (isLeavingEditor && hasUnsavedChanges) {
+                if (confirm('You have unsaved changes. Are you sure you want to leave? Your changes will be lost.')) {
+                    // User confirmed, reset unsaved changes and proceed
+                    hasUnsavedChanges = false;
+                    performViewSwitch(viewName);
+                }
+                // If user cancelled, do nothing
+                return;
+            }
+
+            performViewSwitch(viewName);
+        }
+
+        function performViewSwitch(viewName) {
             // Hide all views by removing active class
             document.querySelectorAll('.view').forEach(view => {
                 view.classList.remove('active');
