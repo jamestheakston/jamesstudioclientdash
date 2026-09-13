@@ -171,6 +171,9 @@
             display: none;
         }
         .view.active {
+            display: block;
+        }
+        .view.active#visualEditorView {
             display: flex;
         }
 
@@ -1665,20 +1668,21 @@
 
         // View Management
         function showView(viewName) {
-            // Hide all views
+            // Hide all views by removing active class
             document.querySelectorAll('.view').forEach(view => {
-                view.style.display = 'none';
+                view.classList.remove('active');
             });
-            
-            // Show selected view with appropriate display type
+
+            // Show selected view by adding active class
             const targetView = document.getElementById(viewName + 'View');
             if (targetView) {
-                if (viewName === 'visualEditor') {
-                    targetView.style.display = 'flex';
-                } else {
-                    targetView.style.display = 'block';
-                }
+                targetView.classList.add('active');
             }
+
+            // Clear any inline styles that might have been set
+            document.querySelectorAll('.view').forEach(view => {
+                view.style.display = '';
+            });
             
             // Stop autosave when leaving visual editor
             if (viewName !== 'visualEditor') {
