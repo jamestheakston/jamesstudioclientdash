@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>James Studio — Select Project</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+    
+    <!-- Tailwind CSS for high-fidelity styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Syne (geometric, wide header) & Space Grotesk (modern mono-ish clean body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: #FAF9F6;
+            color: #1A1A1A;
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+        }
+        h1, h2, h3, .geometric-font {
+            font-family: 'Syne', sans-serif;
+            letter-spacing: -0.03em;
+        }
+        /* Custom scrollbar matching the minimal layout */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FAF9F6;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1A1A1A;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-[#1A1A1A] selection:text-[#FAF9F6] min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-[#FAF9F6]/90 backdrop-blur-md border-b border-[#1A1A1A]/10 px-4 md:px-6 lg:px-12 py-3 md:py-4 flex justify-between items-center transition-all duration-300">
+        <a href="#" class="geometric-font text-lg md:text-xl lg:text-2xl font-extrabold tracking-tighter flex items-center gap-2">
+            JAMES<span class="text-xs bg-[#1A1A1A] text-[#FAF9F6] px-2 py-0.5 rounded-full uppercase tracking-widest">Studio</span>
+        </a>
+        
+        <!-- User Menu -->
+        <div id="userMenu" class="flex items-center gap-2 md:gap-4">
+            <span id="userEmail" class="text-xs md:text-sm text-neutral-600 truncate max-w-24 md:max-w-none"></span>
+            <button onclick="logout()" class="text-xs uppercase font-bold tracking-wider hover:underline">Logout</button>
+        </div>
+    </nav>
+
+    <!-- Project Selection View -->
+    <main class="flex-1 px-4 md:px-6 py-8 md:py-12 lg:py-20">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-8 md:mb-12">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="inline-flex items-center gap-2 bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                        <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
+                        Beta Service
+                    </div>
+                </div>
+                <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[0.9] text-[#1A1A1A] mb-3 md:mb-4">
+                    Select a Project
+                </h1>
+                <p class="text-neutral-600 leading-relaxed max-w-2xl text-sm md:text-base">
+                    Choose a project to continue to <span id="destinationName" class="font-semibold">the requested feature</span>.
+                </p>
+            </div>
+
+            <!-- Projects Grid -->
+            <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                <!-- Projects will be loaded here -->
+                <div class="col-span-full text-center py-12">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A1A1A]"></div>
+                    <p class="text-neutral-500 mt-4 text-sm md:text-base">Loading your projects...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-[#1A1A1A]/10 py-8 px-6 md:px-12 bg-white">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p class="text-xs text-neutral-400">
+                &copy; <span id="year">2026</span> James Studio. All rights reserved.
+            </p>
+            <div class="flex gap-6 text-xs text-neutral-500">
+                <a href="https://jamesstudio.uk/privacy?type=clientportal" class="hover:underline">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://pkqkqijmohbvfxxnzhyy.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_Raqakv5Z4U8Wr7zmzIvLDA_TsnBSFyS';
+        
+        // Access control
+        let userAccess = [];
+        let allProjects = [];
+        
+        let SupabaseClient = null;
+        let currentUser = null;
+        let redirectDestination = null;
+
+        // Initialize Supabase
+        function initSupabase() {
+            try {
+                SupabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('Supabase initialized successfully');
+            } catch (error) {
+                console.error('Failed to initialize Supabase:', error);
+            }
+        }
+
+        // Update copyright year
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Parse URL parameters
+        function parseURLParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            redirectDestination = urlParams.get('redirect') || 'dashboard';
+            
+            // Update destination name display
+            const destinationNames = {
+                'marketplace': 'Marketplace',
+                'visual': 'Visual Editor',
+                'code': 'Code Editor',
+                'preview': 'Preview',
+                'dashboard': 'Dashboard'
+            };
+            
+            const destinationNameEl = document.getElementById('destinationName');
+            if (destinationNameEl) {
+                destinationNameEl.textContent = destinationNames[redirectDestination] || redirectDestination;
+            }
+        }
+
+        // Load user's access from Supabase
+        async function loadUserAccess() {
+            if (!SupabaseClient || !currentUser) {
+                console.log('No Supabase client or user');
+                return;
+            }
+            
+            try {
+                const { data: accessData, error } = await SupabaseClient
+                    .from('access')
+                    .select('repo_name')
+                    .eq('email', currentUser.email);
+                
+                if (error) throw error;
+                
+                userAccess = accessData ? accessData.map(item => item.repo_name) : [];
+                console.log('User access loaded:', userAccess);
+            } catch (error) {
+                console.error('Error loading user access:', error);
+                userAccess = [];
+            }
+        }
+
+        // Load Projects from GitHub using Edge Function
+        async function loadProjects() {
+            const projectsGrid = document.getElementById('projectsGrid');
+            
+            // Show loading state while checking access
+            projectsGrid.innerHTML = '<p class="text-neutral-500">Checking your repository access...</p>';
+            
+            // First load user's access permissions
+            await loadUserAccess();
+            
+            if (SupabaseClient) {
+                try {
+                    // Fetch user's GitHub repositories via Edge Function
+                    const { data, error } = await SupabaseClient.functions.invoke('github-api', {
+                        body: { 
+                            endpoint: '/user/repos',
+                            method: 'GET'
+                        }
+                    });
+                    
+                    if (error) throw error;
+                    
+                    const repos = data;
+                    
+                    // Filter repos based on user access
+                    const filteredRepos = userAccess.length > 0 
+                        ? repos.filter(repo => userAccess.includes(repo.name))
+                        : [];
+                    
+                    // Transform GitHub repos to project format
+                    const projects = filteredRepos.map(repo => ({
+                        id: repo.id,
+                        name: repo.name,
+                        description: repo.description || 'No description',
+                        repo: repo.full_name,
+                        last_updated: new Date(repo.updated_at).toLocaleDateString()
+                    }));
+                    
+                    // Store projects globally
+                    allProjects = projects;
+                    
+                    renderProjects(projects);
+                } catch (error) {
+                    console.error('Error loading projects:', error);
+                    projectsGrid.innerHTML = '<p class="text-neutral-500">Error loading projects. Please contact support.</p>';
+                }
+            } else {
+                projectsGrid.innerHTML = '<p class="text-neutral-500">Unable to load projects. Please contact support.</p>';
+            }
+        }
+
+        // Render Projects
+        function renderProjects(projects) {
+            const projectsGrid = document.getElementById('projectsGrid');
+            
+            if (!projects || projects.length === 0) {
+                projectsGrid.innerHTML = '<p class="text-neutral-500">No projects found</p>';
+                return;
+            }
+            
+            projectsGrid.innerHTML = projects.map(project => `
+                <div class="bg-white p-6 rounded-2xl border border-[#1A1A1A]/10 hover:border-[#1A1A1A] transition-all cursor-pointer shadow-sm" onclick="selectProject(${project.id})">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="w-12 h-12 rounded-full bg-neutral-100 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                        </div>
+                        <span class="text-xs uppercase font-bold tracking-widest border border-[#1A1A1A]/10 px-2 py-1 rounded-full">Active</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">${project.name}</h3>
+                    <p class="text-neutral-500 text-sm leading-relaxed mb-4">${project.description}</p>
+                    <div class="flex items-center gap-2 text-xs text-neutral-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Last updated: ${project.last_updated || 'Recently'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Select Project and Redirect
+        function selectProject(projectId) {
+            const projectData = allProjects.find(p => p.id === projectId);
+            
+            if (!projectData) {
+                alert('Project not found');
+                return;
+            }
+            
+            // Build redirect URL with project and destination
+            const redirectUrl = `index.html?project=${projectData.repo}&redirect=${redirectDestination}`;
+            window.location.href = redirectUrl;
+        }
+
+        // Logout
+        async function logout() {
+            if (SupabaseClient) {
+                await SupabaseClient.auth.signOut();
+            }
+            currentUser = null;
+            userAccess = [];
+            
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('userLoggedIn');
+            
+            window.location.href = 'login.html';
+        }
+
+        // Check for existing session on page load
+        async function checkSession() {
+            const userEmail = localStorage.getItem('userEmail');
+            const userLoggedIn = localStorage.getItem('userLoggedIn');
+            
+            if (userLoggedIn === 'true' && userEmail) {
+                document.getElementById('userEmail').textContent = userEmail;
+            }
+            
+            if (SupabaseClient) {
+                const { data: { session } } = await SupabaseClient.auth.getSession();
+                if (session) {
+                    currentUser = session.user;
+                    document.getElementById('userEmail').textContent = currentUser.email;
+                    loadProjects();
+                } else if (!userLoggedIn) {
+                    window.location.href = 'login.html';
+                } else {
+                    loadProjects();
+                }
+            } else if (!userLoggedIn) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Listen for auth state changes
+        if (SupabaseClient) {
+            SupabaseClient.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN' && session) {
+                    currentUser = session.user;
+                    document.getElementById('userEmail').textContent = currentUser.email;
+                    localStorage.setItem('userEmail', currentUser.email);
+                    localStorage.setItem('userLoggedIn', 'true');
+                } else if (event === 'SIGNED_OUT') {
+                    currentUser = null;
+                    userAccess = [];
+                    localStorage.removeItem('userEmail');
+                    localStorage.removeItem('userLoggedIn');
+                    window.location.href = 'login.html';
+                }
+            });
+        }
+
+        // Initialize
+        initSupabase();
+        parseURLParams();
+        checkSession();
+    </script>
+</body>
+</html>

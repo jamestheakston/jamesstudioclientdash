@@ -1792,6 +1792,9 @@
                     allProjects = projects;
                     
                     renderProjects(projects);
+                    
+                    // Trigger URL parameter parsing for continue flow
+                    parseURLParams();
                 } catch (error) {
                     console.error('Error loading projects:', error);
                     projectsGrid.innerHTML = '<p class="text-neutral-500">Error loading projects. Please contact support.</p>';
@@ -2490,6 +2493,69 @@
                     window.location.href = 'login.html';
                 }
             });
+        }
+
+        // Parse URL parameters for continue flow
+        function parseURLParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const projectParam = urlParams.get('project');
+            const redirectParam = urlParams.get('redirect');
+            
+            if (projectParam && redirectParam) {
+                // User came from continue page with project selection
+                // Find the project by repo name
+                if (allProjects && allProjects.length > 0) {
+                    const project = allProjects.find(p => p.repo === projectParam);
+                    if (project) {
+                        // Load the project and redirect to the specified destination
+                        viewProject(project.id);
+                        
+                        // After project is loaded, handle the redirect
+                        setTimeout(() => {
+                            if (redirectParam === 'marketplace') {
+                                openVisualEditor();
+                                setTimeout(() => switchEditorTab('marketplace'), 500);
+                            } else if (redirectParam === 'visual') {
+                                openVisualEditor();
+                                setTimeout(() => switchEditorTab('visual'), 500);
+                            } else if (redirectParam === 'code') {
+                                openVisualEditor();
+                                setTimeout(() => switchEditorTab('code'), 500);
+                            } else if (redirectParam === 'preview') {
+                                openVisualEditor();
+                                setTimeout(() => switchEditorTab('preview'), 500);
+                            }
+                        }, 1000);
+                    }
+                } else {
+                    // Projects not loaded yet, wait for them to load
+                    console.log('Waiting for projects to load...');
+                    const checkProjects = setInterval(() => {
+                        if (allProjects && allProjects.length > 0) {
+                            clearInterval(checkProjects);
+                            const project = allProjects.find(p => p.repo === projectParam);
+                            if (project) {
+                                viewProject(project.id);
+                                setTimeout(() => {
+                                    if (redirectParam === 'marketplace') {
+                                        openVisualEditor();
+                                        setTimeout(() => switchEditorTab('marketplace'), 500);
+                                    } else if (redirectParam === 'visual') {
+                                        openVisualEditor();
+                                        setTimeout(() => switchEditorTab('visual'), 500);
+                                    } else if (redirectParam === 'code') {
+                                        openVisualEditor();
+                                        setTimeout(() => switchEditorTab('code'), 500);
+                                    } else if (redirectParam === 'preview') {
+                                        openVisualEditor();
+                                        setTimeout(() => switchEditorTab('preview'), 500);
+                                    }
+                                }, 1000);
+                            }
+                        }
+                    }, 100);
+                }
+            }
         }
 
         // Initialize
