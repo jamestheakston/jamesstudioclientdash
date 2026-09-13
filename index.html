@@ -134,6 +134,60 @@
             }
         }
 
+        /* Verified Badge Tooltip */
+        .verified-badge {
+            cursor: pointer;
+            position: relative;
+        }
+        .verified-badge .tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            background: #1A1A1A;
+            color: #FAF9F6;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .verified-badge .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 4px solid transparent;
+            border-top-color: #1A1A1A;
+        }
+        .verified-badge:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+        .verified-badge .tooltip.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        @media (max-width: 768px) {
+            .verified-badge .tooltip {
+                bottom: auto;
+                top: 100%;
+                transform: translateX(-50%) translateY(8px);
+            }
+            .verified-badge .tooltip::after {
+                top: auto;
+                bottom: 100%;
+                border-top-color: transparent;
+                border-bottom-color: #1A1A1A;
+            }
+        }
+
         /* View visibility */
         .view {
             display: none;
@@ -965,6 +1019,40 @@
                 selectedVisualElement.href = newHref;
                 syncVisualToCode();
                 closeVisualEditPanel();
+            }
+        }
+        
+        // Toggle verified badge tooltip for mobile
+        function toggleVerifiedTooltip(element, event) {
+            // Check if mobile
+            const isMobile = window.innerWidth < 768;
+            
+            if (isMobile) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                const tooltip = element.querySelector('.tooltip');
+                const isActive = tooltip.classList.contains('active');
+                
+                // Close all other tooltips first
+                document.querySelectorAll('.verified-badge .tooltip').forEach(t => {
+                    t.classList.remove('active');
+                });
+                
+                // Toggle current tooltip
+                if (!isActive) {
+                    tooltip.classList.add('active');
+                    
+                    // Close when clicking outside
+                    setTimeout(() => {
+                        document.addEventListener('click', function closeTooltip(e) {
+                            if (!element.contains(e.target)) {
+                                tooltip.classList.remove('active');
+                                document.removeEventListener('click', closeTooltip);
+                            }
+                        });
+                    }, 0);
+                }
             }
         }
         
@@ -1858,11 +1946,14 @@
                                 <div class="flex-1">
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="font-bold text-sm">${msg.from_name}</span>
-                                        <svg class="w-4 h-4" viewBox="0 0 122.88 116.87">
-                                            <defs><style>.cls-1{fill:#10a64a;fill-rule:evenodd;}.cls-2{fill:#fff;}</style></defs>
-                                            <polygon class="cls-1" points="61.37 8.24 80.43 0 90.88 17.79 111.15 22.32 109.15 42.85 122.88 58.43 109.2 73.87 111.15 94.55 91 99 80.43 116.87 61.51 108.62 42.45 116.87 32 99.08 11.73 94.55 13.73 74.01 0 58.43 13.68 42.99 11.73 22.32 31.88 17.87 42.45 0 61.37 8.24"/>
-                                            <path class="cls-2" d="M37.92,65c-6.07-6.53,3.25-16.26,10-10.1,2.38,2.17,5.84,5.34,8.24,7.49L74.66,39.66C81.1,33,91.27,42.78,84.91,49.48L61.67,77.2a7.13,7.13,0,0,1-9.9.44C47.83,73.89,42.05,68.5,37.92,65Z"/>
-                                        </svg>
+                                        <div class="verified-badge" onclick="toggleVerifiedTooltip(this, event)">
+                                            <svg class="w-4 h-4" viewBox="0 0 122.88 116.87">
+                                                <defs><style>.cls-1{fill:#10a64a;fill-rule:evenodd;}.cls-2{fill:#fff;}</style></defs>
+                                                <polygon class="cls-1" points="61.37 8.24 80.43 0 90.88 17.79 111.15 22.32 109.15 42.85 122.88 58.43 109.2 73.87 111.15 94.55 91 99 80.43 116.87 61.51 108.62 42.45 116.87 32 99.08 11.73 94.55 13.73 74.01 0 58.43 13.68 42.99 11.73 22.32 31.88 17.87 42.45 0 61.37 8.24"/>
+                                                <path class="cls-2" d="M37.92,65c-6.07-6.53,3.25-16.26,10-10.1,2.38,2.17,5.84,5.34,8.24,7.49L74.66,39.66C81.1,33,91.27,42.78,84.91,49.48L61.67,77.2a7.13,7.13,0,0,1-9.9.44C47.83,73.89,42.05,68.5,37.92,65Z"/>
+                                            </svg>
+                                            <div class="tooltip">Verified sender</div>
+                                        </div>
                                         <span class="text-xs text-neutral-400">${sentDate}</span>
                                     </div>
                                     <p class="text-sm text-neutral-600 leading-relaxed">${msg.message}</p>
