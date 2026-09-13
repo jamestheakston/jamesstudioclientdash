@@ -57,6 +57,7 @@
         .editor-panel {
             height: calc(100vh - 180px);
             min-height: 300px;
+            width: 100%;
         }
         @media (min-width: 640px) {
             .editor-panel {
@@ -67,6 +68,27 @@
             .editor-panel {
                 height: calc(100vh - 260px);
             }
+        }
+
+        /* Fix editor panel width issues */
+        #panel-visual,
+        #panel-code,
+        #panel-preview,
+        #panel-marketplace {
+            width: 100%;
+            min-width: 0;
+            flex: 1;
+        }
+
+        #visualPreview,
+        #previewFrame {
+            width: 100%;
+            min-width: 0;
+        }
+
+        #monacoEditorContainer {
+            width: 100%;
+            min-width: 0;
         }
 
         /* AI Panel mobile overlay */
@@ -459,285 +481,166 @@
     <!-- Visual Editor View -->
     <main id="visualEditorView" class="view flex-1 relative">
         <div class="flex flex-col h-full">
-        <!-- AI Panel Backdrop (mobile only) -->
-        <div id="aiPanelBackdrop" class="ai-panel-backdrop" onclick="toggleAIPanel()"></div>
-        
-        <!-- Editor Toolbar -->
-        <div class="bg-white border-b border-[#1A1A1A]/10 px-3 md:px-6 py-2 md:py-4 flex items-center justify-between gap-2 md:gap-4">
-            <div class="flex items-center gap-2 md:gap-4 min-w-0">
-                <button onclick="showView('projectOverview')" class="text-sm text-neutral-600 hover:text-black flex items-center gap-1 md:gap-2 shrink-0">
-                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                    <span class="hidden sm:inline">Back</span>
-                </button>
-                <span id="editorProjectName" class="text-xs md:text-sm font-semibold truncate max-w-24 sm:max-w-32 md:max-w-none"></span>
+            <!-- AI Panel Backdrop (mobile only) -->
+            <div id="aiPanelBackdrop" class="ai-panel-backdrop" onclick="toggleAIPanel()"></div>
+            
+            <!-- Editor Toolbar -->
+            <div class="bg-white border-b border-[#1A1A1A]/10 px-3 md:px-6 py-2 md:py-4 flex items-center justify-between gap-2 md:gap-4">
+                <div class="flex items-center gap-2 md:gap-4 min-w-0">
+                    <button onclick="showView('projectOverview')" class="text-sm text-neutral-600 hover:text-black flex items-center gap-1 md:gap-2 shrink-0">
+                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        <span class="hidden sm:inline">Back</span>
+                    </button>
+                    <span id="editorProjectName" class="text-xs md:text-sm font-semibold truncate max-w-24 sm:max-w-32 md:max-w-none"></span>
+                </div>
+                <div class="flex items-center gap-1 md:gap-2 shrink-0">
+                    <button onclick="toggleAIPanel()" class="bg-[#1A1A1A] text-[#FAF9F6] px-2 md:px-4 py-1.5 md:py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors flex items-center gap-1 md:gap-2">
+                        <svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                        <span class="hidden sm:inline">AI</span>
+                    </button>
+                    <button onclick="saveDraft()" class="bg-neutral-200 text-[#1A1A1A] px-2 md:px-4 py-1.5 md:py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-300 transition-colors">
+                        <span class="hidden sm:inline">Save</span>
+                        <span class="sm:hidden">Save</span>
+                    </button>
+                    <button onclick="saveChanges()" class="bg-[#1A1A1A] text-[#FAF9F6] px-2 md:px-4 py-1.5 md:py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+                        <span class="hidden sm:inline">Publish</span>
+                        <span class="sm:hidden">Publish</span>
+                    </button>
+                </div>
             </div>
-            <div class="flex items-center gap-1 md:gap-2 shrink-0">
-                <button onclick="toggleAIPanel()" class="bg-[#1A1A1A] text-[#FAF9F6] px-2 md:px-4 py-1.5 md:py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors flex items-center gap-1 md:gap-2">
-                    <svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
-                    <span class="hidden sm:inline">AI</span>
-                </button>
-                <button onclick="saveDraft()" class="bg-neutral-200 text-[#1A1A1A] px-2 md:px-4 py-1.5 md:py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-300 transition-colors">
-                    <span class="hidden sm:inline">Save</span>
-                    <span class="sm:hidden">Save</span>
-                </button>
-                <button onclick="saveChanges()" class="bg-[#1A1A1A] text-[#FAF9F6] px-2 md:px-4 py-1.5 md:py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
-                    <span class="hidden sm:inline">Publish</span>
-                    <span class="sm:hidden">Publish</span>
-                </button>
-            </div>
-        </div>
 
-        <!-- Editor Content with AI Panel -->
-        <div class="flex-1 flex overflow-hidden">
-            <!-- AI Side Panel -->
-            <div id="aiSidePanel" class="w-0 bg-white border-r border-[#1A1A1A]/10 transition-all duration-300 ease-in-out overflow-hidden absolute md:relative z-30 md:z-0 h-full">
-                <div class="h-full flex flex-col w-full md:w-96">
-                    <!-- Panel Header -->
-                    <div class="p-3 md:p-4 border-b border-[#1A1A1A]/10 flex items-center justify-between shrink-0">
-                        <div class="flex items-center gap-2 md:gap-3">
-                            <img src="https://assets.puter.site/puter-logo.png" alt="Puter" class="w-6 h-6 md:w-8 md:h-8">
-                            <h3 class="font-bold text-sm md:text-base">AI Assistant</h3>
-                        </div>
-                        <button onclick="toggleAIPanel()" class="text-neutral-400 hover:text-black p-1 md:p-0">
-                            <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </button>
-                    </div>
-
-                    <!-- Panel Content -->
-                    <div id="aiPanelContent" class="flex-1 flex flex-col overflow-hidden relative">
-                        <!-- Authorization Screen -->
-                        <div id="aiAuthScreen" class="flex-1 overflow-y-auto p-4 md:p-6 text-center">
-                            <img src="https://assets.puter.site/puter-logo.png" alt="Puter" class="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4">
-                            <h4 class="text-base md:text-lg font-bold mb-2">Powered by Puter</h4>
-                            <p class="text-xs md:text-sm text-neutral-600 mb-4 md:mb-6 leading-relaxed">
-                                We use a service called Puter for AI features. When you send your first message, you'll be prompted to login to Puter.
-                            </p>
-                            <button onclick="authorizePuter()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-4 py-2.5 md:py-3 rounded-xl text-xs md:text-sm font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
-                                Continue
+            <!-- Editor Content with AI Panel -->
+            <div class="flex-1 flex overflow-hidden w-full min-w-0">
+                <!-- AI Side Panel -->
+                <div id="aiSidePanel" class="w-0 bg-white border-r border-[#1A1A1A]/10 transition-all duration-300 ease-in-out overflow-hidden absolute md:relative z-30 md:z-0 h-full min-w-0">
+                    <div class="h-full flex flex-col w-full md:w-96">
+                        <!-- Panel Header -->
+                        <div class="p-3 md:p-4 border-b border-[#1A1A1A]/10 flex items-center justify-between shrink-0">
+                            <div class="flex items-center gap-2 md:gap-3">
+                                <img src="https://assets.puter.site/puter-logo.png" alt="Puter" class="w-6 h-6 md:w-8 md:h-8">
+                                <h3 class="font-bold text-sm md:text-base">AI Assistant</h3>
+                            </div>
+                            <button onclick="toggleAIPanel()" class="text-neutral-400 hover:text-black p-1 md:p-0">
+                                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                             </button>
                         </div>
 
-                        <!-- Chat Screen (hidden until authorized) -->
-                        <div id="aiChatScreen" class="hidden flex flex-col h-full">
-                            <div id="aiChatMessages" class="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4">
-                                <div class="bg-[#FAF9F6] p-2.5 md:p-3 rounded-lg">
-                                    <p class="text-xs md:text-sm whitespace-pre-wrap">Hello! I'm your AI assistant. I can help you edit your website content. What would you like to change?</p>
-                                </div>
-                            </div>
-                            <div class="border-t border-[#1A1A1A]/10 p-3 md:p-4 shrink-0">
-                                <div class="flex gap-2 mb-2 md:mb-3">
-                                    <input type="text" id="aiChatInput" placeholder="Ask me to edit something..." class="flex-1 bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-xs md:text-sm focus:outline-none focus:border-[#1A1A1A]">
-                                    <button onclick="sendAIMessage()" class="bg-[#1A1A1A] text-[#FAF9F6] px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold hover:bg-neutral-800 transition-colors shrink-0">
-                                        Send
-                                    </button>
-                                </div>
-                                <button onclick="showLogoutModal()" class="w-full text-xs text-neutral-400 hover:text-neutral-600 transition-colors py-1">
-                                    Logout from Puter
+                        <!-- Panel Content -->
+                        <div id="aiPanelContent" class="flex-1 flex flex-col overflow-hidden relative">
+                            <!-- Authorization Screen -->
+                            <div id="aiAuthScreen" class="flex-1 overflow-y-auto p-4 md:p-6 text-center">
+                                <img src="https://assets.puter.site/puter-logo.png" alt="Puter" class="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4">
+                                <h4 class="text-base md:text-lg font-bold mb-2">Powered by Puter</h4>
+                                <p class="text-xs md:text-sm text-neutral-600 mb-4 md:mb-6 leading-relaxed">
+                                    We use a service called Puter for AI features. When you send your first message, you'll be prompted to login to Puter.
+                                </p>
+                                <button onclick="authorizePuter()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-4 py-2.5 md:py-3 rounded-xl text-xs md:text-sm font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+                                    Continue
                                 </button>
                             </div>
-                        </div>
 
-                        <!-- Logout Confirmation Modal -->
-                        <div id="aiLogoutModal" class="hidden absolute inset-0 bg-black/50 flex items-center justify-center p-3 md:p-4 z-20">
-                            <div class="bg-white rounded-xl p-4 md:p-6 max-w-sm w-full">
-                                <h4 class="text-base md:text-lg font-bold mb-2">Logout from Puter?</h4>
-                                <p class="text-xs md:text-sm text-neutral-600 mb-4">
-                                    This will clear your chat history. Are you sure you want to logout?
-                                </p>
-                                <div class="flex gap-2">
-                                    <button onclick="hideLogoutModal()" class="flex-1 bg-[#FAF9F6] border border-[#1A1A1A]/10 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium hover:border-[#1A1A1A] transition-colors">
-                                        Cancel
+                            <!-- Chat Screen (hidden until authorized) -->
+                            <div id="aiChatScreen" class="hidden flex flex-col h-full">
+                                <div id="aiChatMessages" class="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4">
+                                    <div class="bg-[#FAF9F6] p-2.5 md:p-3 rounded-lg">
+                                        <p class="text-xs md:text-sm whitespace-pre-wrap">Hello! I'm your AI assistant. I can help you edit your website content. What would you like to change?</p>
+                                    </div>
+                                </div>
+                                <div class="border-t border-[#1A1A1A]/10 p-3 md:p-4 shrink-0">
+                                    <div class="flex gap-2 mb-2 md:mb-3">
+                                        <input type="text" id="aiChatInput" placeholder="Ask me to edit something..." class="flex-1 bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-xs md:text-sm focus:outline-none focus:border-[#1A1A1A]">
+                                        <button onclick="sendAIMessage()" class="bg-[#1A1A1A] text-[#FAF9F6] px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold hover:bg-neutral-800 transition-colors shrink-0">
+                                            Send
+                                        </button>
+                                    </div>
+                                    <button onclick="showLogoutModal()" class="w-full text-xs text-neutral-400 hover:text-neutral-600 transition-colors py-1">
+                                        Logout from Puter
                                     </button>
-                                    <button onclick="confirmLogoutPuter()" class="flex-1 bg-[#1A1A1A] text-[#FAF9F6] px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold hover:bg-neutral-800 transition-colors">
-                                        Logout
-                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Logout Confirmation Modal -->
+                            <div id="aiLogoutModal" class="hidden absolute inset-0 bg-black/50 flex items-center justify-center p-3 md:p-4 z-20">
+                                <div class="bg-white rounded-xl p-4 md:p-6 max-w-sm w-full">
+                                    <h4 class="text-base md:text-lg font-bold mb-2">Logout from Puter?</h4>
+                                    <p class="text-xs md:text-sm text-neutral-600 mb-4">
+                                        This will clear your chat history. Are you sure you want to logout?
+                                    </p>
+                                    <div class="flex gap-2">
+                                        <button onclick="hideLogoutModal()" class="flex-1 bg-[#FAF9F6] border border-[#1A1A1A]/10 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium hover:border-[#1A1A1A] transition-colors">
+                                            Cancel
+                                        </button>
+                                        <button onclick="confirmLogoutPuter()" class="flex-1 bg-[#1A1A1A] text-[#FAF9F6] px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold hover:bg-neutral-800 transition-colors">
+                                            Logout
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Editor Content -->
-            <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-                <!-- Editor Tabs -->
-                <div class="bg-white border-b border-[#1A1A1A]/10 px-2 md:px-4 flex gap-1 md:gap-2 overflow-x-auto shrink-0">
-                    <button onclick="switchEditorTab('visual')" id="tab-visual" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-[#1A1A1A] text-[#1A1A1A] whitespace-nowrap">
-                        Visual
-                    </button>
-                    <button onclick="switchEditorTab('code')" id="tab-code" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors whitespace-nowrap">
-                        Code
-                    </button>
-                    <button onclick="switchEditorTab('preview')" id="tab-preview" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors whitespace-nowrap">
-                        Preview
-                    </button>
-                    <button onclick="switchEditorTab('marketplace')" id="tab-marketplace" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors whitespace-nowrap">
-                        Marketplace
-                    </button>
-                </div>
-
-            <!-- Visual Preview Panel -->
-            <div id="panel-visual" class="flex-1 bg-[#FAF9F6] p-2 md:p-4 overflow-auto relative">
-                <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden editor-panel">
-                    <iframe id="visualPreview" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
-                </div>
-                
-                <!-- Visual Edit Panel (shown when element is selected) -->
-                <div id="visualEditPanel" class="absolute top-12 right-2 md:right-6 bg-white rounded-xl border border-[#1A1A1A]/10 shadow-lg p-3 md:p-4 hidden w-64 z-10">
-                    <div class="flex items-center justify-between mb-3">
-                        <h4 class="text-sm font-bold">Edit Element</h4>
-                        <button onclick="closeVisualEditPanel()" class="text-neutral-400 hover:text-black">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                <!-- Editor Content -->
+                <div class="flex-1 flex flex-col min-w-0 overflow-hidden w-full">
+                    <!-- Editor Tabs -->
+                    <div class="bg-white border-b border-[#1A1A1A]/10 px-2 md:px-4 flex gap-1 md:gap-2 overflow-x-auto shrink-0">
+                        <button onclick="switchEditorTab('visual')" id="tab-visual" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-[#1A1A1A] text-[#1A1A1A] whitespace-nowrap">
+                            Visual
+                        </button>
+                        <button onclick="switchEditorTab('code')" id="tab-code" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors whitespace-nowrap">
+                            Code
+                        </button>
+                        <button onclick="switchEditorTab('preview')" id="tab-preview" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors whitespace-nowrap">
+                            Preview
+                        </button>
+                        <button onclick="switchEditorTab('marketplace')" id="tab-marketplace" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors whitespace-nowrap">
+                            Marketplace
                         </button>
                     </div>
-                    <div id="visualEditContent">
-                        <!-- Dynamic content based on selected element -->
-                    </div>
-                </div>
-            </div>
 
-            <!-- Code Editor Panel -->
-            <div id="panel-code" class="flex-1 bg-[#1E1E1E] p-2 md:p-4 overflow-auto hidden">
-                <div id="monacoEditorContainer" class="rounded-xl overflow-hidden editor-panel"></div>
-            </div>
-
-            <!-- Preview Panel -->
-            <div id="panel-preview" class="flex-1 bg-[#FAF9F6] p-2 md:p-4 overflow-auto hidden">
-                <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden editor-panel">
-                    <iframe id="previewFrame" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
-                </div>
-            </div>
-
-            <!-- Marketplace Panel -->
-            <div id="panel-marketplace" class="flex-1 bg-[#FAF9F6] p-2 md:p-4 overflow-auto hidden">
-                <div class="max-w-6xl mx-auto">
-                    <!-- Navigation Tabs -->
-                    <div class="flex gap-1 mb-6 bg-white rounded-lg p-1 border border-[#1A1A1A]/10 w-fit">
-                        <button class="px-4 py-2 rounded-md text-sm font-medium bg-[#1A1A1A] text-white">Discover</button>
-                        <button class="px-4 py-2 rounded-md text-sm font-medium text-neutral-600 hover:bg-neutral-100 transition-colors">Extensions</button>
-                        <button class="px-4 py-2 rounded-md text-sm font-medium text-neutral-600 hover:bg-neutral-100 transition-colors">Themes</button>
-                    </div>
-
-                    <!-- Featured Card -->
-                    <div class="bg-white rounded-2xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden mb-8">
-                        <div class="flex flex-col md:flex-row">
-                            <div class="md:w-1/2 relative">
-                                <img src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=800&q=80" alt="Featured" class="w-full h-64 md:h-full object-cover">
-                                <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-1 flex items-center gap-2">
-                                    <span class="text-xs font-bold text-[#1A1A1A]">Ps</span>
-                                </div>
+                    <!-- Visual Preview Panel -->
+                    <div id="panel-visual" class="flex-1 bg-[#FAF9F6] p-2 md:p-4 overflow-auto relative">
+                        <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden editor-panel">
+                            <iframe id="visualPreview" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
+                        </div>
+                        
+                        <!-- Visual Edit Panel (shown when element is selected) -->
+                        <div id="visualEditPanel" class="absolute top-12 right-2 md:right-6 bg-white rounded-xl border border-[#1A1A1A]/10 shadow-lg p-3 md:p-4 hidden w-64 z-10">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="text-sm font-bold">Edit Element</h4>
+                                <button onclick="closeVisualEditPanel()" class="text-neutral-400 hover:text-black">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                </button>
                             </div>
-                            <div class="md:w-1/2 p-6 flex flex-col justify-between">
-                                <div>
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <span class="text-xs uppercase font-bold tracking-wider bg-amber-100 text-amber-800 px-2 py-1 rounded-full">Featured</span>
-                                    </div>
-                                    <h3 class="text-2xl font-bold mb-2">Adobe Photoshop</h3>
-                                    <p class="text-neutral-600 text-sm mb-4">Professional image editing and design tools for creative projects.</p>
-                                    <div class="flex items-center gap-4 mb-4">
-                                        <div class="flex items-center gap-1">
-                                            <svg class="w-4 h-4 text-amber-400 fill-current" viewBox="0 0 20 20">
-                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                            </svg>
-                                            <span class="text-sm font-medium">3.8</span>
-                                        </div>
-                                        <div class="flex items-center gap-1 text-neutral-500">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-                                            </svg>
-                                            <span class="text-sm">800k users</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <button class="bg-[#1A1A1A] text-[#FAF9F6] px-6 py-2 rounded-lg text-sm font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
-                                        See details
-                                    </button>
-                                    <div class="flex items-center gap-2 text-neutral-400">
-                                        <button class="p-1 hover:text-neutral-600">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                                            </svg>
-                                        </button>
-                                        <span class="text-sm">4/5</span>
-                                        <button class="p-1 hover:text-neutral-600">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
+                            <div id="visualEditContent">
+                                <!-- Dynamic content based on selected element -->
                             </div>
                         </div>
                     </div>
 
-                    <!-- Top Categories -->
-                    <div class="mb-8">
-                        <h3 class="text-lg font-bold mb-4">Top categories</h3>
-                        <div class="flex flex-wrap gap-2">
-                            <button class="px-4 py-2 bg-white border border-[#1A1A1A]/10 rounded-full text-sm font-medium hover:border-[#1A1A1A] transition-colors">Shopping</button>
-                            <button class="px-4 py-2 bg-white border border-[#1A1A1A]/10 rounded-full text-sm font-medium hover:border-[#1A1A1A] transition-colors">Entertainment</button>
-                            <button class="px-4 py-2 bg-white border border-[#1A1A1A]/10 rounded-full text-sm font-medium hover:border-[#1A1A1A] transition-colors">Tools</button>
-                            <button class="px-4 py-2 bg-white border border-[#1A1A1A]/10 rounded-full text-sm font-medium hover:border-[#1A1A1A] transition-colors">Art & Design</button>
-                            <button class="px-4 py-2 bg-white border border-[#1A1A1A]/10 rounded-full text-sm font-medium hover:border-[#1A1A1A] transition-colors">Accessibility</button>
+                    <!-- Code Editor Panel -->
+                    <div id="panel-code" class="flex-1 bg-[#1E1E1E] p-2 md:p-4 overflow-auto hidden">
+                        <div id="monacoEditorContainer" class="rounded-xl overflow-hidden editor-panel"></div>
+                    </div>
+
+                    <!-- Preview Panel -->
+                    <div id="panel-preview" class="flex-1 bg-[#FAF9F6] p-2 md:p-4 overflow-auto hidden">
+                        <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden editor-panel">
+                            <iframe id="previewFrame" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
                         </div>
                     </div>
 
-                    <!-- Recommended Section -->
-                    <div>
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-bold">James, you might like</h3>
-                            <a href="#" class="text-sm text-neutral-600 hover:text-[#1A1A1A]">See more</a>
-                        </div>
-                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            <!-- Custom Cursor -->
-                            <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm p-4 hover:border-[#1A1A1A] transition-colors cursor-pointer">
-                                <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center mb-3">
-                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
-                                    </svg>
-                                </div>
-                                <h4 class="font-bold text-sm mb-1">Custom Cursor</h4>
-                                <p class="text-xs text-neutral-500">Customization</p>
-                            </div>
-
-                            <!-- WebRTC -->
-                            <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm p-4 hover:border-[#1A1A1A] transition-colors cursor-pointer">
-                                <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mb-3">
-                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                                    </svg>
-                                </div>
-                                <h4 class="font-bold text-sm mb-1">WebRTC</h4>
-                                <p class="text-xs text-neutral-500">Communication</p>
-                            </div>
-
-                            <!-- Dark Reader -->
-                            <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm p-4 hover:border-[#1A1A1A] transition-colors cursor-pointer">
-                                <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center mb-3">
-                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-                                    </svg>
-                                </div>
-                                <h4 class="font-bold text-sm mb-1">Dark Reader</h4>
-                                <p class="text-xs text-neutral-500">Accessibility</p>
-                            </div>
-
-                            <!-- Grammarly -->
-                            <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm p-4 hover:border-[#1A1A1A] transition-colors cursor-pointer">
-                                <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center mb-3">
-                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                    </svg>
-                                </div>
-                                <h4 class="font-bold text-sm mb-1">Grammarly</h4>
-                                <p class="text-xs text-neutral-500">Writing</p>
+                    <!-- Marketplace Panel -->
+                    <div id="panel-marketplace" class="flex-1 bg-[#FAF9F6] p-2 md:p-4 overflow-auto hidden">
+                        <div class="flex items-center justify-center h-full">
+                            <div class="text-center">
+                                <h2 class="text-2xl md:text-3xl font-bold text-neutral-400 mb-2">Coming Soon</h2>
+                                <p class="text-neutral-500 text-sm">The marketplace is under development.</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
         </div>
     </main>
 
@@ -833,7 +736,7 @@
                     value: '',
                     language: 'html',
                     theme: 'vs-dark',
-                    automaticLayout: false,
+                    automaticLayout: true,
                     fontSize: 14,
                     minimap: { enabled: false },
                     scrollBeyondLastLine: false,
@@ -1181,11 +1084,6 @@
                 codePanel.classList.remove('hidden');
                 codeTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
                 codeTab.classList.remove('border-transparent', 'text-neutral-400');
-                // Resize Monaco editor when showing with delay to ensure container has dimensions
-                if (monacoEditor) {
-                    setTimeout(() => monacoEditor.layout(), 150);
-                    requestAnimationFrame(() => monacoEditor.layout());
-                }
             } else if (tab === 'preview') {
                 previewPanel.classList.remove('hidden');
                 previewTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
