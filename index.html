@@ -609,68 +609,129 @@
 
             <!-- Marketplace Panel -->
             <div id="panel-marketplace" class="flex-1 bg-[#FAF9F6] p-2 md:p-4 overflow-auto hidden">
-                <div class="max-w-4xl mx-auto">
-                    <div class="mb-6">
-                        <h2 class="text-2xl font-bold mb-2">Marketplace</h2>
-                        <p class="text-neutral-600 text-sm">Enhance your website with powerful integrations and tools.</p>
+                <div class="max-w-6xl mx-auto">
+                    <!-- Navigation Tabs -->
+                    <div class="flex gap-1 mb-6 bg-white rounded-lg p-1 border border-[#1A1A1A]/10 w-fit">
+                        <button class="px-4 py-2 rounded-md text-sm font-medium bg-[#1A1A1A] text-white">Discover</button>
+                        <button class="px-4 py-2 rounded-md text-sm font-medium text-neutral-600 hover:bg-neutral-100 transition-colors">Extensions</button>
+                        <button class="px-4 py-2 rounded-md text-sm font-medium text-neutral-600 hover:bg-neutral-100 transition-colors">Themes</button>
                     </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <!-- Searchio -->
-                        <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm p-4 hover:border-[#1A1A1A] transition-colors">
-                            <div class="flex items-start gap-3 mb-3">
-                                <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                    </svg>
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-sm">Searchio</h3>
-                                    <p class="text-xs text-neutral-500">Search Integration</p>
-                                </div>
-                            </div>
-                            <p class="text-sm text-neutral-600 mb-4">Add powerful search functionality to your website with instant results and smart filtering.</p>
-                            <button class="w-full bg-[#1A1A1A] text-[#FAF9F6] py-2 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
-                                Install
-                            </button>
-                        </div>
 
-                        <!-- Microsoft Clarity -->
-                        <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm p-4 hover:border-[#1A1A1A] transition-colors">
-                            <div class="flex items-start gap-3 mb-3">
-                                <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                                    </svg>
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-sm">Microsoft Clarity</h3>
-                                    <p class="text-xs text-neutral-500">Analytics</p>
+                    <!-- Featured Card -->
+                    <div class="bg-white rounded-2xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden mb-8">
+                        <div class="flex flex-col md:flex-row">
+                            <div class="md:w-1/2 relative">
+                                <img src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=800&q=80" alt="Featured" class="w-full h-64 md:h-full object-cover">
+                                <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-1 flex items-center gap-2">
+                                    <span class="text-xs font-bold text-[#1A1A1A]">Ps</span>
                                 </div>
                             </div>
-                            <p class="text-sm text-neutral-600 mb-4">Track user behavior with heatmaps, session recordings, and detailed analytics.</p>
-                            <button class="w-full bg-[#1A1A1A] text-[#FAF9F6] py-2 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
-                                Install
-                            </button>
+                            <div class="md:w-1/2 p-6 flex flex-col justify-between">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="text-xs uppercase font-bold tracking-wider bg-amber-100 text-amber-800 px-2 py-1 rounded-full">Featured</span>
+                                    </div>
+                                    <h3 class="text-2xl font-bold mb-2">Adobe Photoshop</h3>
+                                    <p class="text-neutral-600 text-sm mb-4">Professional image editing and design tools for creative projects.</p>
+                                    <div class="flex items-center gap-4 mb-4">
+                                        <div class="flex items-center gap-1">
+                                            <svg class="w-4 h-4 text-amber-400 fill-current" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                            </svg>
+                                            <span class="text-sm font-medium">3.8</span>
+                                        </div>
+                                        <div class="flex items-center gap-1 text-neutral-500">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                            </svg>
+                                            <span class="text-sm">800k users</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <button class="bg-[#1A1A1A] text-[#FAF9F6] px-6 py-2 rounded-lg text-sm font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+                                        See details
+                                    </button>
+                                    <div class="flex items-center gap-2 text-neutral-400">
+                                        <button class="p-1 hover:text-neutral-600">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                            </svg>
+                                        </button>
+                                        <span class="text-sm">4/5</span>
+                                        <button class="p-1 hover:text-neutral-600">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+                    </div>
 
-                        <!-- Biscuit -->
-                        <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm p-4 hover:border-[#1A1A1A] transition-colors">
-                            <div class="flex items-start gap-3 mb-3">
-                                <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
+                    <!-- Top Categories -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-bold mb-4">Top categories</h3>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="px-4 py-2 bg-white border border-[#1A1A1A]/10 rounded-full text-sm font-medium hover:border-[#1A1A1A] transition-colors">Shopping</button>
+                            <button class="px-4 py-2 bg-white border border-[#1A1A1A]/10 rounded-full text-sm font-medium hover:border-[#1A1A1A] transition-colors">Entertainment</button>
+                            <button class="px-4 py-2 bg-white border border-[#1A1A1A]/10 rounded-full text-sm font-medium hover:border-[#1A1A1A] transition-colors">Tools</button>
+                            <button class="px-4 py-2 bg-white border border-[#1A1A1A]/10 rounded-full text-sm font-medium hover:border-[#1A1A1A] transition-colors">Art & Design</button>
+                            <button class="px-4 py-2 bg-white border border-[#1A1A1A]/10 rounded-full text-sm font-medium hover:border-[#1A1A1A] transition-colors">Accessibility</button>
+                        </div>
+                    </div>
+
+                    <!-- Recommended Section -->
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold">James, you might like</h3>
+                            <a href="#" class="text-sm text-neutral-600 hover:text-[#1A1A1A]">See more</a>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            <!-- Custom Cursor -->
+                            <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm p-4 hover:border-[#1A1A1A] transition-colors cursor-pointer">
+                                <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center mb-3">
                                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
                                     </svg>
                                 </div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-sm">Biscuit</h3>
-                                    <p class="text-xs text-neutral-500">Cookie Management</p>
-                                </div>
+                                <h4 class="font-bold text-sm mb-1">Custom Cursor</h4>
+                                <p class="text-xs text-neutral-500">Customization</p>
                             </div>
-                            <p class="text-sm text-neutral-600 mb-4">Manage cookies and compliance with GDPR, CCPA, and other privacy regulations.</p>
-                            <button class="w-full bg-[#1A1A1A] text-[#FAF9F6] py-2 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
-                                Install
-                            </button>
+
+                            <!-- WebRTC -->
+                            <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm p-4 hover:border-[#1A1A1A] transition-colors cursor-pointer">
+                                <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mb-3">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <h4 class="font-bold text-sm mb-1">WebRTC</h4>
+                                <p class="text-xs text-neutral-500">Communication</p>
+                            </div>
+
+                            <!-- Dark Reader -->
+                            <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm p-4 hover:border-[#1A1A1A] transition-colors cursor-pointer">
+                                <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center mb-3">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                                    </svg>
+                                </div>
+                                <h4 class="font-bold text-sm mb-1">Dark Reader</h4>
+                                <p class="text-xs text-neutral-500">Accessibility</p>
+                            </div>
+
+                            <!-- Grammarly -->
+                            <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm p-4 hover:border-[#1A1A1A] transition-colors cursor-pointer">
+                                <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center mb-3">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                </div>
+                                <h4 class="font-bold text-sm mb-1">Grammarly</h4>
+                                <p class="text-xs text-neutral-500">Writing</p>
+                            </div>
                         </div>
                     </div>
                 </div>
