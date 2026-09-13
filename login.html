@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>James Studio — Login</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+    
+    <!-- Tailwind CSS for high-fidelity styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Syne (geometric, wide header) & Space Grotesk (modern mono-ish clean body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: #FAF9F6; /* Premium soft off-white background */
+            color: #1A1A1A;
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+        }
+        h1, h2, h3, .geometric-font {
+            font-family: 'Syne', sans-serif;
+            letter-spacing: -0.03em;
+        }
+        /* Custom scrollbar matching the minimal layout */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FAF9F6;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1A1A1A;
+            border-radius: 3px;
+        }
+
+        /* Scroll animations */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .animate-on-scroll.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .animate-on-scroll.delay-100 {
+            transition-delay: 0.1s;
+        }
+
+        .animate-on-scroll.delay-200 {
+            transition-delay: 0.2s;
+        }
+
+        .animate-on-scroll.delay-300 {
+            transition-delay: 0.3s;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-[#1A1A1A] selection:text-[#FAF9F6] min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-[#FAF9F6]/90 backdrop-blur-md border-b border-[#1A1A1A]/10 px-4 md:px-6 lg:px-12 py-3 md:py-4 flex justify-between items-center transition-all duration-300">
+        <a href="#" class="geometric-font text-lg md:text-xl lg:text-2xl font-extrabold tracking-tighter flex items-center gap-2">
+            JAMES<span class="text-xs bg-[#1A1A1A] text-[#FAF9F6] px-2 py-0.5 rounded-full uppercase tracking-widest">Studio</span>
+        </a>
+        
+        <!-- Desktop Navigation -->
+        <div class="hidden md:flex items-center gap-6 md:gap-8 font-medium text-sm tracking-tight">
+            <a href="#" class="hover:text-black/60 transition-colors">Home</a>
+            <a href="#" class="hover:text-black/60 transition-colors">Services</a>
+            <a href="#" class="hover:text-black/60 transition-colors">Contact</a>
+        </div>
+    </nav>
+
+    <!-- Login View -->
+    <main class="flex-1 flex items-center justify-center px-4 md:px-6 py-8 md:py-12 lg:py-20">
+        <div class="w-full max-w-md">
+            <div class="text-center mb-8 md:mb-10">
+                <div class="animate-on-scroll inline-flex items-center gap-2 bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 md:mb-6">
+                    <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
+                    Beta Service
+                </div>
+                <h1 class="animate-on-scroll text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[0.9] text-[#1A1A1A] mb-3 md:mb-4">
+                    Welcome Back
+                </h1>
+                <p class="animate-on-scroll delay-100 text-neutral-600 leading-relaxed text-sm md:text-base">
+                    Sign in to access your client dashboard
+                </p>
+                <p class="animate-on-scroll delay-200 text-neutral-500 text-xs md:text-sm leading-relaxed mt-2 md:mt-3">
+                    Access your projects and edit website content directly—no need to contact our team.
+                </p>
+            </div>
+
+            <!-- Login Form -->
+            <div class="animate-on-scroll delay-200 bg-white p-6 md:p-8 lg:p-10 rounded-2xl border border-[#1A1A1A]/10 shadow-sm">
+                <form id="loginForm" class="space-y-6">
+                    <div>
+                        <label for="email" class="block text-xs uppercase font-bold tracking-widest mb-2">Email</label>
+                        <input required type="email" id="email" name="email" placeholder="john@example.com" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A1A1A] transition-colors">
+                    </div>
+                    <div>
+                        <label for="password" class="block text-xs uppercase font-bold tracking-widest mb-2">Password</label>
+                        <input required type="password" id="password" name="password" placeholder="••••••••" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A1A1A] transition-colors">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" class="w-4 h-4 rounded border-[#1A1A1A]/10">
+                            <span class="text-xs text-neutral-600">Remember me</span>
+                        </label>
+                        <span class="text-xs text-neutral-600">Contact James Studio for password reset</span>
+                    </div>
+                    <button type="submit" class="w-full bg-[#1A1A1A] text-[#FAF9F6] py-4 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+                        Sign In
+                    </button>
+                </form>
+
+                <div class="mt-6 text-center">
+                    <p class="text-xs text-neutral-500">
+                        Contact James Studio for account access or password reset
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-[#1A1A1A]/10 py-8 px-6 md:px-12 bg-white">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p class="text-xs text-neutral-400">
+                &copy; <span id="year">2026</span> James Studio. All rights reserved.
+            </p>
+            <div class="flex gap-6 text-xs text-neutral-500">
+                <a href="https://jamesstudio.uk/privacy?type=clientportal" class="hover:underline">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://pkqkqijmohbvfxxnzhyy.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_Raqakv5Z4U8Wr7zmzIvLDA_TsnBSFyS';
+        
+        let SupabaseClient = null;
+        let currentUser = null;
+
+        // Initialize Supabase
+        function initSupabase() {
+            try {
+                SupabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('Supabase initialized successfully');
+            } catch (error) {
+                console.error('Failed to initialize Supabase:', error);
+            }
+        }
+
+        // Update copyright year
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Check for existing session on page load
+        async function checkSession() {
+            // Check localStorage first for immediate redirect
+            if (localStorage.getItem('userLoggedIn') === 'true') {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // Also check Supabase session
+            if (SupabaseClient) {
+                const { data: { session } } = await SupabaseClient.auth.getSession();
+                if (session) {
+                    // User is already logged in, redirect to dashboard
+                    window.location.href = 'index.html';
+                }
+            }
+        }
+
+        // Listen for auth state changes
+        if (SupabaseClient) {
+            SupabaseClient.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN' && session) {
+                    currentUser = session.user;
+                } else if (event === 'SIGNED_OUT') {
+                    currentUser = null;
+                    // Clear session storage
+                    localStorage.removeItem('userEmail');
+                    localStorage.removeItem('userLoggedIn');
+                }
+            });
+        }
+
+        // Login Form Handling
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (SupabaseClient) {
+                try {
+                    const { data, error } = await SupabaseClient.auth.signInWithPassword({
+                        email: email,
+                        password: password
+                    });
+                    
+                    if (error) throw error;
+                    
+                    currentUser = data.user;
+                    
+                    // Store session info for the main app
+                    localStorage.setItem('userEmail', email);
+                    localStorage.setItem('userLoggedIn', 'true');
+                    
+                    // Redirect to dashboard
+                    window.location.href = 'index.html';
+                } catch (error) {
+                    console.error('Login error:', error);
+                    alert('Login failed: ' + error.message);
+                }
+            } else {
+                alert('System not properly configured. Please contact support.');
+            }
+        });
+
+        // Scroll animations using Intersection Observer
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.animate-on-scroll').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Initialize
+        initSupabase();
+        checkSession();
+    </script>
+</body>
+</html>

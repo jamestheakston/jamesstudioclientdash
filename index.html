@@ -51,29 +51,7 @@
             border-radius: 3px;
         }
 
-        /* Scroll animations */
-        .animate-on-scroll {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-        }
 
-        .animate-on-scroll.is-visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .animate-on-scroll.delay-100 {
-            transition-delay: 0.1s;
-        }
-
-        .animate-on-scroll.delay-200 {
-            transition-delay: 0.2s;
-        }
-
-        .animate-on-scroll.delay-300 {
-            transition-delay: 0.3s;
-        }
 
         /* Editor panel height with responsive breakpoint */
         .editor-panel {
@@ -318,77 +296,26 @@
 
     <!-- Navigation -->
     <nav class="sticky top-0 z-50 bg-[#FAF9F6]/90 backdrop-blur-md border-b border-[#1A1A1A]/10 px-4 md:px-6 lg:px-12 py-3 md:py-4 flex justify-between items-center transition-all duration-300">
-        <a href="#" onclick="showView('login')" class="geometric-font text-lg md:text-xl lg:text-2xl font-extrabold tracking-tighter flex items-center gap-2">
+        <a href="#" class="geometric-font text-lg md:text-xl lg:text-2xl font-extrabold tracking-tighter flex items-center gap-2">
             JAMES<span class="text-xs bg-[#1A1A1A] text-[#FAF9F6] px-2 py-0.5 rounded-full uppercase tracking-widest">Studio</span>
         </a>
         
         <!-- Desktop Navigation -->
         <div class="hidden md:flex items-center gap-6 md:gap-8 font-medium text-sm tracking-tight">
-            <a href="#" onclick="showView('login')" class="hover:text-black/60 transition-colors">Home</a>
+            <a href="#" class="hover:text-black/60 transition-colors">Home</a>
             <a href="#" class="hover:text-black/60 transition-colors">Services</a>
             <a href="#" class="hover:text-black/60 transition-colors">Contact</a>
         </div>
         
-        <!-- User Menu (hidden by default) -->
-        <div id="userMenu" class="hidden items-center gap-2 md:gap-4">
+        <!-- User Menu -->
+        <div id="userMenu" class="flex items-center gap-2 md:gap-4">
             <span id="userEmail" class="text-xs md:text-sm text-neutral-600 truncate max-w-24 md:max-w-none"></span>
             <button onclick="logout()" class="text-xs uppercase font-bold tracking-wider hover:underline">Logout</button>
         </div>
     </nav>
 
-    <!-- Login View -->
-    <main id="loginView" class="view active flex-1 flex items-center justify-center px-4 md:px-6 py-8 md:py-12 lg:py-20">
-        <div class="w-full max-w-md">
-            <div class="text-center mb-8 md:mb-10">
-                <div class="animate-on-scroll inline-flex items-center gap-2 bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 md:mb-6">
-                    <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
-                    Beta Service
-                </div>
-                <h1 class="animate-on-scroll text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[0.9] text-[#1A1A1A] mb-3 md:mb-4">
-                    Welcome Back
-                </h1>
-                <p class="animate-on-scroll delay-100 text-neutral-600 leading-relaxed text-sm md:text-base">
-                    Sign in to access your client dashboard
-                </p>
-                <p class="animate-on-scroll delay-200 text-neutral-500 text-xs md:text-sm leading-relaxed mt-2 md:mt-3">
-                    Access your projects and edit website content directly—no need to contact our team.
-                </p>
-            </div>
-
-            <!-- Login Form -->
-            <div class="animate-on-scroll delay-200 bg-white p-6 md:p-8 lg:p-10 rounded-2xl border border-[#1A1A1A]/10 shadow-sm">
-                <form id="loginForm" class="space-y-6">
-                    <div>
-                        <label for="email" class="block text-xs uppercase font-bold tracking-widest mb-2">Email</label>
-                        <input required type="email" id="email" name="email" placeholder="john@example.com" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A1A1A] transition-colors">
-                    </div>
-                    <div>
-                        <label for="password" class="block text-xs uppercase font-bold tracking-widest mb-2">Password</label>
-                        <input required type="password" id="password" name="password" placeholder="••••••••" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A1A1A] transition-colors">
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" class="w-4 h-4 rounded border-[#1A1A1A]/10">
-                            <span class="text-xs text-neutral-600">Remember me</span>
-                        </label>
-                        <span class="text-xs text-neutral-600">Contact James Studio for password reset</span>
-                    </div>
-                    <button type="submit" class="w-full bg-[#1A1A1A] text-[#FAF9F6] py-4 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
-                        Sign In
-                    </button>
-                </form>
-
-                <div class="mt-6 text-center">
-                    <p class="text-xs text-neutral-500">
-                        Contact James Studio for account access or password reset
-                    </p>
-                </div>
-            </div>
-        </div>
-    </main>
-
     <!-- Dashboard View -->
-    <main id="dashboardView" class="view flex-1 px-4 md:px-6 py-8 md:py-12 lg:py-20">
+    <main id="dashboardView" class="view active flex-1 px-4 md:px-6 py-8 md:py-12 lg:py-20">
         <div class="max-w-7xl mx-auto">
             <div class="mb-8 md:mb-12">
                 <div class="flex items-center gap-3 mb-4">
@@ -1665,29 +1592,10 @@
             // Show selected view with appropriate display type
             const targetView = document.getElementById(viewName + 'View');
             if (targetView) {
-                if (viewName === 'login') {
-                    targetView.style.display = 'flex';
-                    // Hide visual editor view
-                    const visualEditorView = document.getElementById('visualEditorView');
-                    if (visualEditorView) {
-                        visualEditorView.style.display = 'none';
-                    }
-                } else if (viewName === 'visualEditor') {
+                if (viewName === 'visualEditor') {
                     targetView.style.display = 'flex';
                 } else {
                     targetView.style.display = 'block';
-                }
-            }
-            
-            // Update navigation
-            const userMenu = document.getElementById('userMenu');
-            if (userMenu) {
-                if (viewName === 'login') {
-                    userMenu.classList.add('hidden');
-                    userMenu.classList.remove('flex');
-                } else {
-                    userMenu.classList.remove('hidden');
-                    userMenu.classList.add('flex');
                 }
             }
             
@@ -1718,39 +1626,6 @@
             }
         }
 
-        // Form toggles
-        function showLogin() {
-            document.getElementById('loginForm').parentElement.classList.remove('hidden');
-        }
-
-        // Login Form Handling
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            
-            if (SupabaseClient) {
-                try {
-                    const { data, error } = await SupabaseClient.auth.signInWithPassword({
-                        email: email,
-                        password: password
-                    });
-                    
-                    if (error) throw error;
-                    
-                    currentUser = data.user;
-                    document.getElementById('userEmail').textContent = email;
-                    showView('dashboard');
-                    loadProjects();
-                } catch (error) {
-                    console.error('Login error:', error);
-                    alert('Login failed: ' + error.message);
-                }
-            } else {
-                alert('System not properly configured. Please contact support.');
-            }
-        });
-
         // Logout
         async function logout() {
             if (SupabaseClient) {
@@ -1758,7 +1633,13 @@
             }
             currentUser = null;
             userAccess = [];
-            showView('login');
+            
+            // Clear session storage
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('userLoggedIn');
+            
+            // Redirect to login page
+            window.location.href = 'login.html';
         }
 
         // Load user's access from Supabase
@@ -2482,35 +2363,33 @@
         }
 
 
-        // Scroll animations using Intersection Observer
-        const observerOptions = {
-            root: null,
-            rootMargin: '0px',
-            threshold: 0.1
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('is-visible');
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.animate-on-scroll').forEach(el => {
-            observer.observe(el);
-        });
-
         // Check for existing session on page load
         async function checkSession() {
+            // Check localStorage first
+            const userEmail = localStorage.getItem('userEmail');
+            const userLoggedIn = localStorage.getItem('userLoggedIn');
+            
+            if (userLoggedIn === 'true' && userEmail) {
+                document.getElementById('userEmail').textContent = userEmail;
+            }
+            
+            // Check Supabase session
             if (SupabaseClient) {
                 const { data: { session } } = await SupabaseClient.auth.getSession();
                 if (session) {
                     currentUser = session.user;
                     document.getElementById('userEmail').textContent = currentUser.email;
-                    showView('dashboard');
+                    loadProjects();
+                } else if (!userLoggedIn) {
+                    // No session and no localStorage flag, redirect to login
+                    window.location.href = 'login.html';
+                } else {
+                    // Has localStorage flag but no Supabase session, try to recover
                     loadProjects();
                 }
+            } else if (!userLoggedIn) {
+                // Supabase not initialized and no localStorage flag, redirect to login
+                window.location.href = 'login.html';
             }
         }
 
@@ -2520,9 +2399,14 @@
                 if (event === 'SIGNED_IN' && session) {
                     currentUser = session.user;
                     document.getElementById('userEmail').textContent = currentUser.email;
+                    localStorage.setItem('userEmail', currentUser.email);
+                    localStorage.setItem('userLoggedIn', 'true');
                 } else if (event === 'SIGNED_OUT') {
                     currentUser = null;
                     userAccess = [];
+                    localStorage.removeItem('userEmail');
+                    localStorage.removeItem('userLoggedIn');
+                    window.location.href = 'login.html';
                 }
             });
         }
