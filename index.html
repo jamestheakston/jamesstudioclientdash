@@ -1978,8 +1978,9 @@
                         avatarContent = `<span class="geometric-font text-[#FAF9F6] text-xs font-extrabold tracking-tighter">${initials}</span>`;
                     }
                     
-                    // Only show verified badge if msg.verified is true
-                    const verifiedBadge = msg.verified ? `
+                    // Only show verified badge if msg.verified or msg.is_verified is true
+                    const isVerified = msg.verified || msg.is_verified;
+                    const verifiedBadge = isVerified ? `
                         <div class="verified-badge" onclick="toggleVerifiedTooltip(this, event)">
                             <svg class="w-4 h-4" viewBox="0 0 122.88 116.87">
                                 <defs><style>.cls-1{fill:#10a64a;fill-rule:evenodd;}.cls-2{fill:#fff;}</style></defs>
