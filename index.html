@@ -567,6 +567,9 @@
                     <button onclick="switchEditorTab('preview')" id="tab-preview" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors whitespace-nowrap">
                         Preview
                     </button>
+                    <button onclick="switchEditorTab('marketplace')" id="tab-marketplace" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors whitespace-nowrap">
+                        Marketplace
+                    </button>
                 </div>
 
             <!-- Visual Preview Panel -->
@@ -598,6 +601,75 @@
             <div id="panel-preview" class="flex-1 bg-[#FAF9F6] p-2 md:p-4 overflow-auto hidden">
                 <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden editor-panel">
                     <iframe id="previewFrame" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
+                </div>
+            </div>
+
+            <!-- Marketplace Panel -->
+            <div id="panel-marketplace" class="flex-1 bg-[#FAF9F6] p-2 md:p-4 overflow-auto hidden">
+                <div class="max-w-4xl mx-auto">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold mb-2">Marketplace</h2>
+                        <p class="text-neutral-600 text-sm">Enhance your website with powerful integrations and tools.</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Searchio -->
+                        <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm p-4 hover:border-[#1A1A1A] transition-colors">
+                            <div class="flex items-start gap-3 mb-3">
+                                <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-sm">Searchio</h3>
+                                    <p class="text-xs text-neutral-500">Search Integration</p>
+                                </div>
+                            </div>
+                            <p class="text-sm text-neutral-600 mb-4">Add powerful search functionality to your website with instant results and smart filtering.</p>
+                            <button class="w-full bg-[#1A1A1A] text-[#FAF9F6] py-2 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+                                Install
+                            </button>
+                        </div>
+
+                        <!-- Microsoft Clarity -->
+                        <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm p-4 hover:border-[#1A1A1A] transition-colors">
+                            <div class="flex items-start gap-3 mb-3">
+                                <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-sm">Microsoft Clarity</h3>
+                                    <p class="text-xs text-neutral-500">Analytics</p>
+                                </div>
+                            </div>
+                            <p class="text-sm text-neutral-600 mb-4">Track user behavior with heatmaps, session recordings, and detailed analytics.</p>
+                            <button class="w-full bg-[#1A1A1A] text-[#FAF9F6] py-2 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+                                Install
+                            </button>
+                        </div>
+
+                        <!-- Biscuit -->
+                        <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm p-4 hover:border-[#1A1A1A] transition-colors">
+                            <div class="flex items-start gap-3 mb-3">
+                                <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-sm">Biscuit</h3>
+                                    <p class="text-xs text-neutral-500">Cookie Management</p>
+                                </div>
+                            </div>
+                            <p class="text-sm text-neutral-600 mb-4">Manage cookies and compliance with GDPR, CCPA, and other privacy regulations.</p>
+                            <button class="w-full bg-[#1A1A1A] text-[#FAF9F6] py-2 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+                                Install
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1012,14 +1084,17 @@
             const visualPanel = document.getElementById('panel-visual');
             const codePanel = document.getElementById('panel-code');
             const previewPanel = document.getElementById('panel-preview');
+            const marketplacePanel = document.getElementById('panel-marketplace');
             const visualTab = document.getElementById('tab-visual');
             const codeTab = document.getElementById('tab-code');
             const previewTab = document.getElementById('tab-preview');
+            const marketplaceTab = document.getElementById('tab-marketplace');
             
             // Hide all panels
             visualPanel.classList.add('hidden');
             codePanel.classList.add('hidden');
             previewPanel.classList.add('hidden');
+            marketplacePanel.classList.add('hidden');
             
             // Reset all tabs
             visualTab.classList.remove('border-[#1A1A1A]', 'text-[#1A1A1A]');
@@ -1028,6 +1103,8 @@
             codeTab.classList.add('border-transparent', 'text-neutral-400');
             previewTab.classList.remove('border-[#1A1A1A]', 'text-[#1A1A1A]');
             previewTab.classList.add('border-transparent', 'text-neutral-400');
+            marketplaceTab.classList.remove('border-[#1A1A1A]', 'text-[#1A1A1A]');
+            marketplaceTab.classList.add('border-transparent', 'text-neutral-400');
             
             if (tab === 'visual') {
                 visualPanel.classList.remove('hidden');
@@ -1048,6 +1125,10 @@
                 previewTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
                 previewTab.classList.remove('border-transparent', 'text-neutral-400');
                 updatePreview();
+            } else if (tab === 'marketplace') {
+                marketplacePanel.classList.remove('hidden');
+                marketplaceTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
+                marketplaceTab.classList.remove('border-transparent', 'text-neutral-400');
             }
         }
         
