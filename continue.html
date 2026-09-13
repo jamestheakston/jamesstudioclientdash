@@ -43,61 +43,30 @@
         }
     </style>
 </head>
-<body class="antialiased selection:bg-[#1A1A1A] selection:text-[#FAF9F6] min-h-screen flex flex-col">
+<body class="antialiased selection:bg-[#1A1A1A] selection:text-[#FAF9F6] min-h-screen flex items-center justify-center p-4 md:p-6 relative">
 
-    <!-- Navigation -->
-    <nav class="sticky top-0 z-50 bg-[#FAF9F6]/90 backdrop-blur-md border-b border-[#1A1A1A]/10 px-4 md:px-6 lg:px-12 py-3 md:py-4 flex justify-between items-center transition-all duration-300">
-        <a href="#" class="geometric-font text-lg md:text-xl lg:text-2xl font-extrabold tracking-tighter flex items-center gap-2">
-            JAMES<span class="text-xs bg-[#1A1A1A] text-[#FAF9F6] px-2 py-0.5 rounded-full uppercase tracking-widest">Studio</span>
-        </a>
-        
-        <!-- User Menu -->
-        <div id="userMenu" class="flex items-center gap-2 md:gap-4">
-            <span id="userEmail" class="text-xs md:text-sm text-neutral-600 truncate max-w-24 md:max-w-none"></span>
-            <button onclick="logout()" class="text-xs uppercase font-bold tracking-wider hover:underline">Logout</button>
-        </div>
-    </nav>
+    <!-- Logout Button -->
+    <button onclick="logout()" class="absolute top-4 right-4 text-xs uppercase font-bold tracking-wider hover:underline text-neutral-600">
+        Logout
+    </button>
 
     <!-- Project Selection View -->
-    <main class="flex-1 px-4 md:px-6 py-8 md:py-12 lg:py-20">
-        <div class="max-w-7xl mx-auto">
-            <div class="mb-8 md:mb-12">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="inline-flex items-center gap-2 bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                        <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
-                        Beta Service
-                    </div>
-                </div>
-                <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[0.9] text-[#1A1A1A] mb-3 md:mb-4">
-                    Select a Project
-                </h1>
-                <p class="text-neutral-600 leading-relaxed max-w-2xl text-sm md:text-base">
-                    Choose a project to continue to <span id="destinationName" class="font-semibold">the requested feature</span>.
-                </p>
-            </div>
+    <main class="w-full max-w-4xl">
+        <div class="text-center mb-8 md:mb-12">
+            <h1 class="text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight leading-[0.9] text-[#1A1A1A] mb-4">
+                Select a project to continue to...
+            </h1>
+        </div>
 
-            <!-- Projects Grid -->
-            <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                <!-- Projects will be loaded here -->
-                <div class="col-span-full text-center py-12">
-                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A1A1A]"></div>
-                    <p class="text-neutral-500 mt-4 text-sm md:text-base">Loading your projects...</p>
-                </div>
+        <!-- Projects Grid -->
+        <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <!-- Projects will be loaded here -->
+            <div class="col-span-full text-center py-12">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A1A1A]"></div>
+                <p class="text-neutral-500 mt-4 text-sm md:text-base">Loading your projects...</p>
             </div>
         </div>
     </main>
-
-    <!-- Footer -->
-    <footer class="border-t border-[#1A1A1A]/10 py-8 px-6 md:px-12 bg-white">
-        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p class="text-xs text-neutral-400">
-                &copy; <span id="year">2026</span> James Studio. All rights reserved.
-            </p>
-            <div class="flex gap-6 text-xs text-neutral-500">
-                <a href="https://jamesstudio.uk/privacy?type=clientportal" class="hover:underline">Privacy Policy</a>
-            </div>
-        </div>
-    </footer>
 
     <!-- JavaScript -->
     <script>
@@ -123,27 +92,12 @@
             }
         }
 
-        // Update copyright year
-        document.getElementById('year').textContent = new Date().getFullYear();
+
 
         // Parse URL parameters
         function parseURLParams() {
             const urlParams = new URLSearchParams(window.location.search);
             redirectDestination = urlParams.get('redirect') || 'dashboard';
-            
-            // Update destination name display
-            const destinationNames = {
-                'marketplace': 'Marketplace',
-                'visual': 'Visual Editor',
-                'code': 'Code Editor',
-                'preview': 'Preview',
-                'dashboard': 'Dashboard'
-            };
-            
-            const destinationNameEl = document.getElementById('destinationName');
-            if (destinationNameEl) {
-                destinationNameEl.textContent = destinationNames[redirectDestination] || redirectDestination;
-            }
         }
 
         // Load user's access from Supabase
@@ -277,18 +231,12 @@
 
         // Check for existing session on page load
         async function checkSession() {
-            const userEmail = localStorage.getItem('userEmail');
             const userLoggedIn = localStorage.getItem('userLoggedIn');
-            
-            if (userLoggedIn === 'true' && userEmail) {
-                document.getElementById('userEmail').textContent = userEmail;
-            }
             
             if (SupabaseClient) {
                 const { data: { session } } = await SupabaseClient.auth.getSession();
                 if (session) {
                     currentUser = session.user;
-                    document.getElementById('userEmail').textContent = currentUser.email;
                     loadProjects();
                 } else if (!userLoggedIn) {
                     window.location.href = 'login.html';
@@ -305,7 +253,6 @@
             SupabaseClient.auth.onAuthStateChange((event, session) => {
                 if (event === 'SIGNED_IN' && session) {
                     currentUser = session.user;
-                    document.getElementById('userEmail').textContent = currentUser.email;
                     localStorage.setItem('userEmail', currentUser.email);
                     localStorage.setItem('userLoggedIn', 'true');
                 } else if (event === 'SIGNED_OUT') {
