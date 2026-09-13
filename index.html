@@ -1553,9 +1553,12 @@
         let hasUnsavedChanges = false;
         let abortController = null;
 
-        // Warn before closing if there are unsaved changes
+        // Warn before closing if there are unsaved changes and user is on editor
         window.addEventListener('beforeunload', (e) => {
-            if (hasUnsavedChanges) {
+            const currentView = document.querySelector('.view.active');
+            const isOnEditor = currentView && currentView.id === 'visualEditorView';
+
+            if (hasUnsavedChanges && isOnEditor) {
                 e.preventDefault();
                 e.returnValue = '';
                 return '';
