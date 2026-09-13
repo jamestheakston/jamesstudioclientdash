@@ -1998,7 +1998,6 @@
                     
                     // Only show verified badge if msg.verified or msg.is_verified is true
                     const isVerified = msg.verified || msg.is_verified;
-                    console.log('Message verification status:', msg.from_name, isVerified, msg.verified, msg.is_verified);
                     const verifiedBadge = isVerified ? `
                         <div class="verified-badge" onclick="toggleVerifiedTooltip(this, event)">
                             <svg class="w-4 h-4" viewBox="0 0 122.88 116.87">
