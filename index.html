@@ -80,6 +80,11 @@
             flex: 1;
         }
 
+        #marketplaceContent {
+            width: 100%;
+            height: 100%;
+        }
+
         #visualPreview,
         #previewFrame {
             width: 100%;
@@ -315,6 +320,43 @@
                 transform: scale(1);
             }
         }
+
+        /* Eco Limit Tooltip */
+        #ecoLimitContainer {
+            cursor: pointer;
+            position: relative;
+        }
+        #ecoLimitContainer .eco-tooltip {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            transform: translateY(-8px);
+            background: #1A1A1A;
+            color: #FAF9F6;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            z-index: 10;
+            pointer-events: none;
+        }
+        #ecoLimitContainer .eco-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            right: 8px;
+            transform: translateX(50%);
+            border: 4px solid transparent;
+            border-top-color: #1A1A1A;
+        }
+        #ecoLimitContainer:hover .eco-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
     </style>
 </head>
 <body class="antialiased selection:bg-[#1A1A1A] selection:text-[#FAF9F6] min-h-screen flex flex-col">
@@ -520,9 +562,21 @@
                                 <img src="https://assets.puter.site/puter-logo.png" alt="Puter" class="w-6 h-6 md:w-8 md:h-8">
                                 <h3 class="font-bold text-sm md:text-base">AI Assistant</h3>
                             </div>
-                            <button onclick="toggleAIPanel()" class="text-neutral-400 hover:text-black p-1 md:p-0">
-                                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                            </button>
+                            <div class="flex items-center gap-2">
+                                <!-- Eco Limit Progress Circle -->
+                                <div class="relative w-8 h-8" id="ecoLimitContainer">
+                                    <svg class="w-8 h-8 transform -rotate-90">
+                                        <circle cx="16" cy="16" r="14" stroke="#E5E7EB" stroke-width="2" fill="none"/>
+                                        <circle id="ecoLimitCircle" cx="16" cy="16" r="14" stroke="#10B981" stroke-width="2" fill="none" 
+                                            stroke-dasharray="87.96" stroke-dashoffset="0" stroke-linecap="round"/>
+                                    </svg>
+                                    <span id="ecoLimitText" class="absolute inset-0 flex items-center justify-center text-xs font-bold text-[#10B981]">15</span>
+                                    <div class="eco-tooltip">15 daily AI messages remaining</div>
+                                </div>
+                                <button onclick="toggleAIPanel()" class="text-neutral-400 hover:text-black p-1 md:p-0">
+                                    <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Panel Content -->
@@ -632,7 +686,7 @@
 
                     <!-- Marketplace Panel -->
                     <div id="panel-marketplace" class="flex-1 bg-[#FAF9F6] p-2 md:p-4 overflow-auto hidden">
-                        <div class="flex items-center justify-center h-full">
+                        <div id="marketplaceContent" class="flex items-center justify-center h-full">
                             <div class="text-center">
                                 <h2 class="text-2xl md:text-3xl font-bold text-neutral-400 mb-2">Coming Soon</h2>
                                 <p class="text-neutral-500 text-sm">The marketplace is under development.</p>
@@ -1090,15 +1144,153 @@
                 previewTab.classList.remove('border-transparent', 'text-neutral-400');
                 updatePreview();
             } else if (tab === 'marketplace') {
-                marketplacePanel.classList.remove('hidden');
-                marketplaceTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
-                marketplaceTab.classList.remove('border-transparent', 'text-neutral-400');
+                // Check if user is logged into Puter and has used AI features
+                if (!isPuterAuthorized || dailyMessageCount === 0) {
+                    // Show login prompt in marketplace panel
+                    marketplacePanel.classList.remove('hidden');
+                    marketplaceTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
+                    marketplaceTab.classList.remove('border-transparent', 'text-neutral-400');
+                    updateMarketplaceContent();
+                } else {
+                    marketplacePanel.classList.remove('hidden');
+                    marketplaceTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
+                    marketplaceTab.classList.remove('border-transparent', 'text-neutral-400');
+                    updateMarketplaceContent();
+                }
             }
         }
         
         // AI Panel Functions
         let isAIPanelOpen = false;
         let isPuterAuthorized = false;
+        
+        // Eco Limit Functions
+        const DAILY_MESSAGE_LIMIT = 15;
+        let dailyMessageCount = 0;
+        let lastResetDate = null;
+        
+        function initializeEcoLimit() {
+            const today = new Date().toDateString();
+            const storedDate = localStorage.getItem('ecoLimitLastReset');
+            const storedCount = localStorage.getItem('ecoLimitDailyCount');
+            
+            if (storedDate !== today) {
+                // Reset for new day
+                dailyMessageCount = 0;
+                lastResetDate = today;
+                localStorage.setItem('ecoLimitLastReset', today);
+                localStorage.setItem('ecoLimitDailyCount', '0');
+            } else {
+                dailyMessageCount = parseInt(storedCount) || 0;
+                lastResetDate = today;
+            }
+            
+            updateEcoLimitDisplay();
+        }
+        
+        function updateEcoLimitDisplay() {
+            const circle = document.getElementById('ecoLimitCircle');
+            const text = document.getElementById('ecoLimitText');
+            const remaining = DAILY_MESSAGE_LIMIT - dailyMessageCount;
+            
+            // Update text
+            text.textContent = remaining;
+            
+            // Update circle progress
+            const circumference = 2 * Math.PI * 14; // r=14
+            circle.style.strokeDasharray = circumference;
+            const progress = remaining / DAILY_MESSAGE_LIMIT;
+            const offset = circumference * (1 - progress);
+            circle.style.strokeDashoffset = offset;
+            
+            // Change color based on remaining
+            if (remaining <= 3) {
+                circle.style.stroke = '#EF4444'; // Red
+                text.style.color = '#EF4444';
+            } else if (remaining <= 7) {
+                circle.style.stroke = '#F59E0B'; // Orange
+                text.style.color = '#F59E0B';
+            } else {
+                circle.style.stroke = '#10B981'; // Green
+                text.style.color = '#10B981';
+            }
+            
+            // Update tooltip text
+            const tooltip = document.querySelector('#ecoLimitContainer .eco-tooltip');
+            if (tooltip) {
+                tooltip.textContent = remaining > 0 
+                    ? `${remaining} daily AI messages remaining` 
+                    : 'Daily limit reached (can be bypassed)';
+            }
+        }
+        
+        function checkEcoLimit() {
+            const remaining = DAILY_MESSAGE_LIMIT - dailyMessageCount;
+            if (remaining <= 0) {
+                return confirm(`You've used your daily limit of ${DAILY_MESSAGE_LIMIT} AI messages. Would you like to continue anyway? (This won't count against your limit)`);
+            }
+            return true;
+        }
+        
+        function incrementEcoLimit() {
+            dailyMessageCount++;
+            localStorage.setItem('ecoLimitDailyCount', dailyMessageCount.toString());
+            updateEcoLimitDisplay();
+            
+            // Update marketplace content if it's currently visible
+            const marketplacePanel = document.getElementById('panel-marketplace');
+            if (!marketplacePanel.classList.contains('hidden')) {
+                updateMarketplaceContent();
+            }
+        }
+        
+        function updateMarketplaceContent() {
+            const marketplaceContent = document.getElementById('marketplaceContent');
+            
+            if (!isPuterAuthorized) {
+                // User not logged into Puter
+                marketplaceContent.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full max-w-md mx-auto text-center">
+                        <div class="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mb-4">
+                            <svg class="w-8 h-8 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                        </div>
+                        <h2 class="text-2xl md:text-3xl font-bold text-neutral-400 mb-2">Puter Login Required</h2>
+                        <p class="text-neutral-500 text-sm mb-4">The marketplace requires you to be logged into Puter to access apps and extensions.</p>
+                        <button onclick="toggleAIPanel()" class="bg-[#1A1A1A] text-[#FAF9F6] px-6 py-2 rounded-lg text-sm font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+                            Open AI Panel to Login
+                        </button>
+                    </div>
+                `;
+            } else if (dailyMessageCount === 0) {
+                // User logged in but hasn't used AI features yet
+                marketplaceContent.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full max-w-md mx-auto text-center">
+                        <div class="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mb-4">
+                            <svg class="w-8 h-8 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                        </div>
+                        <h2 class="text-2xl md:text-3xl font-bold text-neutral-400 mb-2">Try AI First</h2>
+                        <p class="text-neutral-500 text-sm mb-4">The marketplace requires you to use AI features at least once before accessing apps and extensions.</p>
+                        <button onclick="toggleAIPanel()" class="bg-[#1A1A1A] text-[#FAF9F6] px-6 py-2 rounded-lg text-sm font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+                            Try AI Assistant
+                        </button>
+                    </div>
+                `;
+            } else {
+                // User is logged in and has used AI features
+                marketplaceContent.innerHTML = `
+                    <div class="flex items-center justify-center h-full">
+                        <div class="text-center">
+                            <h2 class="text-2xl md:text-3xl font-bold text-neutral-400 mb-2">Coming Soon</h2>
+                            <p class="text-neutral-500 text-sm">The marketplace is under development.</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
         
         function toggleAIPanel() {
             const panel = document.getElementById('aiSidePanel');
@@ -1129,6 +1321,8 @@
                         document.getElementById('aiAuthScreen').classList.add('hidden');
                         document.getElementById('aiChatScreen').classList.remove('hidden');
                         loadChatsFromStorage();
+                        // Update marketplace content if visible
+                        updateMarketplaceContent();
                     }
                     // If not signed in, show auth screen for user to explicitly authorize
                 }
@@ -1154,6 +1348,8 @@
                         document.getElementById('aiChatScreen').classList.remove('hidden');
                         // Load saved chats
                         loadChatsFromStorage();
+                        // Update marketplace content if visible
+                        updateMarketplaceContent();
                     }).catch((error) => {
                         console.error('Puter auth error:', error);
                         alert('Failed to authenticate with Puter. Please try again.');
@@ -1166,6 +1362,8 @@
                     document.getElementById('aiChatScreen').classList.remove('hidden');
                     // Load saved chats
                     loadChatsFromStorage();
+                    // Update marketplace content if visible
+                    updateMarketplaceContent();
                 }
             } catch (error) {
                 console.error('Puter auth error:', error);
@@ -1175,6 +1373,8 @@
                 document.getElementById('aiChatScreen').classList.remove('hidden');
                 // Load saved chats
                 loadChatsFromStorage();
+                // Update marketplace content if visible
+                updateMarketplaceContent();
             }
         }
         
@@ -1213,6 +1413,11 @@
             // Clear localStorage
             localStorage.removeItem('puterAuthScreenShown');
             localStorage.removeItem('puterChats');
+            
+            // Reset eco limit
+            dailyMessageCount = 0;
+            localStorage.setItem('ecoLimitDailyCount', '0');
+            updateEcoLimitDisplay();
             
             // Hide backdrop on mobile
             const backdrop = document.getElementById('aiPanelBackdrop');
@@ -1274,6 +1479,11 @@
                 return;
             }
             
+            // Check eco limit
+            if (!checkEcoLimit()) {
+                return; // User chose not to bypass
+            }
+            
             const chatMessages = document.getElementById('aiChatMessages');
             
             // Add user message
@@ -1286,6 +1496,11 @@
             saveChatToStorage(message, true);
             
             input.value = '';
+            
+            // Increment eco limit counter
+            if (dailyMessageCount < DAILY_MESSAGE_LIMIT) {
+                incrementEcoLimit();
+            }
             
             // Get current HTML content from Monaco Editor
             const currentHTML = monacoEditor ? monacoEditor.getValue() : '';
@@ -2544,6 +2759,7 @@
         initSupabase();
         initMonacoEditor();
         checkSession();
+        initializeEcoLimit();
     </script>
 </body>
 </html>
