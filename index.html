@@ -1322,11 +1322,28 @@
                     backdrop.classList.add('active');
                 }
                 
-                // Only show chat screen if user has explicitly authorized through this app
-                if (isPuterAuthorized) {
+                // Check if user is logged into Puter
+                if (typeof puter !== 'undefined' && puter.auth && puter.auth.isSignedIn) {
+                    const isSignedIn = puter.auth.isSignedIn();
+                    if (isSignedIn) {
+                        // User is logged into Puter, auto-authorize and show chat
+                        isPuterAuthorized = true;
+                        document.getElementById('aiAuthScreen').classList.add('hidden');
+                        document.getElementById('aiChatScreen').classList.remove('hidden');
+                        loadChatsFromStorage();
+                        updateMarketplaceContent();
+                    } else {
+                        // User not logged into Puter, show auth screen
+                        isPuterAuthorized = false;
+                        document.getElementById('aiAuthScreen').classList.remove('hidden');
+                        document.getElementById('aiChatScreen').classList.add('hidden');
+                    }
+                } else if (isPuterAuthorized) {
+                    // Already authorized through this app
                     document.getElementById('aiAuthScreen').classList.add('hidden');
                     document.getElementById('aiChatScreen').classList.remove('hidden');
                     loadChatsFromStorage();
+                    updateMarketplaceContent();
                 } else {
                     // Show auth screen for user to explicitly authorize
                     document.getElementById('aiAuthScreen').classList.remove('hidden');
