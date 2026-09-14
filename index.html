@@ -1162,24 +1162,32 @@
                 visualTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
                 visualTab.classList.remove('border-transparent', 'text-neutral-400');
                 updateVisualPreview();
-                window.location.hash = 'visual';
+                if (isAppInitialized) {
+                    window.location.hash = 'visual';
+                }
             } else if (tab === 'code') {
                 codePanel.classList.remove('hidden');
                 codeTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
                 codeTab.classList.remove('border-transparent', 'text-neutral-400');
-                window.location.hash = 'code';
+                if (isAppInitialized) {
+                    window.location.hash = 'code';
+                }
             } else if (tab === 'preview') {
                 previewPanel.classList.remove('hidden');
                 previewTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
                 previewTab.classList.remove('border-transparent', 'text-neutral-400');
                 updatePreview();
-                window.location.hash = 'preview';
+                if (isAppInitialized) {
+                    window.location.hash = 'preview';
+                }
             } else if (tab === 'marketplace') {
                 marketplacePanel.classList.remove('hidden');
                 marketplaceTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
                 marketplaceTab.classList.remove('border-transparent', 'text-neutral-400');
                 updateMarketplaceContent();
-                window.location.hash = 'marketplace';
+                if (isAppInitialized) {
+                    window.location.hash = 'marketplace';
+                }
             }
         }
         
@@ -2024,14 +2032,16 @@
                 targetView.classList.add('active');
             }
             
-            // Update hash based on view
-            if (viewName === 'projectOverview') {
-                window.location.hash = 'projects';
-            } else if (viewName === 'visualEditor') {
-                // Keep existing editor tab hash or default to visual
-                const currentHash = window.location.hash.replace('#', '');
-                if (!['visual', 'code', 'preview', 'marketplace'].includes(currentHash)) {
-                    window.location.hash = 'visual';
+            // Update hash based on view (only after initialization)
+            if (isAppInitialized) {
+                if (viewName === 'projectOverview') {
+                    window.location.hash = 'projects';
+                } else if (viewName === 'visualEditor') {
+                    // Keep existing editor tab hash or default to visual
+                    const currentHash = window.location.hash.replace('#', '');
+                    if (!['visual', 'code', 'preview', 'marketplace'].includes(currentHash)) {
+                        window.location.hash = 'visual';
+                    }
                 }
             }
             
@@ -2150,12 +2160,19 @@
                     
                     // Trigger URL parameter parsing for continue flow
                     parseURLParams();
+                    
+                    // Initialize hash navigation after projects are loaded
+                    initializeHashNavigation();
                 } catch (error) {
                     console.error('Error loading projects:', error);
                     projectsGrid.innerHTML = '<p class="text-neutral-500">Error loading projects. Please contact support.</p>';
+                    // Still initialize hash navigation even on error
+                    initializeHashNavigation();
                 }
             } else {
                 projectsGrid.innerHTML = '<p class="text-neutral-500">Unable to load projects. Please contact support.</p>';
+                // Still initialize hash navigation even on error
+                initializeHashNavigation();
             }
         }
 
@@ -2218,8 +2235,10 @@
             
             showView('projectOverview');
             
-            // Update hash for navigation
-            window.location.hash = 'projects';
+            // Update hash for navigation (only after initialization)
+            if (isAppInitialized) {
+                window.location.hash = 'projects';
+            }
         }
 
         // Load Inbox Messages
@@ -2358,8 +2377,10 @@
                 // Update visual preview
                 updateVisualPreview();
                 
-                // Update hash for navigation
-                window.location.hash = 'visual';
+                // Update hash for navigation (only after initialization)
+                if (isAppInitialized) {
+                    window.location.hash = 'visual';
+                }
                 
                 // Reset button state
                 editBtn.innerHTML = '<span>Edit Site</span>';
@@ -2924,7 +2945,14 @@
         }
 
         // Hash-based navigation
+        let isAppInitialized = false;
+        
         function handleHashChange() {
+            // Don't handle hash changes until app is fully initialized
+            if (!isAppInitialized) {
+                return;
+            }
+            
             const hash = window.location.hash.replace('#', '');
             
             if (hash === 'visual' || hash === 'code' || hash === 'preview' || hash === 'marketplace') {
@@ -2935,9 +2963,21 @@
                 } else {
                     // Need to open visual editor first
                     const projectId = localStorage.getItem('currentProjectId');
-                    if (projectId && currentProject) {
-                        openVisualEditor();
-                        setTimeout(() => switchEditorTab(hash), 500);
+                    if (projectId && currentProject && userAccess.length > 0) {
+                        // Check repo access before opening editor
+                        const repoName = currentProject.repo.split('/')[1];
+                        if (userAccess.includes(repoName)) {
+                            openVisualEditor();
+                            setTimeout(() => switchEditorTab(hash), 500);
+                        } else {
+                            // User doesn't have access, show project overview
+                            showView('projectOverview');
+                            window.location.hash = 'projects';
+                        }
+                    } else {
+                        // No current project or access not loaded, show project overview
+                        showView('projectOverview');
+                        window.location.hash = 'projects';
                     }
                 }
             } else if (hash === 'projects') {
@@ -2951,10 +2991,11 @@
         // Listen for hash changes
         window.addEventListener('hashchange', handleHashChange);
         
-        // Handle initial hash on page load
-        window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(handleHashChange, 1000);
-        });
+        // Handle initial hash on page load after app is initialized
+        function initializeHashNavigation() {
+            isAppInitialized = true;
+            handleHashChange();
+        }
 
         // Initialize
         initSupabase();
