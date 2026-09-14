@@ -1382,7 +1382,7 @@
             
             // Clear chat messages
             const chatMessages = document.getElementById('aiChatMessages');
-            chatMessages.innerHTML = '<div class="bg-[#FAF9F6] p-3 rounded-lg"><p class="text-sm">Hello! I\'m your AI assistant. I can help you edit your website content. What would you like to change?</p></div>';
+            chatMessages.innerHTML = '<div class="bg-[#FAF9F6] p-2.5 md:p-3 rounded-lg"><p class="text-xs md:text-sm whitespace-pre-wrap">Hello! I\'m your AI assistant. I can help you edit your website content. I use targeted edits to make precise changes rather than rewriting entire files. What would you like to change?</p></div>';
             
             // Clear localStorage
             localStorage.removeItem('puterAuthScreenShown');
@@ -1392,6 +1392,9 @@
             dailyMessageCount = 0;
             localStorage.setItem('ecoLimitDailyCount', '0');
             updateEcoLimitDisplay();
+            
+            // Update marketplace content
+            updateMarketplaceContent();
             
             // Hide backdrop on mobile
             const backdrop = document.getElementById('aiPanelBackdrop');
