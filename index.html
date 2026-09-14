@@ -337,7 +337,8 @@
             border-radius: 6px;
             font-size: 11px;
             font-weight: 500;
-            white-space: nowrap;
+            white-space: normal;
+            width: 200px;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.2s ease, visibility 0.2s ease;
@@ -348,7 +349,7 @@
             content: '';
             position: absolute;
             bottom: 100%;
-            right: 8px;
+            right: 20px;
             transform: translateX(50%);
             border: 4px solid transparent;
             border-bottom-color: #1A1A1A;
@@ -571,7 +572,7 @@
                                             stroke-dasharray="87.96" stroke-dashoffset="0" stroke-linecap="round"/>
                                     </svg>
                                     <span id="ecoLimitText" class="absolute inset-0 flex items-center justify-center text-xs font-bold text-[#10B981]">15</span>
-                                    <div class="eco-tooltip">15 daily AI messages remaining</div>
+                                    <div class="eco-tooltip">15 of 15 daily AI messages remaining - Eco limit helps manage AI usage</div>
                                 </div>
                                 <button onclick="toggleAIPanel()" class="text-neutral-400 hover:text-black p-1 md:p-0">
                                     <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -1209,9 +1210,11 @@
             // Update tooltip text
             const tooltip = document.querySelector('#ecoLimitContainer .eco-tooltip');
             if (tooltip) {
-                tooltip.textContent = remaining > 0 
-                    ? `${remaining} daily AI messages remaining` 
-                    : 'Daily limit reached (can be bypassed)';
+                if (remaining > 0) {
+                    tooltip.textContent = `${remaining} of ${DAILY_MESSAGE_LIMIT} daily AI messages remaining - Eco limit helps manage AI usage`;
+                } else {
+                    tooltip.textContent = `Daily limit reached (${DAILY_MESSAGE_LIMIT} messages) - Can be bypassed to continue`;
+                }
             }
         }
         
