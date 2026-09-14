@@ -1290,19 +1290,15 @@
                     backdrop.classList.add('active');
                 }
                 
-                // Check if user has an active Puter session using the SDK
-                if (typeof puter !== 'undefined' && puter.auth && puter.auth.isSignedIn) {
-                    const isSignedIn = puter.auth.isSignedIn();
-                    if (isSignedIn) {
-                        // User has a valid session, skip auth screen and show chat
-                        isPuterAuthorized = true;
-                        document.getElementById('aiAuthScreen').classList.add('hidden');
-                        document.getElementById('aiChatScreen').classList.remove('hidden');
-                        loadChatsFromStorage();
-                        // Update marketplace content if visible
-                        updateMarketplaceContent();
-                    }
-                    // If not signed in, show auth screen for user to explicitly authorize
+                // Only show chat screen if user has explicitly authorized through this app
+                if (isPuterAuthorized) {
+                    document.getElementById('aiAuthScreen').classList.add('hidden');
+                    document.getElementById('aiChatScreen').classList.remove('hidden');
+                    loadChatsFromStorage();
+                } else {
+                    // Show auth screen for user to explicitly authorize
+                    document.getElementById('aiAuthScreen').classList.remove('hidden');
+                    document.getElementById('aiChatScreen').classList.add('hidden');
                 }
             }
             
