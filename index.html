@@ -357,6 +357,7 @@
         #ecoLimitContainer:hover .eco-tooltip {
             opacity: 1;
             visibility: visible;
+            pointer-events: auto;
         }
     </style>
 </head>
@@ -572,7 +573,10 @@
                                             stroke-dasharray="87.96" stroke-dashoffset="0" stroke-linecap="round"/>
                                     </svg>
                                     <span id="ecoLimitText" class="absolute inset-0 flex items-center justify-center text-xs font-bold text-[#10B981]">15</span>
-                                    <div class="eco-tooltip">15 of 15 daily AI messages remaining - Eco limit helps manage AI usage</div>
+                                    <div class="eco-tooltip">
+                                        <div id="ecoLimitTooltipText">15 of 15 daily AI messages remaining - Eco limit helps manage AI usage</div>
+                                        <button onclick="showEcoLimitModal(event)" class="text-[#FAF9F6] underline hover:text-white mt-1 text-xs">Learn more</button>
+                                    </div>
                                 </div>
                                 <button onclick="toggleAIPanel()" class="text-neutral-400 hover:text-black p-1 md:p-0">
                                     <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -629,6 +633,34 @@
                                             Logout
                                         </button>
                                     </div>
+                                </div>
+                            </div>
+
+                            <!-- Eco Limit Explanation Modal -->
+                            <div id="ecoLimitModal" class="hidden absolute inset-0 bg-black/50 flex items-center justify-center p-3 md:p-4 z-20">
+                                <div class="bg-white rounded-xl p-4 md:p-6 max-w-md w-full">
+                                    <h4 class="text-base md:text-lg font-bold mb-3">About AI Eco Limit</h4>
+                                    <div class="text-xs md:text-sm text-neutral-600 space-y-3 mb-4">
+                                        <p>
+                                            <strong>What is the Eco Limit?</strong><br>
+                                            The Eco Limit is a daily cap of 15 AI messages to help manage usage and ensure fair access to AI features for all users.
+                                        </p>
+                                        <p>
+                                            <strong>Why is it in place?</strong><br>
+                                            This limit helps prevent excessive usage, reduces computational load, and encourages thoughtful, targeted requests rather than back-and-forth conversations.
+                                        </p>
+                                        <p>
+                                            <strong>How can it be bypassed?</strong><br>
+                                            When you reach your daily limit, you'll see a confirmation dialog asking if you'd like to continue anyway. Choosing to continue allows you to send additional messages without affecting your daily count. This bypass is meant for legitimate use cases when you genuinely need more assistance.
+                                        </p>
+                                        <p>
+                                            <strong>When does it reset?</strong><br>
+                                            The limit resets automatically at midnight each day based on your local time.
+                                        </p>
+                                    </div>
+                                    <button onclick="hideEcoLimitModal()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold hover:bg-neutral-800 transition-colors">
+                                        Got it
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -1208,12 +1240,12 @@
             }
             
             // Update tooltip text
-            const tooltip = document.querySelector('#ecoLimitContainer .eco-tooltip');
-            if (tooltip) {
+            const tooltipText = document.getElementById('ecoLimitTooltipText');
+            if (tooltipText) {
                 if (remaining > 0) {
-                    tooltip.textContent = `${remaining} of ${DAILY_MESSAGE_LIMIT} daily AI messages remaining - Eco limit helps manage AI usage`;
+                    tooltipText.textContent = `${remaining} of ${DAILY_MESSAGE_LIMIT} daily AI messages remaining - Eco limit helps manage AI usage`;
                 } else {
-                    tooltip.textContent = `Daily limit reached (${DAILY_MESSAGE_LIMIT} messages) - Can be bypassed to continue`;
+                    tooltipText.textContent = `Daily limit reached (${DAILY_MESSAGE_LIMIT} messages) - Can be bypassed to continue`;
                 }
             }
         }
@@ -1358,6 +1390,16 @@
         
         function hideLogoutModal() {
             document.getElementById('aiLogoutModal').classList.add('hidden');
+        }
+        
+        function showEcoLimitModal(event) {
+            event.stopPropagation();
+            event.preventDefault();
+            document.getElementById('ecoLimitModal').classList.remove('hidden');
+        }
+        
+        function hideEcoLimitModal() {
+            document.getElementById('ecoLimitModal').classList.add('hidden');
         }
         
         function confirmLogoutPuter() {
