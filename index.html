@@ -719,12 +719,7 @@
 
                     <!-- Marketplace Panel -->
                     <div id="panel-marketplace" class="flex-1 bg-[#FAF9F6] p-2 md:p-4 overflow-auto hidden">
-                        <div id="marketplaceContent" class="flex items-center justify-center h-full">
-                            <div class="text-center">
-                                <h2 class="text-2xl md:text-3xl font-bold text-neutral-400 mb-2">Coming Soon</h2>
-                                <p class="text-neutral-500 text-sm">The marketplace is under development.</p>
-                            </div>
-                        </div>
+                        <div id="marketplaceContent" class="flex items-center justify-center h-full"></div>
                     </div>
                 </div>
             </div>
@@ -1167,20 +1162,24 @@
                 visualTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
                 visualTab.classList.remove('border-transparent', 'text-neutral-400');
                 updateVisualPreview();
+                window.location.hash = 'visual';
             } else if (tab === 'code') {
                 codePanel.classList.remove('hidden');
                 codeTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
                 codeTab.classList.remove('border-transparent', 'text-neutral-400');
+                window.location.hash = 'code';
             } else if (tab === 'preview') {
                 previewPanel.classList.remove('hidden');
                 previewTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
                 previewTab.classList.remove('border-transparent', 'text-neutral-400');
                 updatePreview();
+                window.location.hash = 'preview';
             } else if (tab === 'marketplace') {
                 marketplacePanel.classList.remove('hidden');
                 marketplaceTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
                 marketplaceTab.classList.remove('border-transparent', 'text-neutral-400');
                 updateMarketplaceContent();
+                window.location.hash = 'marketplace';
             }
         }
         
@@ -1273,33 +1272,82 @@
         function updateMarketplaceContent() {
             const marketplaceContent = document.getElementById('marketplaceContent');
             
-            if (!isPuterAuthorized) {
-                // User not logged into Puter
-                marketplaceContent.innerHTML = `
-                    <div class="flex flex-col items-center justify-center h-full max-w-md mx-auto text-center">
-                        <div class="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mb-4">
-                            <svg class="w-8 h-8 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                            </svg>
-                        </div>
-                        <h2 class="text-2xl md:text-3xl font-bold text-neutral-400 mb-2">Puter Login Required</h2>
-                        <p class="text-neutral-500 text-sm mb-4">The marketplace requires you to be logged into Puter to access apps and extensions.</p>
-                        <button onclick="toggleAIPanel()" class="bg-[#1A1A1A] text-[#FAF9F6] px-6 py-2 rounded-lg text-sm font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
-                            Open AI Panel to Login
-                        </button>
+            marketplaceContent.innerHTML = `
+                <div class="flex flex-col h-full overflow-y-auto">
+                    <!-- Hero Section -->
+                    <div class="bg-gradient-to-br from-[#1A1A1A] to-neutral-800 text-[#FAF9F6] p-6 md:p-8 rounded-xl mb-6">
+                        <h1 class="text-3xl md:text-4xl font-bold mb-2">Apps for everyone</h1>
+                        <p class="text-neutral-300 text-sm md:text-base">Discover powerful tools to enhance your development workflow</p>
                     </div>
-                `;
-            } else {
-                // User is logged into Puter
-                marketplaceContent.innerHTML = `
-                    <div class="flex items-center justify-center h-full">
-                        <div class="text-center">
-                            <h2 class="text-2xl md:text-3xl font-bold text-neutral-400 mb-2">Coming Soon</h2>
-                            <p class="text-neutral-500 text-sm">The marketplace is under development.</p>
+                    
+                    <!-- Apps Section -->
+                    <div class="flex-1">
+                        <h2 class="text-xl md:text-2xl font-bold text-[#1A1A1A] mb-4">Apps that will improve the way you develop</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Searchy Card -->
+                            <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm p-4 hover:shadow-md transition-shadow">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div class="w-12 h-12 bg-[#1A1A1A] rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-[#FAF9F6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Verified
+                                    </div>
+                                </div>
+                                <h3 class="font-bold text-[#1A1A1A] mb-1">Searchy</h3>
+                                <p class="text-neutral-500 text-xs mb-2">By James Studio</p>
+                                <p class="text-neutral-600 text-sm">Advanced search capabilities for your projects</p>
+                            </div>
+                            
+                            <!-- Biscuit Card -->
+                            <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm p-4 hover:shadow-md transition-shadow">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div class="w-12 h-12 bg-[#1A1A1A] rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-[#FAF9F6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Verified
+                                    </div>
+                                </div>
+                                <h3 class="font-bold text-[#1A1A1A] mb-1">Biscuit</h3>
+                                <p class="text-neutral-500 text-xs mb-2">By James Studio</p>
+                                <p class="text-neutral-600 text-sm">Fast cookie management and tracking tools</p>
+                            </div>
+                            
+                            <!-- Microsoft Clarity Card -->
+                            <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm p-4 hover:shadow-md transition-shadow">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div class="w-12 h-12 bg-[#1A1A1A] rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-[#FAF9F6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Verified
+                                    </div>
+                                </div>
+                                <h3 class="font-bold text-[#1A1A1A] mb-1">Microsoft Clarity</h3>
+                                <p class="text-neutral-500 text-xs mb-2">By James Studio</p>
+                                <p class="text-neutral-600 text-sm">Analytics and user behavior insights</p>
+                            </div>
                         </div>
                     </div>
-                `;
-            }
+                </div>
+            `;
         }
         
         function toggleAIPanel() {
@@ -1976,6 +2024,17 @@
                 targetView.classList.add('active');
             }
             
+            // Update hash based on view
+            if (viewName === 'projectOverview') {
+                window.location.hash = 'projects';
+            } else if (viewName === 'visualEditor') {
+                // Keep existing editor tab hash or default to visual
+                const currentHash = window.location.hash.replace('#', '');
+                if (!['visual', 'code', 'preview', 'marketplace'].includes(currentHash)) {
+                    window.location.hash = 'visual';
+                }
+            }
+            
             // Stop autosave when leaving visual editor
             if (viewName !== 'visualEditor') {
                 stopAutosave();
@@ -2140,6 +2199,9 @@
             
             currentProject = projectData;
             
+            // Save current project ID for hash navigation
+            localStorage.setItem('currentProjectId', projectId);
+            
             // Clear Monaco editor content to prevent loading previous project's code
             if (monacoEditor) {
                 monacoEditor.setValue('');
@@ -2155,6 +2217,9 @@
             loadInboxMessages(projectData.name);
             
             showView('projectOverview');
+            
+            // Update hash for navigation
+            window.location.hash = 'projects';
         }
 
         // Load Inbox Messages
@@ -2292,6 +2357,9 @@
                 
                 // Update visual preview
                 updateVisualPreview();
+                
+                // Update hash for navigation
+                window.location.hash = 'visual';
                 
                 // Reset button state
                 editBtn.innerHTML = '<span>Edit Site</span>';
@@ -2854,6 +2922,39 @@
                 }
             }
         }
+
+        // Hash-based navigation
+        function handleHashChange() {
+            const hash = window.location.hash.replace('#', '');
+            
+            if (hash === 'visual' || hash === 'code' || hash === 'preview' || hash === 'marketplace') {
+                // Check if we're in the visual editor view
+                const visualEditorView = document.getElementById('visualEditorView');
+                if (visualEditorView && !visualEditorView.classList.contains('hidden')) {
+                    switchEditorTab(hash);
+                } else {
+                    // Need to open visual editor first
+                    const projectId = localStorage.getItem('currentProjectId');
+                    if (projectId && currentProject) {
+                        openVisualEditor();
+                        setTimeout(() => switchEditorTab(hash), 500);
+                    }
+                }
+            } else if (hash === 'projects') {
+                showView('projectOverview');
+            } else if (!hash) {
+                // No hash, show project overview
+                showView('projectOverview');
+            }
+        }
+        
+        // Listen for hash changes
+        window.addEventListener('hashchange', handleHashChange);
+        
+        // Handle initial hash on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(handleHashChange, 1000);
+        });
 
         // Initialize
         initSupabase();
