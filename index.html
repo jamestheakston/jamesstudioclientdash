@@ -328,9 +328,9 @@
         }
         #ecoLimitContainer .eco-tooltip {
             position: absolute;
-            bottom: 100%;
+            top: 100%;
             right: 0;
-            transform: translateY(-8px);
+            transform: translateY(8px);
             background: #1A1A1A;
             color: #FAF9F6;
             padding: 8px 12px;
@@ -347,11 +347,11 @@
         #ecoLimitContainer .eco-tooltip::after {
             content: '';
             position: absolute;
-            top: 100%;
+            bottom: 100%;
             right: 8px;
             transform: translateX(50%);
             border: 4px solid transparent;
-            border-top-color: #1A1A1A;
+            border-bottom-color: #1A1A1A;
         }
         #ecoLimitContainer:hover .eco-tooltip {
             opacity: 1;
@@ -1215,12 +1215,33 @@
                 text.style.color = '#10B981';
             }
             
-            // Update tooltip text
+            // Update tooltip text based on user status
             const tooltip = document.querySelector('#ecoLimitContainer .eco-tooltip');
             if (tooltip) {
-                tooltip.textContent = remaining > 0 
-                    ? `${remaining} daily AI messages remaining` 
-                    : 'Daily limit reached (can be bypassed)';
+                const isGoodUser = checkUserChatHistory();
+                if (remaining > 0) {
+                    tooltip.textContent = isGoodUser 
+                        ? `${remaining} daily AI messages remaining` 
+                        : `${remaining} daily AI messages remaining (Try the AI first!)`;
+                } else {
+                    tooltip.textContent = isGoodUser 
+                        ? 'Daily limit reached (can be bypassed)' 
+                        : 'Daily limit reached (Try the AI first!)';
+                }
+            }
+        }
+        
+        function checkUserChatHistory() {
+            const savedChats = localStorage.getItem('puterChats');
+            if (!savedChats) return false;
+            
+            try {
+                const chats = JSON.parse(savedChats);
+                // Consider user "good" if they have at least 3 chat interactions
+                return chats.length >= 3;
+            } catch (error) {
+                console.error('Error checking chat history:', error);
+                return false;
             }
         }
         
@@ -1263,8 +1284,8 @@
                         </button>
                     </div>
                 `;
-            } else if (dailyMessageCount === 0) {
-                // User logged in but hasn't used AI features yet
+            } else if (!checkUserChatHistory()) {
+                // User logged in but hasn't used AI features enough
                 marketplaceContent.innerHTML = `
                     <div class="flex flex-col items-center justify-center h-full max-w-md mx-auto text-center">
                         <div class="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mb-4">
@@ -1273,7 +1294,7 @@
                             </svg>
                         </div>
                         <h2 class="text-2xl md:text-3xl font-bold text-neutral-400 mb-2">Try AI First</h2>
-                        <p class="text-neutral-500 text-sm mb-4">The marketplace requires you to use AI features at least once before accessing apps and extensions.</p>
+                        <p class="text-neutral-500 text-sm mb-4">The marketplace requires you to use AI features at least a few times before accessing apps and extensions.</p>
                         <button onclick="toggleAIPanel()" class="bg-[#1A1A1A] text-[#FAF9F6] px-6 py-2 rounded-lg text-sm font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
                             Try AI Assistant
                         </button>
