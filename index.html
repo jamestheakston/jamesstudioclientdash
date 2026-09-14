@@ -1144,19 +1144,10 @@
                 previewTab.classList.remove('border-transparent', 'text-neutral-400');
                 updatePreview();
             } else if (tab === 'marketplace') {
-                // Check if user is logged into Puter and has used AI features
-                if (!isPuterAuthorized || dailyMessageCount === 0) {
-                    // Show login prompt in marketplace panel
-                    marketplacePanel.classList.remove('hidden');
-                    marketplaceTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
-                    marketplaceTab.classList.remove('border-transparent', 'text-neutral-400');
-                    updateMarketplaceContent();
-                } else {
-                    marketplacePanel.classList.remove('hidden');
-                    marketplaceTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
-                    marketplaceTab.classList.remove('border-transparent', 'text-neutral-400');
-                    updateMarketplaceContent();
-                }
+                marketplacePanel.classList.remove('hidden');
+                marketplaceTab.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
+                marketplaceTab.classList.remove('border-transparent', 'text-neutral-400');
+                updateMarketplaceContent();
             }
         }
         
@@ -1215,33 +1206,12 @@
                 text.style.color = '#10B981';
             }
             
-            // Update tooltip text based on user status
+            // Update tooltip text
             const tooltip = document.querySelector('#ecoLimitContainer .eco-tooltip');
             if (tooltip) {
-                const isGoodUser = checkUserChatHistory();
-                if (remaining > 0) {
-                    tooltip.textContent = isGoodUser 
-                        ? `${remaining} daily AI messages remaining` 
-                        : `${remaining} daily AI messages remaining (Try the AI first!)`;
-                } else {
-                    tooltip.textContent = isGoodUser 
-                        ? 'Daily limit reached (can be bypassed)' 
-                        : 'Daily limit reached (Try the AI first!)';
-                }
-            }
-        }
-        
-        function checkUserChatHistory() {
-            const savedChats = localStorage.getItem('puterChats');
-            if (!savedChats) return false;
-            
-            try {
-                const chats = JSON.parse(savedChats);
-                // Consider user "good" if they have at least 3 chat interactions
-                return chats.length >= 3;
-            } catch (error) {
-                console.error('Error checking chat history:', error);
-                return false;
+                tooltip.textContent = remaining > 0 
+                    ? `${remaining} daily AI messages remaining` 
+                    : 'Daily limit reached (can be bypassed)';
             }
         }
         
@@ -1284,24 +1254,8 @@
                         </button>
                     </div>
                 `;
-            } else if (!checkUserChatHistory()) {
-                // User logged in but hasn't used AI features enough
-                marketplaceContent.innerHTML = `
-                    <div class="flex flex-col items-center justify-center h-full max-w-md mx-auto text-center">
-                        <div class="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mb-4">
-                            <svg class="w-8 h-8 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                            </svg>
-                        </div>
-                        <h2 class="text-2xl md:text-3xl font-bold text-neutral-400 mb-2">Try AI First</h2>
-                        <p class="text-neutral-500 text-sm mb-4">The marketplace requires you to use AI features at least a few times before accessing apps and extensions.</p>
-                        <button onclick="toggleAIPanel()" class="bg-[#1A1A1A] text-[#FAF9F6] px-6 py-2 rounded-lg text-sm font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
-                            Try AI Assistant
-                        </button>
-                    </div>
-                `;
             } else {
-                // User is logged in and has used AI features
+                // User is logged into Puter
                 marketplaceContent.innerHTML = `
                     <div class="flex items-center justify-center h-full">
                         <div class="text-center">
