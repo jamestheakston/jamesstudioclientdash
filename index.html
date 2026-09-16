@@ -23,6 +23,11 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
     <!-- Puter JS SDK -->
+    <script>
+        window.puter = {
+            quiet: true
+        };
+    </script>
     <script src="https://js.puter.com/v2/"></script>
     
     <style>
@@ -761,6 +766,11 @@
                                         </div>
                                         <span class="text-neutral-600">Verifying installation</span>
                                     </div>
+                                </div>
+
+                                <!-- Estimated Time Remaining -->
+                                <div class="mt-4 text-center">
+                                    <p class="text-xs text-neutral-500">Estimated time remaining: <span id="installTimeRemaining">~7 seconds</span></p>
                                 </div>
                             </div>
                         </div>
@@ -1831,68 +1841,65 @@
         function runInstallationSteps() {
             console.log('Starting installation steps...');
 
-            const steps = [
-                { duration: 1000, action: () => completeInstallStep(1, 1000) },
-                { duration: 2000, action: () => completeInstallStep(2, 2000) },
-                { duration: 5000, action: () => generateAndApplyCode() },
-                { duration: 1000, action: () => completeInstallStep(4, 1000) }
-            ];
+            const totalTime = 7000; // 7 seconds total
+            let remainingTime = totalTime;
 
-            let currentStepIndex = 0;
-
-            function runNextStep() {
-                console.log('Running step:', currentStepIndex);
-
-                if (currentStepIndex < steps.length) {
-                    const step = steps[currentStepIndex];
-                    console.log('Executing step action:', step.action.name || 'anonymous');
-
-                    step.action();
-                    currentStepIndex++;
-
-                    // Schedule next step
-                    setTimeout(() => {
-                        console.log('Moving to next step:', currentStepIndex);
-                        runNextStep();
-                    }, step.duration);
+            // Update time remaining countdown
+            const timeElement = document.getElementById('installTimeRemaining');
+            const countdownInterval = setInterval(() => {
+                remainingTime -= 1000;
+                if (remainingTime > 0) {
+                    timeElement.textContent = `~${Math.ceil(remainingTime / 1000)} seconds`;
                 } else {
-                    console.log('All installation steps complete');
-                    // All steps complete
-                    setTimeout(() => {
-                        const step2 = document.getElementById('installStep2');
-                        const step3 = document.getElementById('installStep3');
-
-                        step2.style.opacity = '0';
-                        step2.style.transition = 'opacity 0.3s ease-out';
-
-                        setTimeout(() => {
-                            step2.classList.add('hidden');
-                            step2.style.opacity = '';
-                            step2.style.transition = '';
-
-                            step3.classList.remove('hidden');
-                            step3.style.opacity = '0';
-                            step3.style.transition = 'opacity 0.3s ease-out';
-
-                            setTimeout(() => {
-                                step3.style.opacity = '1';
-                                step3.style.transition = '';
-
-                                if (currentInstallApp) {
-                                    const apps = {
-                                        searchy: 'Searchy',
-                                        biscuit: 'Biscuit',
-                                        clarity: 'Microsoft Clarity'
-                                    };
-                                    document.getElementById('installedAppName').textContent = apps[currentInstallApp] || currentInstallApp;
-                                }
-                            }, 50);
-                        }, 300);
-                    }, 500);
+                    timeElement.textContent = 'Almost done...';
                 }
-            }
+            }, 1000);
 
-            runNextStep();
+            // Start steps 1 and 2 immediately (can run in parallel)
+            completeInstallStep(1, 1000);
+            completeInstallStep(2, 2000);
+
+            // Step 3 is the AI generation, which takes variable time
+            // Step 4 runs after AI completes
+            setTimeout(() => {
+                completeInstallStep(4, 1000);
+            }, 6000); // 5s for AI + 1s buffer
+
+            // Show completion after all steps
+            setTimeout(() => {
+                clearInterval(countdownInterval);
+                timeElement.textContent = 'Complete';
+                console.log('All installation steps complete');
+                const step2 = document.getElementById('installStep2');
+                const step3 = document.getElementById('installStep3');
+
+                step2.style.opacity = '0';
+                step2.style.transition = 'opacity 0.3s ease-out';
+
+                setTimeout(() => {
+                    step2.classList.add('hidden');
+                    step2.style.opacity = '';
+                    step2.style.transition = '';
+
+                    step3.classList.remove('hidden');
+                    step3.style.opacity = '0';
+                    step3.style.transition = 'opacity 0.3s ease-out';
+
+                    setTimeout(() => {
+                        step3.style.opacity = '1';
+                        step3.style.transition = '';
+
+                        if (currentInstallApp) {
+                            const apps = {
+                                searchy: 'Searchy',
+                                biscuit: 'Biscuit',
+                                clarity: 'Microsoft Clarity'
+                            };
+                            document.getElementById('installedAppName').textContent = apps[currentInstallApp] || currentInstallApp;
+                        }
+                    }, 50);
+                }, 300);
+            }, 7000); // 6s for steps + 1s buffer
         }
         
         function completeInstallStep(stepNumber, duration) {
@@ -3226,74 +3233,77 @@
                 console.log('Autosave skipped: save already in progress');
                 return;
             }
-            
+
             isSaving = true;
-            
+
             try {
                 const repo = currentProject.repo;
                 const filePath = 'index.html';
                 const newContent = monacoEditor.getValue();
-                
+
                 if (!newContent) return;
-                
+
+                // Handle Unicode encoding properly
+                const encodedContent = btoa(unescape(encodeURIComponent(newContent)));
+
                 // Ensure draft branch exists and get current file data
                 const { fileData } = await ensureDraftBranch(repo, filePath);
-                
+
                 // Commit to draft branch with retry logic for 409 SHA mismatch errors
                 let retries = 0;
                 const maxRetries = 2;
-                
+
                 while (retries < maxRetries) {
                     // Get fresh SHA before each attempt
                     const { data: freshDraftFile, error: freshError } = await SupabaseClient.functions.invoke('github-api', {
-                        body: { 
+                        body: {
                             endpoint: `/repos/${repo}/contents/${filePath}?ref=draft`,
                             method: 'GET'
                         }
                     });
-                    
+
                     // If we can't get the file, try creating it without SHA
                     if (freshError || !freshDraftFile) {
                         console.log('Autosave: file not found on draft, creating new file');
                         const result = await SupabaseClient.functions.invoke('github-api', {
-                            body: { 
+                            body: {
                                 endpoint: `/repos/${repo}/contents/${filePath}`,
                                 method: 'PUT',
                                 body: {
                                     message: 'Autosave draft via James Studio Client Dashboard',
-                                    content: btoa(newContent),
+                                    content: encodedContent,
                                     branch: 'draft'
                                 }
                             }
                         });
-                        
+
                         if (!result.error) {
                             console.log('Autosaved draft (new file created)');
                         }
                         return;
                     }
-                    
+
                     const result = await SupabaseClient.functions.invoke('github-api', {
-                        body: { 
+                        body: {
                             endpoint: `/repos/${repo}/contents/${filePath}`,
                             method: 'PUT',
                             body: {
                                 message: 'Autosave draft via James Studio Client Dashboard',
-                                content: btoa(newContent),
+                                content: encodedContent,
                                 sha: freshDraftFile.sha,
                                 branch: 'draft'
                             }
                         }
                     });
-                    
+
                     // Parse the error to check if it's a 409 conflict
                     const parsedError = result.error ? await parseFunctionError(result.error) : null;
-                    
+
                     // If no error or not a 409, we're done
                     if (!result.error || parsedError?.status !== 409) {
                         break;
                     }
-                    
+
                     retries++;
                     // Exponential backoff: 300ms, 600ms
                     const backoffTime = 300 * Math.pow(2, retries - 1);
