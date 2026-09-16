@@ -1841,10 +1841,10 @@
                 if (installAIContext) {
                     // We have a previous conversation, include the user's answer
                     const userAnswer = document.getElementById('aiQuestionAnswer').value;
-                    fullPrompt = `${currentInstallPrompt}\n\nHere is the current website HTML:\n${currentHTML}\n\nConversation context: ${installAIContext}\n\nUser's answer to your question: ${userAnswer}\n\nPlease continue with the installation based on this answer. IMPORTANT: Always return the complete updated HTML code in a ```html code block if you have made changes to the HTML. Return the entire file content, not just partial changes.`;
+                    fullPrompt = currentInstallPrompt + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nConversation context: ' + installAIContext + '\n\nUser\'s answer to your question: ' + userAnswer + '\n\nPlease continue with the installation based on this answer. IMPORTANT: Always return the complete updated HTML code in a html code block if you have made changes to the HTML. Return the entire file content, not just partial changes.';
                 } else {
                     // First attempt at installation
-                    fullPrompt = `${installPrompt}\n\nHere is the current website HTML:\n${currentHTML}\n\nIMPORTANT: Always return the complete updated HTML code in a ```html code block if you have made changes to the HTML. Return the entire file content, not just partial changes. If you need information from the user to complete the installation, format your question as [Q:"your question here"] in your response.`;
+                    fullPrompt = installPrompt + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nIMPORTANT: Always return the complete updated HTML code in a html code block if you have made changes to the HTML. Return the entire file content, not just partial changes. If you need information from the user to complete the installation, format your question as [Q:"your question here"] in your response.';
                 }
                 
                 puter.ai.chat(fullPrompt).then((response) => {
@@ -2255,7 +2255,7 @@
             }, 500);
             
             // Use Puter AI to process the request
-            puter.ai.chat(message + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nIMPORTANT: Always return the complete updated HTML code in a ```html code block if you have made changes to the HTML. Return the entire file content, not just partial changes. If you are just providing guidance or asking questions, do NOT include the HTML in your response. The user already knows the current HTML.\n\nYou are a website editing assistant. Only help with tasks related to editing, modifying, or improving the website HTML/CSS/JavaScript. If the user asks about topics unrelated to website editing (like general knowledge questions, math, geography, etc.), respond with: "I\'m sorry, but I can\'t help you with that. I\'m designed to help you edit and improve your website content. Please ask me about making changes to your website, styling, layout, or other web development related tasks."').then((response) => {
+            puter.ai.chat(message + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nIMPORTANT: Always return the complete updated HTML code in a html code block if you have made changes to the HTML. Return the entire file content, not just partial changes. If you are just providing guidance or asking questions, do NOT include the HTML in your response. The user already knows the current HTML.\n\nYou are a website editing assistant. Only help with tasks related to editing, modifying, or improving the website HTML/CSS/JavaScript. If the user asks about topics unrelated to website editing (like general knowledge questions, math, geography, etc.), respond with: "I\'m sorry, but I can\'t help you with that. I\'m designed to help you edit and improve your website content. Please ask me about making changes to your website, styling, layout, or other web development related tasks."').then((response) => {
                 // Clear message interval
                 clearInterval(messageInterval);
                 
