@@ -1610,10 +1610,22 @@
                 
                 const modal = document.getElementById('appInfoModal');
                 const modalContent = document.getElementById('appInfoModalContent');
+
+                // Clear any pending timeouts
+                if (appInfoModalTimeout) {
+                    clearTimeout(appInfoModalTimeout);
+                    appInfoModalTimeout = null;
+                }
+
+                // Reset styles first
+                modalContent.style.transform = 'scale(0.95)';
+                modalContent.style.opacity = '0';
                 modal.classList.remove('hidden');
-                setTimeout(() => {
+
+                appInfoModalTimeout = setTimeout(() => {
                     modalContent.style.transform = 'scale(1)';
                     modalContent.style.opacity = '1';
+                    appInfoModalTimeout = null;
                 }, 10);
             }
         }
@@ -1621,40 +1633,64 @@
         function hideAppInfoModal() {
             const modal = document.getElementById('appInfoModal');
             const modalContent = document.getElementById('appInfoModalContent');
+
+            // Clear any pending show timeouts
+            if (appInfoModalTimeout) {
+                clearTimeout(appInfoModalTimeout);
+                appInfoModalTimeout = null;
+            }
+
             modalContent.style.transform = 'scale(0.95)';
             modalContent.style.opacity = '0';
-            setTimeout(() => {
+
+            appInfoModalTimeout = setTimeout(() => {
                 modal.classList.add('hidden');
                 modalContent.style.transform = '';
                 modalContent.style.opacity = '';
+                appInfoModalTimeout = null;
             }, 300);
         }
         
         let currentInstallApp = null;
         let installAIContext = null; // Store AI conversation context for install wizard
         let currentInstallPrompt = ''; // Store current install prompt
+
+        // Animation state tracking
+        let appInfoModalTimeout = null;
+        let installWizardTimeout = null;
         
         function startInstallWizard() {
             // Hide app info modal with animation
             const appInfoModal = document.getElementById('appInfoModal');
             appInfoModal.style.opacity = '0';
             appInfoModal.style.transition = 'opacity 0.3s';
-            
+
             setTimeout(() => {
                 appInfoModal.classList.add('hidden');
                 appInfoModal.style.opacity = '';
                 appInfoModal.style.transition = '';
-                
+
                 // Show install wizard with animation
                 const installWizard = document.getElementById('installWizardModal');
                 const wizardContent = document.getElementById('installWizardContent');
+
+                // Clear any pending timeouts
+                if (installWizardTimeout) {
+                    clearTimeout(installWizardTimeout);
+                    installWizardTimeout = null;
+                }
+
+                // Reset styles first
+                wizardContent.style.transform = 'scale(0.95)';
+                wizardContent.style.opacity = '0';
                 installWizard.classList.remove('hidden');
-                
-                setTimeout(() => {
+
+                installWizardTimeout = setTimeout(() => {
                     wizardContent.style.transform = 'scale(1)';
                     wizardContent.style.opacity = '1';
+                    installWizardTimeout = null;
                 }, 50);
-                
+
                 // Reset to step 1
                 resetInstallWizard();
             }, 300);
@@ -1663,14 +1699,21 @@
         function hideInstallWizard() {
             const installWizard = document.getElementById('installWizardModal');
             const wizardContent = document.getElementById('installWizardContent');
-            
+
+            // Clear any pending show timeouts
+            if (installWizardTimeout) {
+                clearTimeout(installWizardTimeout);
+                installWizardTimeout = null;
+            }
+
             wizardContent.style.transform = 'scale(0.95)';
             wizardContent.style.opacity = '0';
-            
-            setTimeout(() => {
+
+            installWizardTimeout = setTimeout(() => {
                 installWizard.classList.add('hidden');
                 wizardContent.style.transform = '';
                 wizardContent.style.opacity = '';
+                installWizardTimeout = null;
             }, 300);
         }
         
