@@ -540,21 +540,21 @@
                         <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                         <span class="hidden sm:inline">Back</span>
                     </button>
-                    <span id="editorProjectName" class="text-xs md:text-sm font-semibold truncate max-w-24 sm:max-w-32 md:max-w-none"></span>
-                </div>
-                <div class="flex items-center gap-1 md:gap-2 shrink-0">
-                    <button id="undoButton" onclick="undoMonaco()" class="bg-neutral-200 text-[#1A1A1A] px-2 md:px-3 py-1.5 md:py-2 rounded-lg text-xs font-medium hover:bg-neutral-300 transition-colors flex items-center gap-1 md:gap-2">
+                    <button id="undoButton" onclick="undoMonaco()" class="bg-neutral-200 text-[#1A1A1A] px-2 md:px-3 py-1.5 md:py-2 rounded-lg text-xs font-medium hover:bg-neutral-300 transition-colors flex items-center gap-1 md:gap-2 shrink-0">
                         <svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
                         </svg>
                         <span class="hidden sm:inline">Undo</span>
                     </button>
-                    <button id="redoButton" onclick="redoMonaco()" class="bg-neutral-200 text-[#1A1A1A] px-2 md:px-3 py-1.5 md:py-2 rounded-lg text-xs font-medium hover:bg-neutral-300 transition-colors flex items-center gap-1 md:gap-2">
+                    <button id="redoButton" onclick="redoMonaco()" class="bg-neutral-200 text-[#1A1A1A] px-2 md:px-3 py-1.5 md:py-2 rounded-lg text-xs font-medium hover:bg-neutral-300 transition-colors flex items-center gap-1 md:gap-2 shrink-0">
                         <svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6"/>
                         </svg>
                         <span class="hidden sm:inline">Redo</span>
                     </button>
+                    <span id="editorProjectName" class="text-xs md:text-sm font-semibold truncate max-w-24 sm:max-w-32 md:max-w-none"></span>
+                </div>
+                <div class="flex items-center gap-1 md:gap-2 shrink-0">
                     <button onclick="toggleAIPanel()" class="bg-[#1A1A1A] text-[#FAF9F6] px-2 md:px-4 py-1.5 md:py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors flex items-center gap-1 md:gap-2">
                         <svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
                         <span class="hidden sm:inline">AI</span>
@@ -685,8 +685,8 @@
                             </div>
 
                             <!-- App Info Modal -->
-                            <div id="appInfoModal" class="hidden absolute inset-0 bg-black/50 flex items-center justify-center p-3 md:p-4 z-20">
-                                <div class="bg-white rounded-xl p-4 md:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                            <div id="appInfoModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 md:p-4 z-50">
+                                <div class="modal bg-white rounded-xl p-4 md:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                                     <div class="flex items-center justify-between mb-4">
                                         <h4 id="appModalTitle" class="text-base md:text-lg font-bold">App Info</h4>
                                         <button onclick="hideAppInfoModal()" class="text-neutral-400 hover:text-black">
@@ -1590,12 +1590,20 @@
                 document.getElementById('appModalDeveloperName').textContent = app.developer;
                 document.getElementById('appModalDescription').textContent = app.description;
                 document.getElementById('appModalIcon').innerHTML = app.icon;
-                document.getElementById('appInfoModal').classList.remove('hidden');
+                const modal = document.getElementById('appInfoModal');
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.querySelector('.bg-white').classList.add('show');
+                }, 10);
             }
         }
         
         function hideAppInfoModal() {
-            document.getElementById('appInfoModal').classList.add('hidden');
+            const modal = document.getElementById('appInfoModal');
+            modal.querySelector('.bg-white').classList.remove('show');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
         }
         
         let currentInstallApp = null;
