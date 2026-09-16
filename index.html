@@ -462,7 +462,7 @@
                     </div>
                     <div class="text-center mt-6 pt-6 border-t border-[#1A1A1A]/10">
                         <p class="text-sm text-neutral-400 leading-relaxed">
-                            Install the Microsoft Clarity extension on your website to track when and how users interact with your site.
+                            Install the Microsoft Clarity extension on your website to track when and how users interact with your site. Not affiliated with Microsoft - Microsoft is listed as a co-author.
                         </p>
                     </div>
                 </div>
@@ -845,6 +845,7 @@
                                     <span class="text-neutral-500">Version</span>
                                     <span class="text-[#1A1A1A]">1.0.0</span>
                                 </div>
+                                <div id="appModalDisclaimer" class="text-neutral-500 italic hidden"></div>
                             </div>
                         </div>
 
@@ -1552,7 +1553,7 @@
                                     </div>
                                 </div>
                                 <h3 class="font-bold text-[#1A1A1A] mb-1">Microsoft Clarity</h3>
-                                <p class="text-neutral-500 text-xs mb-2 flex items-center gap-1">By James Studio <svg class="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg></p>
+                                <p class="text-neutral-500 text-xs mb-2 flex items-center gap-1">By James Studio & Microsoft <svg class="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg></p>
                                 <p class="text-neutral-600 text-sm">Analytics and user behavior insights</p>
                             </div>
                         </div>
@@ -1582,7 +1583,7 @@
                 },
                 clarity: {
                     name: 'Microsoft Clarity',
-                    developer: 'James Studio',
+                    developer: 'James Studio & Microsoft',
                     description: 'Analytics and user behavior insights. Microsoft Clarity provides comprehensive analytics to understand user behavior and improve your website performance.',
                     icon: `<div class="w-16 h-16 flex items-center justify-center bg-white rounded-lg border border-[#1A1A1A]/10"><img src="https://images.saasworthy.com/microsoftclarity_49721_logo_1733128700_bzgvs.png" alt="Microsoft Clarity" class="w-12 h-12 object-contain"></div>`
                 }
@@ -1595,6 +1596,18 @@
                 document.getElementById('appModalDeveloperName').textContent = app.developer;
                 document.getElementById('appModalDescription').textContent = app.description;
                 document.getElementById('appModalIcon').innerHTML = app.icon;
+                
+                // Show disclaimer for Microsoft Clarity
+                const disclaimerElement = document.getElementById('appModalDisclaimer');
+                if (disclaimerElement) {
+                    if (appName === 'clarity') {
+                        disclaimerElement.textContent = 'Not affiliated with Microsoft - Microsoft is listed as a co-author';
+                        disclaimerElement.classList.remove('hidden');
+                    } else {
+                        disclaimerElement.classList.add('hidden');
+                    }
+                }
+                
                 const modal = document.getElementById('appInfoModal');
                 const modalContent = document.getElementById('appInfoModalContent');
                 modal.classList.remove('hidden');
@@ -1821,7 +1834,7 @@
             } else if (currentInstallApp === 'searchy') {
                 installPrompt = `Add a search functionality to this website. Include a search bar at the top of the page, search icon, and make it functional with JavaScript to filter content. If you need a Google Search Console verification tag or any other external service integration, ask the user for it using the format [Q:"your question here"]. Add this to the existing HTML.`;
             } else if (currentInstallApp === 'clarity') {
-                installPrompt = `Add Microsoft Clarity analytics tracking code to this website. Include the Clarity script tag in the head section. If you need the Clarity project ID or any other information, ask the user for it using the format [Q:"your question here"]. Add this to the existing HTML.`;
+                installPrompt = `Add Microsoft Clarity analytics tracking code to this website. Include the Clarity script tag in the head section. Note: This integration is not affiliated with Microsoft - Microsoft is listed as a co-author for attribution purposes. If you need the Clarity project ID or any other information, ask the user for it using the format [Q:"your question here"]. Add this to the existing HTML.`;
             }
             
             // Store the current prompt for context
