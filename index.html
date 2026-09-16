@@ -784,6 +784,7 @@
                                 </p>
                                 
                                 <div class="bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg p-4 mb-4">
+                                    <p id="aiQuestionInstructions" class="text-xs text-neutral-600 mb-2 hidden"></p>
                                     <p id="aiQuestionText" class="text-sm text-[#1A1A1A] font-medium mb-3"></p>
                                     <textarea id="aiQuestionAnswer" class="w-full bg-white border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A1A1A] transition-colors resize-none" rows="3" placeholder="Your answer..."></textarea>
                                 </div>
@@ -2313,13 +2314,13 @@
 
             // Create app-specific install prompt
             if (currentInstallApp === 'biscuit') {
-                installPrompt = `Add a cookie consent banner to this website. The banner should be at the bottom of the page, have a white background, black text, and include "Accept Cookies" and "Decline" buttons. Make it GDPR compliant with a link to privacy policy. Add this to the existing HTML.`;
+                installPrompt = `Add a cookie consent banner to this website. The banner should be at the bottom of the page, have a white background, black text, and include "Accept Cookies" and "Decline" buttons. Make it GDPR compliant with a link to privacy policy. If you need information from the user, you can optionally provide instructions using [I:"your instructions here"] followed by your question as [Q:"your question here"]. Add this to the existing HTML.`;
             } else if (currentInstallApp === 'searchy') {
-                installPrompt = `Add comprehensive SEO optimization to this website to help it rank on Google. Include: 1) Proper meta tags (title, description, keywords), 2) Open Graph tags for social sharing, 3) Structured data/Schema.org markup, 4) XML sitemap reference, 5) Robots.txt file, 6) Google Search Console verification meta tag. If you need the Google Search Console verification code or any specific SEO preferences, ask the user for it using the format [Q:"your question here"]. Add this to the existing HTML.`;
+                installPrompt = `Add comprehensive SEO optimization to this website to help it rank on Google. Include: 1) Proper meta tags (title, description, keywords), 2) Open Graph tags for social sharing, 3) Structured data/Schema.org markup, 4) XML sitemap reference, 5) Robots.txt file, 6) Google Search Console verification meta tag. If you need the Google Search Console verification code or any specific SEO preferences, you can optionally provide instructions using [I:"your instructions here"] followed by your question as [Q:"your question here"]. Add this to the existing HTML.`;
             } else if (currentInstallApp === 'clarity') {
-                installPrompt = `Add Microsoft Clarity analytics tracking code to this website. Include the Clarity script tag in the head section. Note: This integration is not affiliated with Microsoft - Microsoft is listed as a co-author for attribution purposes. If you need the Clarity project ID or any other information, ask the user for it using the format [Q:"your question here"]. Add this to the existing HTML.`;
+                installPrompt = `Add Microsoft Clarity analytics tracking code to this website. Include the Clarity script tag in the head section. Note: This integration is not affiliated with Microsoft - Microsoft is listed as a co-author for attribution purposes. If you need the Clarity project ID or any other information, you can optionally provide instructions using [I:"your instructions here"] followed by your question as [Q:"your question here"]. Add this to the existing HTML.`;
             } else if (currentInstallApp === 'questiontest') {
-                installPrompt = `This is a test to verify the question functionality works correctly. Please ask the user a simple question using the format [Q:"What is your favorite color?"]. After the user answers, complete the installation by returning the original HTML unchanged in a html code block. Do not modify any code in the HTML - this is only for testing the question-answer flow. If you need information from the user to complete the installation, format your question as [Q:"your question here"] in your response. Add this to the existing HTML.`;
+                installPrompt = `This is a test to verify the question functionality works correctly. Please ask the user a simple question. You can optionally provide instructions before the question using the format [I:"your instructions here"] followed by [Q:"your question here"]. For example: [I:"Please check your email for a verification code and enter it below."] [Q:"What is your verification code?"]. After the user answers, complete the installation by returning the original HTML unchanged in a html code block. Do not modify any code in the HTML - this is only for testing the question-answer flow. Add this to the existing HTML.`;
             }
 
             // Store the current prompt for context
@@ -2356,7 +2357,8 @@
                         responseText = JSON.stringify(response);
                     }
 
-                    // Check for AI question format [Q:"question"]
+                    // Check for AI question format [Q:"question"] and optional instructions [I:"instructions"]
+                    const instructionsMatch = responseText.match(/\[I:"([^"]+)"\]/);
                     const questionMatch = responseText.match(/\[Q:"([^"]+)"\]/);
                     if (questionMatch && !installAIContext) {
                         // Found a question, show question step
@@ -2364,8 +2366,20 @@
                         document.getElementById('aiQuestionText').textContent = question;
                         document.getElementById('aiQuestionAnswer').value = '';
 
-                        // Store conversation context (remove the question from the response)
-                        installAIContext = responseText.replace(/\[Q:"[^"]+"\]/, '').trim();
+                        // Show instructions if provided
+                        const instructionsElement = document.getElementById('aiQuestionInstructions');
+                        if (instructionsMatch) {
+                            instructionsElement.textContent = instructionsMatch[1];
+                            instructionsElement.classList.remove('hidden');
+                        } else {
+                            instructionsElement.classList.add('hidden');
+                        }
+
+                        // Store conversation context (remove the instructions and question from the response)
+                        installAIContext = responseText
+                            .replace(/\[I:"[^"]+"\]/, '')
+                            .replace(/\[Q:"[^"]+"\]/, '')
+                            .trim();
 
                         // Show question step
                         const step2 = document.getElementById('installStep2');
