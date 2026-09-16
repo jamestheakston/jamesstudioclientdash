@@ -689,7 +689,7 @@
 
                 <!-- App Install Wizard Modal -->
                 <div id="installWizardModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 md:p-4 z-50">
-                    <div class="bg-white rounded-xl p-6 md:p-8 max-w-2xl w-full max-h-[95vh] overflow-y-auto" id="installWizardContent" style="transition: transform 0.3s ease-out, opacity 0.3s ease-out; transform: scale(0.95); opacity: 0;">
+                    <div class="bg-white rounded-xl p-6 md:p-8 max-w-2xl w-full max-h-[98vh] overflow-y-auto" id="installWizardContent" style="transition: transform 0.3s ease-out, opacity 0.3s ease-out; transform: scale(0.95); opacity: 0;">
                         <div class="flex items-center justify-between mb-4">
                             <h4 class="text-base md:text-lg font-bold">App Install Wizard</h4>
                             <button onclick="hideInstallWizard()" class="text-neutral-400 hover:text-black">
@@ -1820,14 +1820,21 @@
         }
         
         function generateAndApplyCode() {
+            // Add timeout protection
+            const timeoutId = setTimeout(() => {
+                console.warn('AI generation timeout, completing step 3');
+                completeInstallStep(3, 500);
+            }, 30000); // 30 second timeout
+
             if (!monacoEditor || !currentInstallApp) {
+                clearTimeout(timeoutId);
                 completeInstallStep(3, 500);
                 return;
             }
-            
+
             const currentHTML = monacoEditor.getValue();
             let installPrompt = '';
-            
+
             // Create app-specific install prompt
             if (currentInstallApp === 'biscuit') {
                 installPrompt = `Add a cookie consent banner to this website. The banner should be at the bottom of the page, have a white background, black text, and include "Accept Cookies" and "Decline" buttons. Make it GDPR compliant with a link to privacy policy. Add this to the existing HTML.`;
@@ -1836,10 +1843,10 @@
             } else if (currentInstallApp === 'clarity') {
                 installPrompt = `Add Microsoft Clarity analytics tracking code to this website. Include the Clarity script tag in the head section. Note: This integration is not affiliated with Microsoft - Microsoft is listed as a co-author for attribution purposes. If you need the Clarity project ID or any other information, ask the user for it using the format [Q:"your question here"]. Add this to the existing HTML.`;
             }
-            
+
             // Store the current prompt for context
             currentInstallPrompt = installPrompt;
-            
+
             // Use AI to generate installation code
             if (typeof puter !== 'undefined' && puter.ai) {
                 let fullPrompt;
@@ -1851,8 +1858,10 @@
                     // First attempt at installation
                     fullPrompt = installPrompt + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nIMPORTANT: Always return the complete updated HTML code in a html code block if you have made changes to the HTML. Return the entire file content, not just partial changes. If you need information from the user to complete the installation, format your question as [Q:"your question here"] in your response.';
                 }
-                
+
                 puter.ai.chat(fullPrompt).then((response) => {
+                    clearTimeout(timeoutId);
+
                     // Extract HTML code block if present
                     let responseText = '';
                     if (typeof response === 'string') {
@@ -1866,7 +1875,7 @@
                     } else {
                         responseText = JSON.stringify(response);
                     }
-                    
+
                     // Check for AI question format [Q:"question"]
                     const questionMatch = responseText.match(/\[Q:"([^"]+)"\]/);
                     if (questionMatch && !installAIContext) {
@@ -1874,55 +1883,57 @@
                         const question = questionMatch[1];
                         document.getElementById('aiQuestionText').textContent = question;
                         document.getElementById('aiQuestionAnswer').value = '';
-                        
+
                         // Store conversation context (remove the question from the response)
                         installAIContext = responseText.replace(/\[Q:"[^"]+"\]/, '').trim();
-                        
+
                         // Show question step
                         const step2 = document.getElementById('installStep2');
                         const questionStep = document.getElementById('installStepQuestion');
-                        
+
                         step2.style.opacity = '0';
                         step2.style.transition = 'opacity 0.3s ease-out';
-                        
+
                         setTimeout(() => {
                             step2.classList.add('hidden');
                             step2.style.opacity = '';
                             step2.style.transition = '';
-                            
+
                             questionStep.classList.remove('hidden');
                             questionStep.style.opacity = '0';
                             questionStep.style.transition = 'opacity 0.3s ease-out';
-                            
+
                             setTimeout(() => {
                                 questionStep.style.opacity = '1';
                                 questionStep.style.transition = '';
                             }, 50);
                         }, 300);
-                        
+
                         return; // Don't complete step yet
                     }
-                    
+
                     const htmlMatch = responseText.match(/```html\n([\s\S]*?)\n```/);
                     let extractedHTML = null;
-                    
+
                     if (htmlMatch) {
                         extractedHTML = htmlMatch[1];
                     }
-                    
+
                     // Apply extracted HTML to editor
                     if (extractedHTML && monacoEditor) {
                         monacoEditor.setValue(extractedHTML);
                         updateVisualPreview();
                     }
-                    
+
                     completeInstallStep(3, 500);
                 }).catch((error) => {
+                    clearTimeout(timeoutId);
                     console.error('AI generation error:', error);
                     completeInstallStep(3, 500);
                 });
             } else {
                 // No AI available, skip to next step
+                clearTimeout(timeoutId);
                 completeInstallStep(3, 500);
             }
         }
