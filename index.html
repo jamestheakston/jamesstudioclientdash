@@ -1740,22 +1740,54 @@
         }
         
         function loginToPuterForInstall() {
+            console.log('Attempting Puter login for install...');
+
+            // Check if Puter SDK is loaded
+            if (typeof puter === 'undefined') {
+                console.error('Puter SDK not loaded');
+                alert('Puter SDK not available. Please refresh the page and ensure the SDK loads properly.');
+                return;
+            }
+
+            console.log('Puter SDK loaded:', puter);
+            console.log('Puter auth available:', puter.auth);
+
             // Check if already logged into Puter
-            if (typeof puter !== 'undefined' && puter.auth && puter.auth.isSignedIn()) {
-                // Already logged in, proceed to installation
+            if (puter.auth && typeof puter.auth.isSignedIn === 'function' && puter.auth.isSignedIn()) {
+                console.log('Already logged into Puter, proceeding to installation');
                 proceedToInstallation();
-            } else {
-                // Login to Puter
-                if (typeof puter !== 'undefined') {
-                    puter.auth.signIn().then(() => {
+                return;
+            }
+
+            // Try different auth methods
+            if (puter.auth) {
+                let authMethod = null;
+
+                // Try signIn first
+                if (typeof puter.auth.signIn === 'function') {
+                    authMethod = puter.auth.signIn();
+                }
+                // Try signin as fallback
+                else if (typeof puter.auth.signin === 'function') {
+                    authMethod = puter.auth.signin();
+                }
+
+                if (authMethod) {
+                    console.log('Attempting Puter authentication...');
+                    authMethod.then(() => {
+                        console.log('Puter login successful');
                         proceedToInstallation();
                     }).catch((error) => {
                         console.error('Puter login error:', error);
-                        alert('Failed to login to Puter. Please try again.');
+                        alert('Failed to login to Puter: ' + (error.message || error));
                     });
                 } else {
-                    alert('Puter SDK not available. Please refresh the page.');
+                    console.error('No Puter auth method available');
+                    alert('Puter authentication method not available. Please refresh the page.');
                 }
+            } else {
+                console.error('Puter auth not available');
+                alert('Puter authentication not available. Please refresh the page.');
             }
         }
         
