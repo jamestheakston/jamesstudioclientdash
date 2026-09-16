@@ -605,6 +605,9 @@
                                         <p class="text-xs md:text-sm whitespace-pre-wrap">Hello! I'm your AI assistant. I can help you edit your website content. I use targeted edits to make precise changes rather than rewriting entire files. What would you like to change?</p>
                                     </div>
                                 </div>
+                                <div id="queuedMessages" class="hidden px-3 md:px-4 py-2 bg-neutral-100 text-xs text-neutral-600 text-center shrink-0">
+                                    <span id="queuedCount">0</span> message(s) queued
+                                </div>
                                 <div class="border-t border-[#1A1A1A]/10 p-3 md:p-4 shrink-0">
                                     <div class="flex gap-2 mb-2 md:mb-3">
                                         <input type="text" id="aiChatInput" placeholder="Ask me to edit something..." class="flex-1 bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-xs md:text-sm focus:outline-none focus:border-[#1A1A1A]">
@@ -1182,6 +1185,8 @@
         // AI Panel Functions
         let isAIPanelOpen = false;
         let isPuterAuthorized = false;
+        let isAIThinking = false;
+        let queuedMessages = [];
         
         // Eco Limit Functions
         const DAILY_MESSAGE_LIMIT = 15;
@@ -1271,7 +1276,7 @@
             marketplaceContent.innerHTML = `
                 <div class="flex flex-col h-full overflow-y-auto">
                     <!-- Hero Section -->
-                    <div class="relative bg-cover bg-center p-6 md:p-8 rounded-xl mb-6" style="background-image: url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80');">
+                    <div class="relative bg-cover bg-center p-6 md:p-8 rounded-xl mb-6" style="background-image: url('https://images.unsplash.com/photo-1542744173-8e7e53415bb0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80');">
                         <div class="absolute inset-0 bg-black/60 rounded-xl"></div>
                         <div class="relative z-10 text-[#FAF9F6]">
                             <h1 class="text-3xl md:text-4xl font-bold mb-2">Apps for everyone</h1>
@@ -1562,6 +1567,14 @@
                 return; // User chose not to bypass
             }
             
+            // If AI is thinking, queue the message
+            if (isAIThinking) {
+                queuedMessages.push(message);
+                updateQueuedCount();
+                input.value = '';
+                return;
+            }
+            
             const chatMessages = document.getElementById('aiChatMessages');
             
             // Add user message
@@ -1592,6 +1605,9 @@
                 chatMessages.scrollTop = chatMessages.scrollHeight;
                 return;
             }
+            
+            // Set thinking state
+            isAIThinking = true;
             
             // Add thinking indicator
             const thinkingIndicator = document.createElement('div');
@@ -1768,6 +1784,17 @@
                 
                 // Scroll to bottom
                 chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // Clear thinking state
+                isAIThinking = false;
+                
+                // Process next queued message if any
+                if (queuedMessages.length > 0) {
+                    const nextMessage = queuedMessages.shift();
+                    updateQueuedCount();
+                    input.value = nextMessage;
+                    sendAIMessage();
+                }
             }).catch((error) => {
                 console.error('Puter AI error:', error);
                 
@@ -1787,10 +1814,33 @@
                 
                 // Scroll to bottom
                 chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // Clear thinking state
+                isAIThinking = false;
+                
+                // Process next queued message if any
+                if (queuedMessages.length > 0) {
+                    const nextMessage = queuedMessages.shift();
+                    updateQueuedCount();
+                    input.value = nextMessage;
+                    sendAIMessage();
+                }
             });
             
             // Scroll to bottom
             chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function updateQueuedCount() {
+            const queuedDiv = document.getElementById('queuedMessages');
+            const queuedCount = document.getElementById('queuedCount');
+            
+            if (queuedMessages.length > 0) {
+                queuedDiv.classList.remove('hidden');
+                queuedCount.textContent = queuedMessages.length;
+            } else {
+                queuedDiv.classList.add('hidden');
+            }
         }
         function initSupabase() {
             try {
