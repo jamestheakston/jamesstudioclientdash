@@ -564,7 +564,7 @@
                         <svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
                         <span class="hidden sm:inline">AI</span>
                     </button>
-                    <button onclick="saveDraft()" class="bg-neutral-200 text-[#1A1A1A] px-2 md:px-4 py-1.5 md:py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-300 transition-colors">
+                    <button onclick="saveDraft()" class="bg-neutral-200 text-[#1A1A1A] px-2 md:px-4 py-1.5 md:py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-300 transition-colors" title="Save (Ctrl+S)">
                         <span class="hidden sm:inline">Save</span>
                         <span class="sm:hidden">Save</span>
                     </button>
@@ -809,6 +809,25 @@
                                 </p>
                                 <button onclick="hideInstallWizard()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-lg font-bold hover:bg-neutral-800 transition-colors">
                                     Done
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Failed -->
+                        <div id="installStepFailed" class="install-step hidden">
+                            <div class="text-center mb-4">
+                                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </div>
+                                <h5 class="text-lg font-bold text-[#1A1A1A] mb-2">Installation Failed</h5>
+                                <p class="text-sm text-neutral-600 mb-2">
+                                    <span id="failedAppName"></span> could not be installed.
+                                </p>
+                                <p id="failedReason" class="text-sm text-red-600 mb-4 italic hidden"></p>
+                                <button onclick="hideInstallWizard()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-lg font-bold hover:bg-neutral-800 transition-colors">
+                                    Close
                                 </button>
                             </div>
                         </div>
@@ -1078,17 +1097,29 @@
                     guides: {
                         bracketPairs: true,
                         indentation: true
-                    }
+                    },
+                    contextmenu: true,
+                    quickSuggestions: true,
+                    suggestOnTriggerCharacters: true,
+                    acceptSuggestionOnEnter: 'on',
+                    tabCompletion: 'on',
+                    formatOnPaste: true,
+                    formatOnType: true
                 });
                 
                 // Force initial layout
                 monacoEditor.layout();
-                
+
                 // Add window resize listener to keep Monaco correctly sized
                 window.addEventListener('resize', () => {
                     if (monacoEditor) {
                         monacoEditor.layout();
                     }
+                });
+
+                // Add keyboard shortcut for Ctrl+S to save
+                monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, function() {
+                    saveDraft();
                 });
                 
                 // Update visual preview when code changes
@@ -1137,7 +1168,6 @@
                     } catch (error) {
                         console.error('Error adding visual edit handlers:', error);
                     }
-                    verified: true
                 }, 500);
             }
         }
@@ -1297,7 +1327,6 @@
                 setTimeout(() => {
                     panel.classList.add('hidden');
                     panel.style.transform = '';
-                    verified: true
                 }, 300);
             } else {
                 panel.classList.add('hidden');
@@ -1372,7 +1401,7 @@
                                 document.removeEventListener('click', closeTooltip);
                             }
                         });
-                        verified: true
+
                 }, 0);
                 }
             }
@@ -1962,6 +1991,7 @@
         let installAIContext = null; // Store AI conversation context for install wizard
         let currentInstallPrompt = ''; // Store current install prompt
         let currentFile = null; // Store current file being edited { path, sha }
+        let originalHTMLBeforeInstall = null; // Store original HTML before installation
 
         // Animation state tracking
         let appInfoModalTimeout = null;
@@ -2025,12 +2055,59 @@
                 installWizardTimeout = null;
             }, 300);
         }
+
+        function showInstallFailed(reason = null) {
+            const step2 = document.getElementById('installStep2');
+            const questionStep = document.getElementById('installStepQuestion');
+            const failedStep = document.getElementById('installStepFailed');
+
+            // Hide current step
+            if (!step2.classList.contains('hidden')) {
+                step2.style.opacity = '0';
+                step2.style.transition = 'opacity 0.3s ease-out';
+                setTimeout(() => {
+                    step2.classList.add('hidden');
+                    step2.style.opacity = '';
+                    step2.style.transition = '';
+                }, 300);
+            } else if (!questionStep.classList.contains('hidden')) {
+                questionStep.style.opacity = '0';
+                questionStep.style.transition = 'opacity 0.3s ease-out';
+                setTimeout(() => {
+                    questionStep.classList.add('hidden');
+                    questionStep.style.opacity = '';
+                    questionStep.style.transition = '';
+                }, 300);
+            }
+
+            // Show failed step
+            setTimeout(() => {
+                document.getElementById('failedAppName').textContent = currentInstallApp ? currentInstallApp.charAt(0).toUpperCase() + currentInstallApp.slice(1) : 'App';
+                
+                const reasonElement = document.getElementById('failedReason');
+                if (reason) {
+                    reasonElement.textContent = `Reason: ${reason}`;
+                    reasonElement.classList.remove('hidden');
+                } else {
+                    reasonElement.classList.add('hidden');
+                }
+                
+                failedStep.classList.remove('hidden');
+                failedStep.style.opacity = '0';
+                failedStep.style.transition = 'opacity 0.3s ease-out';
+
+                setTimeout(() => {
+                    failedStep.style.opacity = '1';
+                }, 50);
+            }, 350);
+        }
         
         function resetInstallWizard() {
             document.getElementById('installStep1').classList.remove('hidden');
             document.getElementById('installStep2').classList.add('hidden');
             document.getElementById('installStep3').classList.add('hidden');
             document.getElementById('installStepQuestion').classList.add('hidden');
+            document.getElementById('installStepFailed').classList.add('hidden');
             
             // Reset step indicators
             for (let i = 1; i <= 4; i++) {
@@ -2158,6 +2235,12 @@
                 timeElement.textContent = 'AI is installing the app...';
                 const aiResult = await generateAndApplyCode();
 
+                if (aiResult && aiResult.failed) {
+                    // AI reported failure
+                    showInstallFailed(aiResult.reason);
+                    return;
+                }
+
                 if (aiResult && aiResult.needsInput) {
                     // AI needs user input, wait for submitAIAnswer to handle the rest
                     return;
@@ -2203,7 +2286,7 @@
                             // Save installed app to localStorage
                             saveInstalledApp(currentInstallApp);
                         }
-                        verified: true
+
                 }, 50);
                     verified: true
                 }, 300);
@@ -2234,6 +2317,12 @@
             if (!installedApps.includes(appName)) {
                 installedApps.push(appName);
                 localStorage.setItem('installedApps', JSON.stringify(installedApps));
+                
+                // Store original HTML for this app to enable rollback on uninstall
+                if (originalHTMLBeforeInstall) {
+                    localStorage.setItem(`originalHTML_${appName}`, originalHTMLBeforeInstall);
+                }
+                
                 console.log('App installed:', appName);
             }
         }
@@ -2259,12 +2348,20 @@
         }
 
         function uninstallApp(appName) {
-            if (confirm(`Are you sure you want to uninstall ${appName}?`)) {
+            if (confirm(`Are you sure you want to uninstall ${appName}? This will revert any changes made by this app.`)) {
                 removeInstalledApp(appName);
+                
+                // Restore original HTML for this specific app
+                const originalHTML = localStorage.getItem(`originalHTML_${appName}`);
+                if (originalHTML && monacoEditor) {
+                    monacoEditor.setValue(originalHTML);
+                    updateVisualPreview();
+                    localStorage.removeItem(`originalHTML_${appName}`); // Clean up stored HTML
+                }
+                
                 // Refresh the UI
                 updateAppCards();
                 hideAppInfoModal();
-                // Optionally, you could also remove the code from the editor
                 console.log('App uninstalled successfully');
             }
         }
@@ -2312,6 +2409,9 @@
             const currentHTML = monacoEditor.getValue();
             let installPrompt = '';
 
+            // Store original HTML before installation for potential rollback
+            originalHTMLBeforeInstall = currentHTML;
+
             // Create app-specific install prompt
             if (currentInstallApp === 'biscuit') {
                 installPrompt = `Add a cookie consent banner to this website. The banner should be at the bottom of the page, have a white background, black text, and include "Accept Cookies" and "Decline" buttons. Make it GDPR compliant with a link to privacy policy. If you need information from the user, you can optionally provide instructions using [I:"your instructions here"] followed by your question as [Q:"your question here"]. Add this to the existing HTML.`;
@@ -2320,7 +2420,7 @@
             } else if (currentInstallApp === 'clarity') {
                 installPrompt = `Add Microsoft Clarity analytics tracking code to this website. Include the Clarity script tag in the head section. Note: This integration is not affiliated with Microsoft - Microsoft is listed as a co-author for attribution purposes. If you need the Clarity project ID or any other information, you can optionally provide instructions using [I:"your instructions here"] followed by your question as [Q:"your question here"]. Add this to the existing HTML.`;
             } else if (currentInstallApp === 'questiontest') {
-                installPrompt = `This is a test to verify the question functionality works correctly. Please ask the user a simple question. You can optionally provide instructions before the question using the format [I:"your instructions here"] followed by [Q:"your question here"]. For example: [I:"Please check your email for a verification code and enter it below."] [Q:"What is your verification code?"]. After the user answers, complete the installation by returning the original HTML unchanged in a html code block. Do not modify any code in the HTML - this is only for testing the question-answer flow. Add this to the existing HTML.`;
+                installPrompt = `This is a test to verify the question functionality works correctly. Please ask the user a simple question. You can optionally provide instructions before the question using the format [I:"your instructions here"] followed by [Q:"your question here"]. For example: [I:"Please check your email for a verification code and enter it below."] [Q:"What is your verification code?"]. If the user provides an invalid or unhelpful answer (like just numbers, gibberish, or an empty response), use the format [F:"reason for failure"] to indicate the installation failed. After the user answers with valid information, complete the installation by returning the original HTML unchanged in a html code block. Do not modify any code in the HTML - this is only for testing the question-answer flow. Add this to the existing HTML.`;
             }
 
             // Store the current prompt for context
@@ -2355,6 +2455,15 @@
                         responseText = response.content;
                     } else {
                         responseText = JSON.stringify(response);
+                    }
+
+                    // Check for AI failure format [F:"reason"]
+                    const failureMatch = responseText.match(/\[F:"([^"]+)"\]/);
+                    if (failureMatch) {
+                        // AI reported failure
+                        const failureReason = failureMatch[1];
+                        console.log('AI installation failed:', failureReason);
+                        return { failed: true, reason: failureReason };
                     }
 
                     // Check for AI question format [Q:"question"] and optional instructions [I:"instructions"]
@@ -2468,6 +2577,12 @@
                 timeElement.textContent = 'AI is processing your answer...';
 
                 const result = await generateAndApplyCode();
+
+                if (result && result.failed) {
+                    // AI reported failure
+                    showInstallFailed();
+                    return;
+                }
 
                 if (result && !result.needsInput) {
                     // Continue with remaining installation steps
@@ -3193,7 +3308,7 @@
                     setTimeout(() => {
                         visualEditPanel.classList.add('hidden');
                         visualEditPanel.style.transform = '';
-                        verified: true
+
                 }, 300);
                 } else {
                     visualEditPanel.classList.add('hidden');
@@ -4030,7 +4145,7 @@
                                 openVisualEditor();
                                 setTimeout(() => switchEditorTab('preview'), 500);
                             }
-                            verified: true
+    
                 }, 1000);
                     }
                 } else {
@@ -4056,11 +4171,11 @@
                                         openVisualEditor();
                                         setTimeout(() => switchEditorTab('preview'), 500);
                                     }
-                                    verified: true
+            
                 }, 1000);
                             }
                         }
-                        verified: true
+
                 }, 100);
                 }
             }
