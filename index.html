@@ -2296,7 +2296,7 @@
             } else if (currentInstallApp === 'clarity') {
                 installPrompt = `Add Microsoft Clarity analytics tracking code to this website. Include the Clarity script tag in the head section. Note: This integration is not affiliated with Microsoft - Microsoft is listed as a co-author for attribution purposes. If you need the Clarity project ID or any other information, ask the user for it using the format [Q:"your question here"]. Add this to the existing HTML.`;
             } else if (currentInstallApp === 'questiontest') {
-                installPrompt = `This is a test to verify the question functionality works correctly. Please ask the user a simple question using the format [Q:"What is your favorite color?"]. Do not modify any code in the HTML - this is only for testing the question-answer flow. Return the original HTML unchanged in your response.`;
+                installPrompt = `This is a test to verify the question functionality works correctly. Please ask the user a simple question using the format [Q:"What is your favorite color?"]. After the user answers, complete the installation by returning the original HTML unchanged in a html code block. Do not modify any code in the HTML - this is only for testing the question-answer flow. If you need information from the user to complete the installation, format your question as [Q:"your question here"] in your response. Add this to the existing HTML.`;
             }
 
             // Store the current prompt for context
