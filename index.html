@@ -806,7 +806,7 @@
 
                 <!-- App Info Modal -->
                 <div id="appInfoModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 md:p-4 z-[100]">
-                    <div class="modal bg-white rounded-xl p-4 md:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                    <div class="bg-white rounded-xl p-4 md:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto" id="appInfoModalContent" style="transition: transform 0.3s ease-out, opacity 0.3s ease-out; transform: scale(0.95); opacity: 0;">
                         <div class="flex items-center justify-between mb-4">
                             <h4 id="appModalTitle" class="text-base md:text-lg font-bold">App Info</h4>
                             <button onclick="hideAppInfoModal()" class="text-neutral-400 hover:text-black">
@@ -1610,18 +1610,24 @@
                 document.getElementById('appModalDescription').textContent = app.description;
                 document.getElementById('appModalIcon').innerHTML = app.icon;
                 const modal = document.getElementById('appInfoModal');
+                const modalContent = document.getElementById('appInfoModalContent');
                 modal.classList.remove('hidden');
                 setTimeout(() => {
-                    modal.querySelector('.bg-white').classList.add('show');
+                    modalContent.style.transform = 'scale(1)';
+                    modalContent.style.opacity = '1';
                 }, 10);
             }
         }
         
         function hideAppInfoModal() {
             const modal = document.getElementById('appInfoModal');
-            modal.querySelector('.bg-white').classList.remove('show');
+            const modalContent = document.getElementById('appInfoModalContent');
+            modalContent.style.transform = 'scale(0.95)';
+            modalContent.style.opacity = '0';
             setTimeout(() => {
                 modal.classList.add('hidden');
+                modalContent.style.transform = '';
+                modalContent.style.opacity = '';
             }, 300);
         }
         
