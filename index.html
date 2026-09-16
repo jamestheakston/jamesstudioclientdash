@@ -1800,6 +1800,25 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Testing Section -->
+                    <div class="mt-8">
+                        <h2 class="text-xl md:text-2xl font-bold text-[#1A1A1A] mb-4">Testing</h2>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Question Test App -->
+                            <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm p-4 hover:shadow-md transition-shadow cursor-pointer" onclick="navigateToApp('questiontest')">
+                                <div class="flex items-start mb-3">
+                                    <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center border border-[#1A1A1A]/10">
+                                        <svg class="w-8 h-8 text-[#1A1A1A]" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+                                    </div>
+                                </div>
+                                <h3 class="font-bold text-[#1A1A1A] mb-1">Question Test</h3>
+                                <p class="text-neutral-500 text-xs mb-2 flex items-center gap-1">By James Theakston <span class="text-orange-500 text-xs">(Unverified)</span></p>
+                                <p class="text-neutral-600 text-sm">For testing</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             `;
 
@@ -1833,6 +1852,12 @@
                     developer: 'James Studio & Microsoft',
                     description: 'Analytics and user behavior insights. Microsoft Clarity provides comprehensive analytics to understand user behavior and improve your website performance.',
                     icon: `<div class="w-16 h-16 flex items-center justify-center bg-white rounded-lg border border-[#1A1A1A]/10"><img src="https://images.saasworthy.com/microsoftclarity_49721_logo_1733128700_bzgvs.png" alt="Microsoft Clarity" class="w-12 h-12 object-contain"></div>`
+                },
+                questiontest: {
+                    name: 'Question Test',
+                    developer: 'James Theakston (Unverified)',
+                    description: 'For testing. This app is designed to test the question functionality during AI installation. It does not modify code but only asks questions to verify the question-answer flow works correctly.',
+                    icon: `<div class="w-16 h-16 flex items-center justify-center bg-white rounded-lg border border-[#1A1A1A]/10"><svg class="w-12 h-12 text-[#1A1A1A]" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg></div>`
                 }
             };
 
@@ -2082,7 +2107,8 @@
                 const apps = {
                     searchy: 'Searchy',
                     biscuit: 'Biscuit',
-                    clarity: 'Microsoft Clarity'
+                    clarity: 'Microsoft Clarity',
+                    questiontest: 'Question Test'
                 };
                 document.getElementById('installAppName').textContent = apps[currentInstallApp] || currentInstallApp;
             }
@@ -2147,7 +2173,8 @@
                             const apps = {
                                 searchy: 'Searchy',
                                 biscuit: 'Biscuit',
-                                clarity: 'Microsoft Clarity'
+                                clarity: 'Microsoft Clarity',
+                                questiontest: 'Question Test'
                             };
                             document.getElementById('installedAppName').textContent = apps[currentInstallApp] || currentInstallApp;
 
@@ -2225,7 +2252,7 @@
         }
 
         function updateAppCards() {
-            const apps = ['searchy', 'biscuit', 'clarity'];
+            const apps = ['searchy', 'biscuit', 'clarity', 'questiontest'];
             apps.forEach(appName => {
                 const card = document.querySelector(`[onclick="navigateToApp('${appName}')"]`);
                 if (card) {
@@ -2268,6 +2295,8 @@
                 installPrompt = `Add comprehensive SEO optimization to this website to help it rank on Google. Include: 1) Proper meta tags (title, description, keywords), 2) Open Graph tags for social sharing, 3) Structured data/Schema.org markup, 4) XML sitemap reference, 5) Robots.txt file, 6) Google Search Console verification meta tag. If you need the Google Search Console verification code or any specific SEO preferences, ask the user for it using the format [Q:"your question here"]. Add this to the existing HTML.`;
             } else if (currentInstallApp === 'clarity') {
                 installPrompt = `Add Microsoft Clarity analytics tracking code to this website. Include the Clarity script tag in the head section. Note: This integration is not affiliated with Microsoft - Microsoft is listed as a co-author for attribution purposes. If you need the Clarity project ID or any other information, ask the user for it using the format [Q:"your question here"]. Add this to the existing HTML.`;
+            } else if (currentInstallApp === 'questiontest') {
+                installPrompt = `This is a test to verify the question functionality works correctly. Please ask the user a simple question using the format [Q:"What is your favorite color?"]. Do not modify any code in the HTML - this is only for testing the question-answer flow. Return the original HTML unchanged in your response.`;
             }
 
             // Store the current prompt for context
@@ -2439,7 +2468,8 @@
                         const apps = {
                             searchy: 'Searchy',
                             biscuit: 'Biscuit',
-                            clarity: 'Microsoft Clarity'
+                            clarity: 'Microsoft Clarity',
+                            questiontest: 'Question Test'
                         };
                         document.getElementById('installedAppName').textContent = apps[currentInstallApp] || currentInstallApp;
 
