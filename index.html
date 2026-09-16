@@ -792,6 +792,20 @@
 
                     <!-- Code Editor Panel -->
                     <div id="panel-code" class="flex-1 bg-[#1E1E1E] p-2 md:p-4 overflow-auto hidden">
+                        <div class="flex items-center gap-2 mb-2">
+                            <button onclick="undoMonaco()" class="px-3 py-1.5 bg-[#2D2D2D] text-[#FAF9F6] rounded-lg text-xs font-medium hover:bg-[#3D3D3D] transition-colors flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                                </svg>
+                                Undo
+                            </button>
+                            <button onclick="redoMonaco()" class="px-3 py-1.5 bg-[#2D2D2D] text-[#FAF9F6] rounded-lg text-xs font-medium hover:bg-[#3D3D3D] transition-colors flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6"/>
+                                </svg>
+                                Redo
+                            </button>
+                        </div>
                         <div id="monacoEditorContainer" class="rounded-xl overflow-hidden editor-panel"></div>
                     </div>
 
@@ -933,6 +947,20 @@
                     updateVisualPreview();
                 });
             });
+        }
+        
+        // Undo function for Monaco Editor
+        function undoMonaco() {
+            if (monacoEditor) {
+                monacoEditor.trigger('keyboard', 'undo', null);
+            }
+        }
+        
+        // Redo function for Monaco Editor
+        function redoMonaco() {
+            if (monacoEditor) {
+                monacoEditor.trigger('keyboard', 'redo', null);
+            }
         }
         
         // Update visual preview iframe with current code
