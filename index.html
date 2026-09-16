@@ -602,7 +602,7 @@
                             <div id="aiChatScreen" class="hidden flex flex-col h-full min-h-0">
                                 <div id="aiChatMessages" class="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 min-h-0">
                                     <div class="bg-[#FAF9F6] p-2.5 md:p-3 rounded-lg">
-                                        <p class="text-xs md:text-sm whitespace-pre-wrap">Hello! I'm your AI assistant. I can help you edit your website content. I use targeted edits to make precise changes rather than rewriting entire files. What would you like to change?</p>
+                                        <p class="text-xs md:text-sm whitespace-pre-wrap">Hello! I'm your AI assistant. I can help you edit your website content. What would you like to change?</p>
                                     </div>
                                 </div>
                                 <div id="queuedMessages" class="hidden px-3 md:px-4 py-2 bg-neutral-100 text-xs text-neutral-600 text-center shrink-0">
@@ -1488,7 +1488,7 @@
             
             // Clear chat messages
             const chatMessages = document.getElementById('aiChatMessages');
-            chatMessages.innerHTML = '<div class="bg-[#FAF9F6] p-2.5 md:p-3 rounded-lg"><p class="text-xs md:text-sm whitespace-pre-wrap">Hello! I\'m your AI assistant. I can help you edit your website content. I use targeted edits to make precise changes rather than rewriting entire files. What would you like to change?</p></div>';
+            chatMessages.innerHTML = '<div class="bg-[#FAF9F6] p-2.5 md:p-3 rounded-lg"><p class="text-xs md:text-sm whitespace-pre-wrap">Hello! I\'m your AI assistant. I can help you edit your website content. What would you like to change?</p></div>';
             
             // Clear localStorage
             localStorage.removeItem('puterAuthScreenShown');
@@ -1649,7 +1649,7 @@
             }, 500);
             
             // Use Puter AI to process the request
-            puter.ai.chat(message + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nIMPORTANT: Only return HTML code in a ```html code block if you have made changes to the HTML. If you are just providing guidance or asking questions, do NOT include the HTML in your response. The user already knows the current HTML.\n\nWhen making a change, don\'t rewrite the entire file if only a small part needs to change. Instead, identify the smallest section of code that needs to be modified and return only that section as a targeted edit (e.g. a diff, or a clear "find this / replace with this" pair), applying it in place rather than regenerating the whole file. Only do a full rewrite when the change genuinely affects most of the file (e.g. restructuring, or the file is very short already). For every change, briefly state which section/lines were touched before showing the edit.\n\nYou are a website editing assistant. Only help with tasks related to editing, modifying, or improving the website HTML/CSS/JavaScript. If the user asks about topics unrelated to website editing (like general knowledge questions, math, geography, etc.), respond with: "I\'m sorry, but I can\'t help you with that. I\'m designed to help you edit and improve your website content. Please ask me about making changes to your website, styling, layout, or other web development related tasks."').then((response) => {
+            puter.ai.chat(message + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nIMPORTANT: Always return the complete updated HTML code in a ```html code block if you have made changes to the HTML. Return the entire file content, not just partial changes. If you are just providing guidance or asking questions, do NOT include the HTML in your response. The user already knows the current HTML.\n\nYou are a website editing assistant. Only help with tasks related to editing, modifying, or improving the website HTML/CSS/JavaScript. If the user asks about topics unrelated to website editing (like general knowledge questions, math, geography, etc.), respond with: "I\'m sorry, but I can\'t help you with that. I\'m designed to help you edit and improve your website content. Please ask me about making changes to your website, styling, layout, or other web development related tasks."').then((response) => {
                 // Clear message interval
                 clearInterval(messageInterval);
                 
@@ -1680,71 +1680,8 @@
                 const htmlMatch = responseText.match(/```html\n([\s\S]*?)\n```/);
                 let displayText = responseText;
                 let extractedHTML = null;
-                let isTargetedEdit = false;
-                let editSection = '';
                 
-                // Check for targeted edit patterns
-                const findReplaceMatch = responseText.match(/find this:[\s\S]*?```[\s\S]*?```[\s\S]*?replace with this:[\s\S]*?```[\s\S]*?```/i);
-                const diffMatch = responseText.match(/```diff\n([\s\S]*?)\n```/);
-                
-                if (findReplaceMatch) {
-                    isTargetedEdit = true;
-                    // Extract the find/replace pattern
-                    const findMatch = responseText.match(/find this:[\s\S]*?```[\s\S]*?```([\s\S]*?)replace with this:/i);
-                    const replaceMatch = responseText.match(/replace with this:[\s\S]*?```([\s\S]*?)```/i);
-                    
-                    if (findMatch && replaceMatch) {
-                        const findText = findMatch[1].trim();
-                        const replaceText = replaceMatch[1].trim();
-                        
-                        // Extract section info from response
-                        const sectionMatch = responseText.match(/(?:section|lines|area)[:\s]+([^\n]+)/i);
-                        editSection = sectionMatch ? sectionMatch[1].trim() : 'Unknown section';
-                        
-                        // Apply the targeted edit
-                        try {
-                            const newHTML = currentHTML.replace(findText, replaceText);
-                            extractedHTML = newHTML;
-                            displayText = responseText.replace(/find this:[\s\S]*?replace with this:[\s\S]*?```[\s\S]*?```/i, '').trim();
-                            displayText = displayText.replace(/```[\s\S]*?```/g, '').trim();
-                            displayText = `Updated ${editSection} with targeted edit.\n\n${displayText}`;
-                        } catch (error) {
-                            console.error('Error applying targeted edit:', error);
-                            displayText = 'Could not apply targeted edit. Please try again.';
-                        }
-                    }
-                } else if (diffMatch) {
-                    isTargetedEdit = true;
-                    // Parse diff and apply changes
-                    const diffText = diffMatch[1];
-                    try {
-                        let newHTML = currentHTML;
-                        const lines = diffText.split('\n');
-                        const sectionMatch = responseText.match(/(?:section|lines|area)[:\s]+([^\n]+)/i);
-                        editSection = sectionMatch ? sectionMatch[1].trim() : 'Unknown section';
-                        
-                        // Simple diff parsing (handles basic + and - lines)
-                        lines.forEach(line => {
-                            if (line.startsWith('-')) {
-                                const removeText = line.substring(1);
-                                newHTML = newHTML.replace(removeText, '');
-                            } else if (line.startsWith('+')) {
-                                const addText = line.substring(1);
-                                // This is a simplified approach - in practice you'd need context
-                                // For now, we'll just append if we can't find insertion point
-                                newHTML += addText;
-                            }
-                        });
-                        
-                        extractedHTML = newHTML;
-                        displayText = responseText.replace(/```diff\n[\s\S]*?\n```/, '').trim();
-                        displayText = displayText.replace(/```[\s\S]*?```/g, '').trim();
-                        displayText = `Updated ${editSection} using diff format.\n\n${displayText}`;
-                    } catch (error) {
-                        console.error('Error applying diff:', error);
-                        displayText = 'Could not apply diff. Please try again.';
-                    }
-                } else if (htmlMatch) {
+                if (htmlMatch) {
                     extractedHTML = htmlMatch[1];
                     // Remove the HTML code block from the displayed text
                     displayText = responseText.replace(/```html\n[\s\S]*?\n```/, '').trim();
