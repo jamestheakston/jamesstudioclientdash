@@ -193,6 +193,17 @@
             }
         }
 
+        /* Install Wizard Styles */
+        #installWizardContent {
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+        }
+        .install-step {
+            transition: opacity 0.3s ease-out;
+        }
+        .install-step.hidden {
+            display: none;
+        }
+
         /* View visibility */
         .view {
             display: none !important;
@@ -743,10 +754,105 @@
                                         </div>
                                     </div>
 
-                                    <button class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-lg font-bold hover:bg-neutral-800 transition-colors">
+                                    <button onclick="startInstallWizard()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-lg font-bold hover:bg-neutral-800 transition-colors">
                                         Install
                                     </button>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- App Install Wizard Modal -->
+                <div id="installWizardModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 md:p-4 z-50">
+                    <div class="bg-white rounded-xl p-4 md:p-6 max-w-md w-full" id="installWizardContent" style="transition: transform 0.3s ease-out, opacity 0.3s ease-out; transform: scale(0.95); opacity: 0;">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-base md:text-lg font-bold">App Install Wizard</h4>
+                            <button onclick="hideInstallWizard()" class="text-neutral-400 hover:text-black">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <!-- Step 1: Puter Login -->
+                        <div id="installStep1" class="install-step">
+                            <div class="mb-4">
+                                <h5 class="text-sm font-bold text-[#1A1A1A] mb-2">Step 1: Login to Puter</h5>
+                                <p class="text-xs md:text-sm text-neutral-600 mb-4">
+                                    To install apps, you need to login to Puter. By continuing, you agree to Puter's Privacy Policy and Terms of Service.
+                                </p>
+                                <p class="text-xs text-green-600 mb-4">
+                                    <strong>Note:</strong> This installation won't count toward your daily AI eco limit.
+                                </p>
+                                <button onclick="loginToPuterForInstall()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-lg font-bold hover:bg-neutral-800 transition-colors">
+                                    Login to Puter
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 2: Installation -->
+                        <div id="installStep2" class="install-step hidden">
+                            <div class="mb-4">
+                                <h5 class="text-sm font-bold text-[#1A1A1A] mb-2">Step 2: Installing App</h5>
+                                <p class="text-xs md:text-sm text-neutral-600 mb-4">
+                                    Installing <span id="installAppName" class="font-bold"></span>...
+                                </p>
+                                
+                                <!-- Loading Spinner -->
+                                <div class="flex flex-col items-center justify-center mb-4">
+                                    <div class="relative w-12 h-12">
+                                        <div class="absolute inset-0 border-4 border-[#1A1A1A]/10 rounded-full"></div>
+                                        <div class="absolute inset-0 border-4 border-[#1A1A1A] border-t-transparent rounded-full animate-spin"></div>
+                                    </div>
+                                    <p class="text-sm text-neutral-600 mt-2">Installing...</p>
+                                </div>
+                                
+                                <!-- Installation Steps -->
+                                <div class="space-y-2" id="installSteps">
+                                    <div class="flex items-center gap-2 text-sm" id="installStepItem1">
+                                        <div class="w-5 h-5 rounded-full border-2 border-[#1A1A1A]/20 flex items-center justify-center">
+                                            <div class="w-2 h-2 rounded-full bg-[#1A1A1A]/20"></div>
+                                        </div>
+                                        <span class="text-neutral-600">Analyzing project structure</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 text-sm" id="installStepItem2">
+                                        <div class="w-5 h-5 rounded-full border-2 border-[#1A1A1A]/20 flex items-center justify-center">
+                                            <div class="w-2 h-2 rounded-full bg-[#1A1A1A]/20"></div>
+                                        </div>
+                                        <span class="text-neutral-600">Generating installation code</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 text-sm" id="installStepItem3">
+                                        <div class="w-5 h-5 rounded-full border-2 border-[#1A1A1A]/20 flex items-center justify-center">
+                                            <div class="w-2 h-2 rounded-full bg-[#1A1A1A]/20"></div>
+                                        </div>
+                                        <span class="text-neutral-600">Applying changes to your project</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 text-sm" id="installStepItem4">
+                                        <div class="w-5 h-5 rounded-full border-2 border-[#1A1A1A]/20 flex items-center justify-center">
+                                            <div class="w-2 h-2 rounded-full bg-[#1A1A1A]/20"></div>
+                                        </div>
+                                        <span class="text-neutral-600">Verifying installation</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 3: Complete -->
+                        <div id="installStep3" class="install-step hidden">
+                            <div class="text-center mb-4">
+                                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                                <h5 class="text-lg font-bold text-[#1A1A1A] mb-2">Installation Complete!</h5>
+                                <p class="text-sm text-neutral-600 mb-4">
+                                    <span id="installedAppName"></span> has been successfully installed on your project.
+                                </p>
+                                <button onclick="hideInstallWizard()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-lg font-bold hover:bg-neutral-800 transition-colors">
+                                    Done
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -1470,6 +1576,7 @@
 
             if (apps[appName]) {
                 const app = apps[appName];
+                currentInstallApp = appName; // Set current app for installation
                 document.getElementById('appModalName').textContent = app.name;
                 document.getElementById('appModalDeveloperName').textContent = app.developer;
                 document.getElementById('appModalDescription').textContent = app.description;
@@ -1480,6 +1587,246 @@
         
         function hideAppInfoModal() {
             document.getElementById('appInfoModal').classList.add('hidden');
+        }
+        
+        let currentInstallApp = null;
+        
+        function startInstallWizard() {
+            // Hide app info modal with animation
+            const appInfoModal = document.getElementById('appInfoModal');
+            appInfoModal.style.opacity = '0';
+            appInfoModal.style.transition = 'opacity 0.3s';
+            
+            setTimeout(() => {
+                appInfoModal.classList.add('hidden');
+                appInfoModal.style.opacity = '';
+                appInfoModal.style.transition = '';
+                
+                // Show install wizard with animation
+                const installWizard = document.getElementById('installWizardModal');
+                const wizardContent = document.getElementById('installWizardContent');
+                installWizard.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    wizardContent.style.transform = 'scale(1)';
+                    wizardContent.style.opacity = '1';
+                }, 50);
+                
+                // Reset to step 1
+                resetInstallWizard();
+            }, 300);
+        }
+        
+        function hideInstallWizard() {
+            const installWizard = document.getElementById('installWizardModal');
+            const wizardContent = document.getElementById('installWizardContent');
+            
+            wizardContent.style.transform = 'scale(0.95)';
+            wizardContent.style.opacity = '0';
+            
+            setTimeout(() => {
+                installWizard.classList.add('hidden');
+                wizardContent.style.transform = '';
+                wizardContent.style.opacity = '';
+            }, 300);
+        }
+        
+        function resetInstallWizard() {
+            document.getElementById('installStep1').classList.remove('hidden');
+            document.getElementById('installStep2').classList.add('hidden');
+            document.getElementById('installStep3').classList.add('hidden');
+            
+            // Reset step indicators
+            for (let i = 1; i <= 4; i++) {
+                const stepItem = document.getElementById(`installStepItem${i}`);
+                const indicator = stepItem.querySelector('div');
+                indicator.style.transition = 'all 0.3s ease-out';
+                indicator.classList.remove('bg-green-500', 'border-green-500');
+                indicator.classList.add('bg-[#1A1A1A]/20', 'border-[#1A1A1A]/20');
+                indicator.innerHTML = '<div class="w-2 h-2 rounded-full bg-[#1A1A1A]/20"></div>';
+            }
+        }
+        
+        function loginToPuterForInstall() {
+            // Check if already logged into Puter
+            if (typeof puter !== 'undefined' && puter.auth && puter.auth.isSignedIn()) {
+                // Already logged in, proceed to installation
+                proceedToInstallation();
+            } else {
+                // Login to Puter
+                if (typeof puter !== 'undefined') {
+                    puter.auth.signIn().then(() => {
+                        proceedToInstallation();
+                    }).catch((error) => {
+                        console.error('Puter login error:', error);
+                        alert('Failed to login to Puter. Please try again.');
+                    });
+                } else {
+                    alert('Puter SDK not available. Please refresh the page.');
+                }
+            }
+        }
+        
+        function proceedToInstallation() {
+            // Move to step 2 with animation
+            const step1 = document.getElementById('installStep1');
+            const step2 = document.getElementById('installStep2');
+            
+            step1.style.opacity = '0';
+            step1.style.transition = 'opacity 0.3s ease-out';
+            
+            setTimeout(() => {
+                step1.classList.add('hidden');
+                step1.style.opacity = '';
+                step1.style.transition = '';
+                
+                step2.classList.remove('hidden');
+                step2.style.opacity = '0';
+                step2.style.transition = 'opacity 0.3s ease-out';
+                
+                setTimeout(() => {
+                    step2.style.opacity = '1';
+                    step2.style.transition = '';
+                }, 50);
+            }, 300);
+            
+            // Set app name
+            if (currentInstallApp) {
+                const apps = {
+                    searchy: 'Searchy',
+                    biscuit: 'Biscuit',
+                    clarity: 'Microsoft Clarity'
+                };
+                document.getElementById('installAppName').textContent = apps[currentInstallApp] || currentInstallApp;
+            }
+            
+            // Start installation process
+            runInstallationSteps();
+        }
+        
+        function runInstallationSteps() {
+            const steps = [
+                () => completeInstallStep(1, 1000),
+                () => completeInstallStep(2, 2000),
+                () => generateAndApplyCode(),
+                () => completeInstallStep(4, 1000)
+            ];
+            
+            let currentStepIndex = 0;
+            
+            function runNextStep() {
+                if (currentStepIndex < steps.length) {
+                    steps[currentStepIndex]();
+                    currentStepIndex++;
+                } else {
+                    // All steps complete
+                    setTimeout(() => {
+                        const step2 = document.getElementById('installStep2');
+                        const step3 = document.getElementById('installStep3');
+                        
+                        step2.style.opacity = '0';
+                        step2.style.transition = 'opacity 0.3s ease-out';
+                        
+                        setTimeout(() => {
+                            step2.classList.add('hidden');
+                            step2.style.opacity = '';
+                            step2.style.transition = '';
+                            
+                            step3.classList.remove('hidden');
+                            step3.style.opacity = '0';
+                            step3.style.transition = 'opacity 0.3s ease-out';
+                            
+                            setTimeout(() => {
+                                step3.style.opacity = '1';
+                                step3.style.transition = '';
+                            }, 50);
+                            
+                            if (currentInstallApp) {
+                                const apps = {
+                                    searchy: 'Searchy',
+                                    biscuit: 'Biscuit',
+                                    clarity: 'Microsoft Clarity'
+                                };
+                                document.getElementById('installedAppName').textContent = apps[currentInstallApp] || currentInstallApp;
+                            }
+                        }, 300);
+                    }, 500);
+                }
+            }
+            
+            runNextStep();
+        }
+        
+        function completeInstallStep(stepNumber, duration) {
+            const stepItem = document.getElementById(`installStepItem${stepNumber}`);
+            const indicator = stepItem.querySelector('div');
+            
+            setTimeout(() => {
+                // Show completed state with animation
+                indicator.style.transition = 'all 0.3s ease-out';
+                indicator.classList.remove('bg-[#1A1A1A]/20', 'border-[#1A1A1A]/20');
+                indicator.classList.add('bg-green-500', 'border-green-500');
+                indicator.innerHTML = '<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+            }, duration);
+        }
+        
+        function generateAndApplyCode() {
+            if (!monacoEditor || !currentInstallApp) {
+                completeInstallStep(3, 500);
+                return;
+            }
+            
+            const currentHTML = monacoEditor.getValue();
+            let installPrompt = '';
+            
+            // Create app-specific install prompt
+            if (currentInstallApp === 'biscuit') {
+                installPrompt = `Add a cookie consent banner to this website. The banner should be at the bottom of the page, have a white background, black text, and include "Accept Cookies" and "Decline" buttons. Make it GDPR compliant with a link to privacy policy. Add this to the existing HTML.`;
+            } else if (currentInstallApp === 'searchy') {
+                installPrompt = `Add a search functionality to this website. Include a search bar at the top of the page, search icon, and make it functional with JavaScript to filter content. Add this to the existing HTML.`;
+            } else if (currentInstallApp === 'clarity') {
+                installPrompt = `Add Microsoft Clarity analytics tracking code to this website. Include the Clarity script tag in the head section. Add this to the existing HTML.`;
+            }
+            
+            // Use AI to generate installation code
+            if (typeof puter !== 'undefined' && puter.ai) {
+                puter.ai.chat(installPrompt + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nIMPORTANT: Always return the complete updated HTML code in a ```html code block if you have made changes to the HTML. Return the entire file content, not just partial changes.').then((response) => {
+                    // Extract HTML code block if present
+                    let responseText = '';
+                    if (typeof response === 'string') {
+                        responseText = response;
+                    } else if (response.message && response.message.content && typeof response.message.content === 'string') {
+                        responseText = response.message.content;
+                    } else if (response.message && typeof response.message === 'string') {
+                        responseText = response.message;
+                    } else if (response.content && typeof response.content === 'string') {
+                        responseText = response.content;
+                    } else {
+                        responseText = JSON.stringify(response);
+                    }
+                    
+                    const htmlMatch = responseText.match(/```html\n([\s\S]*?)\n```/);
+                    let extractedHTML = null;
+                    
+                    if (htmlMatch) {
+                        extractedHTML = htmlMatch[1];
+                    }
+                    
+                    // Apply extracted HTML to editor
+                    if (extractedHTML && monacoEditor) {
+                        monacoEditor.setValue(extractedHTML);
+                        updateVisualPreview();
+                    }
+                    
+                    completeInstallStep(3, 500);
+                }).catch((error) => {
+                    console.error('AI generation error:', error);
+                    completeInstallStep(3, 500);
+                });
+            } else {
+                // No AI available, skip to next step
+                completeInstallStep(3, 500);
+            }
         }
         
         function toggleAIPanel() {
