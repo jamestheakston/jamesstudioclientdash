@@ -1829,72 +1829,90 @@
         }
         
         function runInstallationSteps() {
+            console.log('Starting installation steps...');
+
             const steps = [
-                () => completeInstallStep(1, 1000),
-                () => completeInstallStep(2, 2000),
-                () => generateAndApplyCode(),
-                () => completeInstallStep(4, 1000)
+                { duration: 1000, action: () => completeInstallStep(1, 1000) },
+                { duration: 2000, action: () => completeInstallStep(2, 2000) },
+                { duration: 5000, action: () => generateAndApplyCode() },
+                { duration: 1000, action: () => completeInstallStep(4, 1000) }
             ];
-            
+
             let currentStepIndex = 0;
-            
+
             function runNextStep() {
+                console.log('Running step:', currentStepIndex);
+
                 if (currentStepIndex < steps.length) {
-                    steps[currentStepIndex]();
+                    const step = steps[currentStepIndex];
+                    console.log('Executing step action:', step.action.name || 'anonymous');
+
+                    step.action();
                     currentStepIndex++;
+
+                    // Schedule next step
+                    setTimeout(() => {
+                        console.log('Moving to next step:', currentStepIndex);
+                        runNextStep();
+                    }, step.duration);
                 } else {
+                    console.log('All installation steps complete');
                     // All steps complete
                     setTimeout(() => {
                         const step2 = document.getElementById('installStep2');
                         const step3 = document.getElementById('installStep3');
-                        
+
                         step2.style.opacity = '0';
                         step2.style.transition = 'opacity 0.3s ease-out';
-                        
+
                         setTimeout(() => {
                             step2.classList.add('hidden');
                             step2.style.opacity = '';
                             step2.style.transition = '';
-                            
+
                             step3.classList.remove('hidden');
                             step3.style.opacity = '0';
                             step3.style.transition = 'opacity 0.3s ease-out';
-                            
+
                             setTimeout(() => {
                                 step3.style.opacity = '1';
                                 step3.style.transition = '';
+
+                                if (currentInstallApp) {
+                                    const apps = {
+                                        searchy: 'Searchy',
+                                        biscuit: 'Biscuit',
+                                        clarity: 'Microsoft Clarity'
+                                    };
+                                    document.getElementById('installedAppName').textContent = apps[currentInstallApp] || currentInstallApp;
+                                }
                             }, 50);
-                            
-                            if (currentInstallApp) {
-                                const apps = {
-                                    searchy: 'Searchy',
-                                    biscuit: 'Biscuit',
-                                    clarity: 'Microsoft Clarity'
-                                };
-                                document.getElementById('installedAppName').textContent = apps[currentInstallApp] || currentInstallApp;
-                            }
                         }, 300);
                     }, 500);
                 }
             }
-            
+
             runNextStep();
         }
         
         function completeInstallStep(stepNumber, duration) {
+            console.log('Completing install step:', stepNumber, 'duration:', duration);
             const stepItem = document.getElementById(`installStepItem${stepNumber}`);
             const indicator = stepItem.querySelector('div');
-            
+
             setTimeout(() => {
                 // Show completed state with animation
                 indicator.style.transition = 'all 0.3s ease-out';
                 indicator.classList.remove('bg-[#1A1A1A]/20', 'border-[#1A1A1A]/20');
                 indicator.classList.add('bg-green-500', 'border-green-500');
                 indicator.innerHTML = '<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+                console.log('Step', stepNumber, 'completed visually');
             }, duration);
         }
         
         function generateAndApplyCode() {
+            console.log('Starting AI code generation...');
+
             // Add timeout protection
             const timeoutId = setTimeout(() => {
                 console.warn('AI generation timeout, completing step 3');
@@ -1903,6 +1921,7 @@
 
             if (!monacoEditor || !currentInstallApp) {
                 clearTimeout(timeoutId);
+                console.log('No monaco editor or current install app, completing step 3');
                 completeInstallStep(3, 500);
                 return;
             }
@@ -1924,6 +1943,7 @@
 
             // Use AI to generate installation code
             if (typeof puter !== 'undefined' && puter.ai) {
+                console.log('Puter AI available, sending request...');
                 let fullPrompt;
                 if (installAIContext) {
                     // We have a previous conversation, include the user's answer
@@ -1936,6 +1956,7 @@
 
                 puter.ai.chat(fullPrompt).then((response) => {
                     clearTimeout(timeoutId);
+                    console.log('AI response received');
 
                     // Extract HTML code block if present
                     let responseText = '';
@@ -2000,6 +2021,7 @@
                         updateVisualPreview();
                     }
 
+                    console.log('Completing step 3 after AI generation');
                     completeInstallStep(3, 500);
                 }).catch((error) => {
                     clearTimeout(timeoutId);
@@ -2009,6 +2031,7 @@
             } else {
                 // No AI available, skip to next step
                 clearTimeout(timeoutId);
+                console.log('Puter AI not available, completing step 3');
                 completeInstallStep(3, 500);
             }
         }
