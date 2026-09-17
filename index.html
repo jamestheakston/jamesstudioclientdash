@@ -2407,7 +2407,7 @@
                     if (choiceMatch && !installAIContext) {
                         // Found a choice question, show choice step
                         const choiceString = choiceMatch[1];
-                        const parts = choiceString.split('",").map(s => s.replace(/^"|"$/g, ''));
+                        const parts = choiceString.split('","').map(s => s.replace(/^"|"$/g, ''));
                         const question = parts[parts.length - 1];
                         const choices = parts.slice(0, -1);
                         
