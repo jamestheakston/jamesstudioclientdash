@@ -2279,10 +2279,10 @@
                 if (installAIContext) {
                     // We have a previous conversation, include the user's answer
                     const userAnswer = document.getElementById('aiQuestionAnswer').value;
-                    fullPrompt = currentInstallPrompt + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nConversation context: ' + installAIContext + '\n\nUser\'s answer to your question: ' + userAnswer + '\n\nPlease continue with the installation based on this answer. IMPORTANT: Always return the complete updated HTML code in a html code block if you have made changes to the HTML. Return the entire file content, not just partial changes.';
+                    fullPrompt = currentInstallPrompt + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nConversation context: ' + installAIContext + '\n\nUser\'s answer to your question: ' + userAnswer + '\n\nPlease continue with the installation based on this answer. IMPORTANT: Complete the installation now and return the final HTML code block. Do not ask any more questions - this is the user\'s response to your question. Always return the complete updated HTML code in a html code block if you have made changes to the HTML. Return the entire file content, not just partial changes.';
                 } else {
                     // First attempt at installation
-                    fullPrompt = installPrompt + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nIMPORTANT: Always return the complete updated HTML code in a html code block if you have made changes to the HTML. Return the entire file content, not just partial changes. If you need information from the user to complete the installation, format your question as [Q:"your question here"] in your response.';
+                    fullPrompt = installPrompt + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nIMPORTANT: Always return the complete updated HTML code in a html code block if you have made changes to the HTML. Return the entire file content, not just partial changes. If you need information from the user to complete the installation, format your question as [Q:"your question here"] in your response. IMPORTANT: After receiving a user answer, complete the installation and return the final HTML - do not ask more questions.';
                 }
 
                 try {
@@ -2431,6 +2431,9 @@
                 }
 
                 if (result && !result.needsInput) {
+                    // Clear AI context since installation is complete
+                    installAIContext = null;
+
                     // Continue with remaining installation steps
                     completeInstallStep(3, 0);
 
