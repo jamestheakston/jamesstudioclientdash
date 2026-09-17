@@ -373,6 +373,17 @@
 </head>
 <body class="antialiased selection:bg-[#1A1A1A] selection:text-[#FAF9F6] h-screen flex flex-col overflow-hidden">
 
+    <!-- Loading Spinner Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-[#FAF9F6] z-50 flex items-center justify-center hidden">
+        <div class="text-center">
+            <div class="relative">
+                <div class="w-16 h-16 border-4 border-[#1A1A1A]/10 rounded-full"></div>
+                <div class="absolute top-0 left-0 w-16 h-16 border-4 border-[#1A1A1A] rounded-full border-t-transparent animate-spin"></div>
+            </div>
+            <p class="mt-6 text-[#1A1A1A] font-medium">Please wait a moment...</p>
+        </div>
+    </div>
+
     <!-- Navigation -->
     <nav class="sticky top-0 z-50 bg-[#FAF9F6]/90 backdrop-blur-md border-b border-[#1A1A1A]/10 px-4 md:px-6 lg:px-12 py-3 md:py-4 flex justify-between items-center transition-all duration-300">
         <a href="#" class="geometric-font text-lg md:text-xl lg:text-2xl font-extrabold tracking-tighter flex items-center gap-2">
@@ -1692,7 +1703,7 @@
                     <div class="flex-1">
                         <div class="flex items-center justify-between mb-4">
                             <h2 class="text-xl md:text-2xl font-bold text-[#1A1A1A]">Apps that will improve the way you develop</h2>
-                            <button onclick="showHowItWorks()" class="text-xs text-neutral-500 hover:text-[#1A1A1A] underline">How does it work?</button>
+                            <button onclick="showHowItWorks()" class="text-xs bg-[#1A1A1A] text-[#FAF9F6] px-3 py-1.5 rounded-full font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">How does it work?</button>
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -4196,8 +4207,14 @@
             const urlParams = new URLSearchParams(window.location.search);
             const projectParam = urlParams.get('project');
             const redirectParam = urlParams.get('redirect');
-            
+
             if (projectParam && redirectParam) {
+                // Show loading overlay
+                const loadingOverlay = document.getElementById('loadingOverlay');
+                if (loadingOverlay) {
+                    loadingOverlay.classList.remove('hidden');
+                }
+
                 // User came from continue page with project selection
                 // Find the project by repo name
                 if (allProjects && allProjects.length > 0) {
@@ -4205,7 +4222,7 @@
                     if (project) {
                         // Load the project and redirect to the specified destination
                         viewProject(project.id);
-                        
+
                         // After project is loaded, handle the redirect
                         setTimeout(() => {
                             if (redirectParam === 'marketplace') {
@@ -4221,8 +4238,17 @@
                                 openVisualEditor();
                                 setTimeout(() => switchEditorTab('preview'), 500);
                             }
-    
+
+                            // Hide loading overlay after redirect
+                            if (loadingOverlay) {
+                                loadingOverlay.classList.add('hidden');
+                            }
                 }, 1000);
+                    } else {
+                        // Project not found, hide loading overlay
+                        if (loadingOverlay) {
+                            loadingOverlay.classList.add('hidden');
+                        }
                     }
                 } else {
                     // Projects not loaded yet, wait for them to load
@@ -4247,12 +4273,22 @@
                                         openVisualEditor();
                                         setTimeout(() => switchEditorTab('preview'), 500);
                                     }
-            
+
+                                    // Hide loading overlay after redirect
+                                    const loadingOverlay = document.getElementById('loadingOverlay');
+                                    if (loadingOverlay) {
+                                        loadingOverlay.classList.add('hidden');
+                                    }
                 }, 1000);
+                            } else {
+                                // Project not found after loading, hide loading overlay
+                                const loadingOverlay = document.getElementById('loadingOverlay');
+                                if (loadingOverlay) {
+                                    loadingOverlay.classList.add('hidden');
+                                }
                             }
                         }
-
-                }, 100);
+                    }, 100);
                 }
             }
         }
