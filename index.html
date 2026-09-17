@@ -3345,24 +3345,37 @@
 
         // Logout
         async function logout() {
-            if (SupabaseClient) {
-                await SupabaseClient.auth.signOut();
+            try {
+                if (SupabaseClient) {
+                    await SupabaseClient.auth.signOut();
+                }
+                currentUser = null;
+                userAccess = [];
+
+                // Clear session storage
+                localStorage.removeItem('userEmail');
+                localStorage.removeItem('userLoggedIn');
+
+                // Redirect to login page
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error('Logout error:', error);
+                // Still redirect even if logout fails
+                window.location.href = 'login.html';
             }
-            currentUser = null;
-            userAccess = [];
-            
-            // Clear session storage
-            localStorage.removeItem('userEmail');
-            localStorage.removeItem('userLoggedIn');
-            
-            // Redirect to login page
-            window.location.href = 'login.html';
         }
 
         // Load user's access from Supabase
         async function loadUserAccess() {
-            if (!SupabaseClient || !currentUser) {
-                console.log('No Supabase client or user');
+            if (!SupabaseClient) {
+                console.log('No Supabase client');
+                return;
+            }
+
+            // Use current user if available, otherwise try to get from localStorage
+            const userEmail = currentUser?.email || localStorage.getItem('userEmail');
+            if (!userEmail) {
+                console.log('No user email available');
                 return;
             }
             
@@ -3370,7 +3383,7 @@
                 const { data: accessData, error } = await SupabaseClient
                     .from('access')
                     .select('repo_name')
-                    .eq('email', currentUser.email);
+                    .eq('email', userEmail);
                 
                 if (error) throw error;
                 
