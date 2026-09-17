@@ -4243,12 +4243,20 @@
                             if (loadingOverlay) {
                                 loadingOverlay.classList.add('hidden');
                             }
+
+                            // Remove URL parameters after processing
+                            const cleanUrl = window.location.pathname;
+                            window.history.replaceState({}, document.title, cleanUrl);
                 }, 1000);
                     } else {
                         // Project not found, hide loading overlay
                         if (loadingOverlay) {
                             loadingOverlay.classList.add('hidden');
                         }
+
+                        // Remove URL parameters even if project not found
+                        const cleanUrl = window.location.pathname;
+                        window.history.replaceState({}, document.title, cleanUrl);
                     }
                 } else {
                     // Projects not loaded yet, wait for them to load
@@ -4279,6 +4287,10 @@
                                     if (loadingOverlay) {
                                         loadingOverlay.classList.add('hidden');
                                     }
+
+                                    // Remove URL parameters after processing
+                                    const cleanUrl = window.location.pathname;
+                                    window.history.replaceState({}, document.title, cleanUrl);
                 }, 1000);
                             } else {
                                 // Project not found after loading, hide loading overlay
@@ -4286,6 +4298,10 @@
                                 if (loadingOverlay) {
                                     loadingOverlay.classList.add('hidden');
                                 }
+
+                                // Remove URL parameters even if project not found
+                                const cleanUrl = window.location.pathname;
+                                window.history.replaceState({}, document.title, cleanUrl);
                             }
                         }
                     }, 100);
