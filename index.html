@@ -907,6 +907,75 @@
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How It Works Modal -->
+    <div id="howItWorksModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="modal bg-white rounded-2xl p-8 max-w-2xl w-full mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-[#1A1A1A]">How AI Installation Works</h3>
+                <button onclick="hideHowItWorks()" class="text-neutral-400 hover:text-black">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div class="space-y-6">
+                <div>
+                    <h4 class="text-sm font-bold text-[#1A1A1A] mb-2">AI-Powered Installation</h4>
+                    <p class="text-xs md:text-sm text-neutral-600 leading-relaxed">
+                        When you install an app, an AI analyzes your website and adds the necessary functionality directly to your code. The AI can ask you questions to customize the installation based on your needs.
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="text-sm font-bold text-[#1A1A1A] mb-2">AI Question Formats</h4>
+                    <div class="space-y-3 text-xs md:text-sm text-neutral-600">
+                        <div class="bg-[#FAF9F6] p-3 rounded-lg">
+                            <strong class="text-[#1A1A1A]">[C:"Choice 1","Choice 2","Question"]</strong>
+                            <p class="mt-1">Multiple choice questions - you select from predefined options. Example: [C:"Yes","No","Do you have a privacy policy?"]</p>
+                        </div>
+                        <div class="bg-[#FAF9F6] p-3 rounded-lg">
+                            <strong class="text-[#1A1A1A]">[Q:"Question"]</strong>
+                            <p class="mt-1">Text input questions - you type your answer. Example: [Q:"What is your privacy policy URL?"]</p>
+                        </div>
+                        <div class="bg-[#FAF9F6] p-3 rounded-lg">
+                            <strong class="text-[#1A1A1A]">[I:"Instructions"]</strong>
+                            <p class="mt-1">Context before questions - helps you understand what information is needed. Example: [I:"To get your verification code, go to Google Search Console and copy the content value from the HTML tag method."]</p>
+                        </div>
+                        <div class="bg-[#FAF9F6] p-3 rounded-lg">
+                            <strong class="text-[#1A1A1A]">[F:"Reason"]</strong>
+                            <p class="mt-1">Installation failure - if the AI cannot continue, it will fail with a specific reason. Example: [F:"Installation failed: Your site will not be GDPR compliant without a privacy policy."]</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-sm font-bold text-[#1A1A1A] mb-2">Installation Flow</h4>
+                    <ol class="text-xs md:text-sm text-neutral-600 list-decimal list-inside space-y-1">
+                        <li>AI analyzes your current website code</li>
+                        <li>AI asks questions (if needed) using the formats above</li>
+                        <li>You provide answers or make choices</li>
+                        <li>AI customizes the installation based on your responses</li>
+                        <li>AI applies the changes to your website</li>
+                        <li>Installation completes or fails with clear reasons</li>
+                    </ol>
+                </div>
+
+                <div>
+                    <h4 class="text-sm font-bold text-[#1A1A1A] mb-2">Uninstall & Rollback</h4>
+                    <p class="text-xs md:text-sm text-neutral-600 leading-relaxed">
+                        If you uninstall an app, any changes made during installation will be reverted to the original state before installation. You can also skip questions if you don't want to provide certain information.
+                    </p>
+                </div>
+            </div>
+
+            <button onclick="hideHowItWorks()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-lg font-bold hover:bg-neutral-800 transition-colors mt-6">
+                Got it
+            </button>
+        </div>
+    </div>
 
                 <!-- Editor Content -->
                 <div class="flex-1 flex flex-col min-w-0 overflow-hidden w-full min-h-0 relative">
@@ -1620,7 +1689,10 @@
                     
                     <!-- Apps Section -->
                     <div class="flex-1">
-                        <h2 class="text-xl md:text-2xl font-bold text-[#1A1A1A] mb-4">Apps that will improve the way you develop</h2>
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-xl md:text-2xl font-bold text-[#1A1A1A]">Apps that will improve the way you develop</h2>
+                            <button onclick="showHowItWorks()" class="text-xs text-neutral-500 hover:text-[#1A1A1A] underline">How does it work?</button>
+                        </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <!-- Searchy Card -->
@@ -1898,6 +1970,18 @@
                 wizardContent.style.opacity = '';
                 installWizardTimeout = null;
             }, 300);
+        }
+
+        function showHowItWorks() {
+            const modal = document.getElementById('howItWorksModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.querySelector('.modal').classList.add('show'), 10);
+        }
+
+        function hideHowItWorks() {
+            const modal = document.getElementById('howItWorksModal');
+            modal.querySelector('.modal').classList.remove('show');
+            setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
         function showInstallFailed(reason = null) {
@@ -2259,7 +2343,7 @@
 
             // Create app-specific install prompt
             if (currentInstallApp === 'biscuit') {
-                installPrompt = `Add a cookie consent banner to this website. The banner should be at the bottom of the page, have a white background, black text, and include "Accept Cookies" and "Decline" buttons. Make it GDPR compliant with a link to privacy policy. First, ask if they have a privacy policy using the format [C:"Yes","No","Do you have a privacy policy?"]. If they answer "Yes", ask for the privacy policy URL using [Q:"What is your privacy policy URL?"]. If they answer "No", fail the installation using [F:"Installation failed: Your site will not be GDPR compliant without a privacy policy. Please create a privacy policy before continuing with this installation."]. DO NOT add instructions or questions as comments in the HTML. Return the complete HTML in a code block. Add this to the existing HTML.`;
+                installPrompt = `Add a cookie consent banner to this website. The banner should have a white background, black text, and include "Accept Cookies" and "Decline" buttons. Make it GDPR compliant with a link to privacy policy. First, ask for the banner position using the format [C:"Modal","Bottom Left","Bottom","Top","Bottom Right","Where should the cookie consent banner appear?"]. Then ask if they have a privacy policy using [C:"Yes","No","Do you have a privacy policy?"]. If they answer "Yes", ask for the privacy policy URL using [Q:"What is your privacy policy URL?"]. If they answer "No", fail the installation using [F:"Installation failed: Your site will not be GDPR compliant without a privacy policy. Please create a privacy policy before continuing with this installation."]. DO NOT add instructions or questions as comments in the HTML. Return the complete HTML in a code block. Add this to the existing HTML.`;
             } else if (currentInstallApp === 'searchy') {
                 installPrompt = `Add comprehensive SEO optimization to this website to help it rank on Google. Searchy is an SEO tool that helps improve your website's visibility in search engines like Google. Include: 1) Proper meta tags (title, description, keywords), 2) Open Graph tags for social sharing, 3) Structured data/Schema.org markup, 4) XML sitemap reference, 5) Robots.txt file, 6) Google Search Console verification meta tag. If you need the Google Search Console verification code, ask the user using the format [I:"Searchy is an SEO tool that helps your site rank on Google. I need your Google Search Console verification code to complete the installation. To get your verification code: 1) Go to Google Search Console (search.google.com/search-console), 2) Select your property or add a new one, 3) Go to Settings > Verification, 4) Choose 'HTML tag' method, 5) Copy the content value from the meta tag (it looks like a long string of characters). This is your verification code."] [Q:"What is your Google Search Console verification code?"]. DO NOT add instructions or questions as comments in the HTML. Return the complete HTML in a code block. Add this to the existing HTML.`;
             } else if (currentInstallApp === 'clarity') {
@@ -2319,13 +2403,14 @@
                         return { failed: true, reason: failureReason };
                     }
 
-                    // Check for AI choice format [C:"choice1","choice2","question"]
-                    const choiceMatch = responseText.match(/\[C:"([^"]+)","([^"]+)","([^"]+)"\]/);
+                    // Check for AI choice format [C:"choice1","choice2","choice3",...,"question"]
+                    const choiceMatch = responseText.match(/\[C:"(.+)"\]/);
                     if (choiceMatch && !installAIContext) {
                         // Found a choice question, show choice step
-                        const choice1 = choiceMatch[1];
-                        const choice2 = choiceMatch[2];
-                        const question = choiceMatch[3];
+                        const choiceString = choiceMatch[1];
+                        const parts = choiceString.split('",").map(s => s.replace(/^"|"$/g, ''));
+                        const question = parts[parts.length - 1];
+                        const choices = parts.slice(0, -1);
                         
                         document.getElementById('aiQuestionText').textContent = question;
                         
@@ -2334,17 +2419,19 @@
                         const textAnswer = document.getElementById('aiQuestionAnswer');
                         
                         if (choiceButtons) {
-                            choiceButtons.innerHTML = `
-                                <button onclick="selectChoice('${choice1}')" class="flex-1 bg-[#1A1A1A] text-[#FAF9F6] px-4 py-3 rounded-lg text-sm font-bold hover:bg-neutral-800 transition-colors mb-2">
-                                    ${choice1}
-                                </button>
-                                <button onclick="selectChoice('${choice2}')" class="flex-1 bg-[#1A1A1A] text-[#FAF9F6] px-4 py-3 rounded-lg text-sm font-bold hover:bg-neutral-800 transition-colors mb-2">
-                                    ${choice2}
-                                </button>
+                            let buttonsHTML = choices.map(choice => 
+                                `<button onclick="selectChoice('${choice}')" class="flex-1 bg-[#1A1A1A] text-[#FAF9F6] px-4 py-3 rounded-lg text-sm font-bold hover:bg-neutral-800 transition-colors mb-2">
+                                    ${choice}
+                                </button>`
+                            ).join('');
+                            
+                            buttonsHTML += `
                                 <button onclick="skipQuestion()" class="flex-1 bg-neutral-200 text-[#1A1A1A] px-4 py-3 rounded-lg text-sm font-bold hover:bg-neutral-300 transition-colors">
                                     Skip
                                 </button>
                             `;
+                            
+                            choiceButtons.innerHTML = buttonsHTML;
                             choiceButtons.classList.remove('hidden');
                         }
                         
@@ -2354,7 +2441,7 @@
 
                         // Store conversation context with choice format
                         installAIContext = responseText
-                            .replace(/\[C:"[^"]+","[^"]+","[^"]+"\]/, '')
+                            .replace(/\[C:"(.+)"\]/, '')
                             .trim();
                         
                         // Store that this was a choice question
