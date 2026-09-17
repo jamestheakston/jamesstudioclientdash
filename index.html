@@ -703,222 +703,284 @@
                     </div>
                 </div>
 
-                <!-- App Install Wizard Modal -->
-                <div id="installWizardModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 md:p-4 z-50">
-                    <div class="bg-white rounded-xl p-6 md:p-8 max-w-2xl w-full max-h-[98vh] overflow-y-auto" id="installWizardContent" style="transition: transform 0.3s ease-out, opacity 0.3s ease-out; transform: scale(0.95); opacity: 0;">
-                        <div class="flex items-center justify-between mb-4">
-                            <h4 class="text-base md:text-lg font-bold">App Install Wizard</h4>
-                            <button onclick="hideInstallWizard()" class="text-neutral-400 hover:text-black">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </button>
-                        </div>
-                        
-                        <!-- Step 1: Puter Login -->
-                        <div id="installStep1" class="install-step">
-                            <div class="mb-4">
-                                <h5 class="text-sm font-bold text-[#1A1A1A] mb-2">Step 1: Login to Puter</h5>
-                                <p class="text-xs md:text-sm text-neutral-600 mb-4">
-                                    To install apps, you need to login to Puter. By continuing, you agree to Puter's Privacy Policy and Terms of Service.
-                                </p>
-                                <p class="text-xs text-green-600 mb-4 flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
-                                    </svg>
-                                    This installation won't count toward your daily AI eco limit.
-                                </p>
-                                <button onclick="loginToPuterForInstall()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-lg font-bold hover:bg-neutral-800 transition-colors">
-                                    Login to Puter
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Step 2: Installation -->
-                        <div id="installStep2" class="install-step hidden">
-                            <div class="mb-4">
-                                <h5 class="text-sm font-bold text-[#1A1A1A] mb-2">Step 2: Installing App</h5>
-                                <p class="text-xs md:text-sm text-neutral-600 mb-4">
-                                    Installing <span id="installAppName" class="font-bold"></span>...
-                                </p>
-                                
-                                <!-- Loading Spinner -->
-                                <div class="flex flex-col items-center justify-center mb-4">
-                                    <div class="relative w-12 h-12">
-                                        <div class="absolute inset-0 border-4 border-[#1A1A1A]/10 rounded-full"></div>
-                                        <div class="absolute inset-0 border-4 border-[#1A1A1A] border-t-transparent rounded-full animate-spin"></div>
-                                    </div>
-                                    <p class="text-sm text-neutral-600 mt-2">Installing...</p>
-                                </div>
-                                
-                                <!-- Installation Steps -->
-                                <div class="space-y-2" id="installSteps">
-                                    <div class="flex items-center gap-2 text-sm" id="installStepItem1">
-                                        <div class="w-5 h-5 rounded-full border-2 border-[#1A1A1A]/20 flex items-center justify-center">
-                                            <div class="w-2 h-2 rounded-full bg-[#1A1A1A]/20"></div>
-                                        </div>
-                                        <span class="text-neutral-600">Analyzing project structure</span>
-                                    </div>
-                                    <div class="flex items-center gap-2 text-sm" id="installStepItem2">
-                                        <div class="w-5 h-5 rounded-full border-2 border-[#1A1A1A]/20 flex items-center justify-center">
-                                            <div class="w-2 h-2 rounded-full bg-[#1A1A1A]/20"></div>
-                                        </div>
-                                        <span class="text-neutral-600">Generating installation code</span>
-                                    </div>
-                                    <div class="flex items-center gap-2 text-sm" id="installStepItem3">
-                                        <div class="w-5 h-5 rounded-full border-2 border-[#1A1A1A]/20 flex items-center justify-center">
-                                            <div class="w-2 h-2 rounded-full bg-[#1A1A1A]/20"></div>
-                                        </div>
-                                        <span class="text-neutral-600">Applying changes to your project</span>
-                                    </div>
-                                    <div class="flex items-center gap-2 text-sm" id="installStepItem4">
-                                        <div class="w-5 h-5 rounded-full border-2 border-[#1A1A1A]/20 flex items-center justify-center">
-                                            <div class="w-2 h-2 rounded-full bg-[#1A1A1A]/20"></div>
-                                        </div>
-                                        <span class="text-neutral-600">Verifying installation</span>
-                                    </div>
-                                </div>
+                <!-- Editor Content -->
+                <div class="flex-1 flex flex-col min-w-0 overflow-hidden w-full min-h-0 relative bg-[#FAF9F6]">
+                    <!-- Editor Tabs -->
+                    <div class="bg-white border-b border-[#1A1A1A]/10 px-2 md:px-4 flex gap-1 md:gap-2 overflow-x-auto shrink-0">
+                        <button onclick="switchEditorTab('visual')" id="tab-visual" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-[#1A1A1A] text-[#1A1A1A] whitespace-nowrap">
+                            Visual
+                        </button>
+                        <button onclick="switchEditorTab('code')" id="tab-code" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors whitespace-nowrap">
+                            Code
+                        </button>
+                        <button onclick="switchEditorTab('preview')" id="tab-preview" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors whitespace-nowrap">
+                            Preview
+                        </button>
+                        <button onclick="switchEditorTab('marketplace')" id="tab-marketplace" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors whitespace-nowrap">
+                            Marketplace
+                        </button>
+                    </div>
 
-                                <!-- Estimated Time Remaining -->
-                                <div class="mt-4 text-center">
-                                    <p class="text-xs text-neutral-500">Estimated time remaining: <span id="installTimeRemaining">~7 seconds</span></p>
-                                </div>
-                            </div>
+                    <!-- Visual Preview Panel -->
+                    <div id="panel-visual" class="flex-1 bg-[#FAF9F6] p-2 md:p-4 overflow-auto relative min-h-0">
+                        <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden editor-panel">
+                            <iframe id="visualPreview" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
                         </div>
                         
-                        <!-- Step 2.5: AI Question -->
-                        <div id="installStepQuestion" class="install-step hidden">
-                            <div class="mb-4">
-                                <h5 class="text-sm font-bold text-[#1A1A1A] mb-2">Information Needed</h5>
-                                <p class="text-xs md:text-sm text-neutral-600 mb-4">
-                                    The AI needs some information to complete the installation:
-                                </p>
-                                
-                                <div class="bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg p-4 mb-4">
-                                    <p id="aiQuestionInstructions" class="text-xs text-neutral-600 mb-2 hidden"></p>
-                                    <p id="aiQuestionText" class="text-sm text-[#1A1A1A] font-medium mb-3"></p>
-                                    <textarea id="aiQuestionAnswer" class="w-full bg-white border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A1A1A] transition-colors resize-none" rows="3" placeholder="Your answer..."></textarea>
-                                    <div id="aiChoiceButtons" class="hidden flex flex-col gap-2"></div>
-                                </div>
-                                
-                                <button onclick="submitAIAnswer()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-lg font-bold hover:bg-neutral-800 transition-colors">
-                                    Continue
+                        <!-- Visual Edit Panel (shown when element is selected) -->
+                        <div id="visualEditPanel" class="absolute top-12 right-2 md:right-6 bg-white rounded-xl border border-[#1A1A1A]/10 shadow-lg p-3 md:p-4 hidden w-64 z-10">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="text-sm font-bold">Edit Element</h4>
+                                <button onclick="closeVisualEditPanel()" class="text-neutral-400 hover:text-black">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                 </button>
                             </div>
-                        </div>
-                        
-                        <!-- Step 3: Complete -->
-                        <div id="installStep3" class="install-step hidden">
-                            <div class="text-center mb-4">
-                                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                    </svg>
-                                </div>
-                                <h5 class="text-lg font-bold text-[#1A1A1A] mb-2">Installation Complete!</h5>
-                                <p class="text-sm text-neutral-600 mb-4">
-                                    <span id="installedAppName"></span> has been successfully installed on your project.
-                                </p>
-                                <button onclick="hideInstallWizard()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-lg font-bold hover:bg-neutral-800 transition-colors">
-                                    Done
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Step 4: Failed -->
-                        <div id="installStepFailed" class="install-step hidden">
-                            <div class="text-center mb-4">
-                                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                    </svg>
-                                </div>
-                                <h5 class="text-lg font-bold text-[#1A1A1A] mb-2">Installation Failed</h5>
-                                <p class="text-sm text-neutral-600 mb-2">
-                                    <span id="failedAppName"></span> could not be installed.
-                                </p>
-                                <p id="failedReason" class="text-sm text-red-600 mb-4 italic hidden"></p>
-                                <button onclick="hideInstallWizard()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-lg font-bold hover:bg-neutral-800 transition-colors">
-                                    Close
-                                </button>
+                            <div id="visualEditContent">
+                                <!-- Dynamic content based on selected element -->
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- App Info Modal -->
-                <div id="appInfoModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 md:p-4 z-[100]">
-                    <div class="bg-white rounded-xl p-4 md:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto" id="appInfoModalContent" style="transition: transform 0.3s ease-out, opacity 0.3s ease-out; transform: scale(0.95); opacity: 0;">
-                        <div class="flex items-center justify-between mb-4">
-                            <h4 id="appModalTitle" class="text-base md:text-lg font-bold">App Info</h4>
-                            <button onclick="hideAppInfoModal()" class="text-neutral-400 hover:text-black">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
+                    <!-- Code Editor Panel -->
+                    <div id="panel-code" class="flex-1 bg-[#1E1E1E] p-2 md:p-4 overflow-auto hidden min-h-0">
+                        <div id="monacoEditorContainer" class="rounded-xl overflow-hidden editor-panel"></div>
+                    </div>
+
+                    <!-- Preview Panel -->
+                    <div id="panel-preview" class="flex-1 bg-[#FAF9F6] p-2 md:p-4 overflow-auto hidden min-h-0">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-bold text-[#1A1A1A]">Preview</h3>
+                            <button onclick="openPreviewInNewTab()" class="text-xs bg-[#1A1A1A] text-[#FAF9F6] px-3 py-1.5 rounded-lg hover:bg-neutral-800 transition-colors">
+                                Open in new tab
                             </button>
                         </div>
-                        
-                        <div class="flex flex-col md:flex-row gap-4 mb-4">
-                            <div id="appModalIcon" class="w-20 h-20 bg-[#FAF9F6] rounded-xl flex items-center justify-center border border-[#1A1A1A]/10 flex-shrink-0"></div>
-                            <div class="flex-1">
-                                <h5 id="appModalName" class="text-xl font-bold text-[#1A1A1A] mb-1"></h5>
-                                <p id="appModalDeveloper" class="text-green-600 text-sm mb-2 flex items-center gap-1">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                    </svg>
-                                    <span id="appModalDeveloperName"></span>
-                                    <span id="appModalVerifiedBadge" class="hidden text-orange-500 text-xs ml-2">(Unverified)</span>
-                                </p>
-                            </div>
+                        <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden editor-panel flex-1">
+                            <iframe id="previewFrame" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
                         </div>
+                    </div>
 
-                        <div class="mb-4">
-                            <h6 class="text-sm font-bold text-[#1A1A1A] mb-2">About this app</h6>
-                            <p id="appModalDescription" class="text-xs md:text-sm text-neutral-600 leading-relaxed"></p>
-                        </div>
-
-                        <div class="mb-4">
-                            <h6 class="text-sm font-bold text-[#1A1A1A] mb-2">Additional Information</h6>
-                            <div class="space-y-2 text-xs md:text-sm">
-                                <div class="flex justify-between">
-                                    <span class="text-neutral-500">Updated</span>
-                                    <span class="text-[#1A1A1A]">September 16, 2026</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-neutral-500">Version</span>
-                                    <span class="text-[#1A1A1A]">1.0.0</span>
-                                </div>
-                                <div id="appModalDisclaimer" class="text-neutral-500 italic hidden"></div>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <h6 class="text-sm font-bold text-[#1A1A1A] mb-2">Developer Contact</h6>
-                            <div class="space-y-2 text-xs md:text-sm">
-                                <div class="flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                                    </svg>
-                                    <span class="text-neutral-600">hello@jamesstudio.uk</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
-                                    </svg>
-                                    <span class="text-neutral-600">jamesstudio.uk</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button id="appModalInstallButton" onclick="startInstallWizard()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-lg font-bold hover:bg-neutral-800 transition-colors">
-                            Install
-                        </button>
-                        <button id="appModalUninstallButton" onclick="uninstallCurrentApp()" class="hidden w-full bg-red-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-600 transition-colors">
-                            Uninstall
-                        </button>
+                    <!-- Marketplace Panel -->
+                    <div id="panel-marketplace" class="flex-1 bg-[#FAF9F6] p-2 md:p-4 overflow-auto hidden min-h-0">
+                        <div id="marketplaceContent" class="flex items-center justify-center h-full"></div>
                     </div>
                 </div>
             </div>
+        </div>
+    </main>
+
+    <!-- App Install Wizard Modal -->
+    <div id="installWizardModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 md:p-4 z-50">
+        <div class="bg-white rounded-xl p-6 md:p-8 max-w-2xl w-full max-h-[98vh] overflow-y-auto" id="installWizardContent" style="transition: transform 0.3s ease-out, opacity 0.3s ease-out; transform: scale(0.95); opacity: 0;">
+            <div class="flex items-center justify-between mb-4">
+                <h4 class="text-base md:text-lg font-bold">App Install Wizard</h4>
+                <button onclick="hideInstallWizard()" class="text-neutral-400 hover:text-black">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Step 1: Puter Login -->
+            <div id="installStep1" class="install-step">
+                <div class="mb-4">
+                    <h5 class="text-sm font-bold text-[#1A1A1A] mb-2">Step 1: Login to Puter</h5>
+                    <p class="text-xs md:text-sm text-neutral-600 mb-4">
+                        To install apps, you need to login to Puter. By continuing, you agree to Puter's Privacy Policy and Terms of Service.
+                    </p>
+                    <p class="text-xs text-green-600 mb-4 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
+                        </svg>
+                        This installation won't count toward your daily AI eco limit.
+                    </p>
+                    <button onclick="loginToPuterForInstall()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-lg font-bold hover:bg-neutral-800 transition-colors">
+                        Login to Puter
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Step 2: Installation -->
+            <div id="installStep2" class="install-step hidden">
+                <div class="mb-4">
+                    <h5 class="text-sm font-bold text-[#1A1A1A] mb-2">Step 2: Installing App</h5>
+                    <p class="text-xs md:text-sm text-neutral-600 mb-4">
+                        Installing <span id="installAppName" class="font-bold"></span>...
+                    </p>
+                    
+                    <!-- Loading Spinner -->
+                    <div class="flex flex-col items-center justify-center mb-4">
+                        <div class="relative w-12 h-12">
+                            <div class="absolute inset-0 border-4 border-[#1A1A1A]/10 rounded-full"></div>
+                            <div class="absolute inset-0 border-4 border-[#1A1A1A] border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                        <p class="text-sm text-neutral-600 mt-2">Installing...</p>
+                    </div>
+                    
+                    <!-- Installation Steps -->
+                    <div class="space-y-2" id="installSteps">
+                        <div class="flex items-center gap-2 text-sm" id="installStepItem1">
+                            <div class="w-5 h-5 rounded-full border-2 border-[#1A1A1A]/20 flex items-center justify-center">
+                                <div class="w-2 h-2 rounded-full bg-[#1A1A1A]/20"></div>
+                            </div>
+                            <span class="text-neutral-600">Analyzing project structure</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm" id="installStepItem2">
+                            <div class="w-5 h-5 rounded-full border-2 border-[#1A1A1A]/20 flex items-center justify-center">
+                                <div class="w-2 h-2 rounded-full bg-[#1A1A1A]/20"></div>
+                            </div>
+                            <span class="text-neutral-600">Generating installation code</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm" id="installStepItem3">
+                            <div class="w-5 h-5 rounded-full border-2 border-[#1A1A1A]/20 flex items-center justify-center">
+                                <div class="w-2 h-2 rounded-full bg-[#1A1A1A]/20"></div>
+                            </div>
+                            <span class="text-neutral-600">Applying changes to your project</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm" id="installStepItem4">
+                            <div class="w-5 h-5 rounded-full border-2 border-[#1A1A1A]/20 flex items-center justify-center">
+                                <div class="w-2 h-2 rounded-full bg-[#1A1A1A]/20"></div>
+                            </div>
+                            <span class="text-neutral-600">Verifying installation</span>
+                        </div>
+                    </div>
+
+                    <!-- Estimated Time Remaining -->
+                    <div class="mt-4 text-center">
+                        <p class="text-xs text-neutral-500">Estimated time remaining: <span id="installTimeRemaining">~7 seconds</span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 2.5: AI Question -->
+            <div id="installStepQuestion" class="install-step hidden">
+                <div class="mb-4">
+                    <h5 class="text-sm font-bold text-[#1A1A1A] mb-2">Information Needed</h5>
+                    <p class="text-xs md:text-sm text-neutral-600 mb-4">
+                        The AI needs some information to complete the installation:
+                    </p>
+                    
+                    <div class="bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg p-4 mb-4">
+                        <p id="aiQuestionInstructions" class="text-xs text-neutral-600 mb-2 hidden"></p>
+                        <p id="aiQuestionText" class="text-sm text-[#1A1A1A] font-medium mb-3"></p>
+                        <textarea id="aiQuestionAnswer" class="w-full bg-white border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A1A1A] transition-colors resize-none" rows="3" placeholder="Your answer..."></textarea>
+                        <div id="aiChoiceButtons" class="hidden flex flex-col gap-2"></div>
+                    </div>
+                    
+                    <button onclick="submitAIAnswer()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-lg font-bold hover:bg-neutral-800 transition-colors">
+                        Continue
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Step 3: Complete -->
+            <div id="installStep3" class="install-step hidden">
+                <div class="text-center mb-4">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <h5 class="text-lg font-bold text-[#1A1A1A] mb-2">Installation Complete!</h5>
+                    <p class="text-sm text-neutral-600 mb-4">
+                        <span id="installedAppName"></span> has been successfully installed on your project.
+                    </p>
+                    <button onclick="hideInstallWizard()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-lg font-bold hover:bg-neutral-800 transition-colors">
+                        Done
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 4: Failed -->
+            <div id="installStepFailed" class="install-step hidden">
+                <div class="text-center mb-4">
+                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </div>
+                    <h5 class="text-lg font-bold text-[#1A1A1A] mb-2">Installation Failed</h5>
+                    <p class="text-sm text-neutral-600 mb-2">
+                        <span id="failedAppName"></span> could not be installed.
+                    </p>
+                    <p id="failedReason" class="text-sm text-red-600 mb-4 italic hidden"></p>
+                    <button onclick="hideInstallWizard()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-lg font-bold hover:bg-neutral-800 transition-colors">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Info Modal -->
+    <div id="appInfoModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 md:p-4 z-[100]">
+        <div class="bg-white rounded-xl p-4 md:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto" id="appInfoModalContent" style="transition: transform 0.3s ease-out, opacity 0.3s ease-out; transform: scale(0.95); opacity: 0;">
+            <div class="flex items-center justify-between mb-4">
+                <h4 id="appModalTitle" class="text-base md:text-lg font-bold">App Info</h4>
+                <button onclick="hideAppInfoModal()" class="text-neutral-400 hover:text-black">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="flex flex-col md:flex-row gap-4 mb-4">
+                <div id="appModalIcon" class="w-20 h-20 bg-[#FAF9F6] rounded-xl flex items-center justify-center border border-[#1A1A1A]/10 flex-shrink-0"></div>
+                <div class="flex-1">
+                    <h5 id="appModalName" class="text-xl font-bold text-[#1A1A1A] mb-1"></h5>
+                    <p id="appModalDeveloper" class="text-green-600 text-sm mb-2 flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span id="appModalDeveloperName"></span>
+                        <span id="appModalVerifiedBadge" class="hidden text-orange-500 text-xs ml-2">(Unverified)</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="text-sm font-bold text-[#1A1A1A] mb-2">About this app</h6>
+                <p id="appModalDescription" class="text-xs md:text-sm text-neutral-600 leading-relaxed"></p>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="text-sm font-bold text-[#1A1A1A] mb-2">Additional Information</h6>
+                <div class="space-y-2 text-xs md:text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-neutral-500">Updated</span>
+                        <span class="text-[#1A1A1A]">September 16, 2026</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-neutral-500">Version</span>
+                        <span class="text-[#1A1A1A]">1.0.0</span>
+                    </div>
+                    <div id="appModalDisclaimer" class="text-neutral-500 italic hidden"></div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="text-sm font-bold text-[#1A1A1A] mb-2">Developer Contact</h6>
+                <div class="space-y-2 text-xs md:text-sm">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                        <span class="text-neutral-600">hello@jamesstudio.uk</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                        </svg>
+                        <span class="text-neutral-600">jamesstudio.uk</span>
+                    </div>
+                </div>
+            </div>
+
+            <button id="appModalInstallButton" onclick="startInstallWizard()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-lg font-bold hover:bg-neutral-800 transition-colors">
+                Install
+            </button>
+            <button id="appModalUninstallButton" onclick="uninstallCurrentApp()" class="hidden w-full bg-red-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-600 transition-colors">
+                Uninstall
+            </button>
         </div>
     </div>
 
@@ -988,71 +1050,6 @@
             </button>
         </div>
     </div>
-
-                <!-- Editor Content -->
-                <div class="flex-1 flex flex-col min-w-0 overflow-hidden w-full min-h-0 relative bg-[#FAF9F6]">
-                    <!-- Editor Tabs -->
-                    <div class="bg-white border-b border-[#1A1A1A]/10 px-2 md:px-4 flex gap-1 md:gap-2 overflow-x-auto shrink-0">
-                        <button onclick="switchEditorTab('visual')" id="tab-visual" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-[#1A1A1A] text-[#1A1A1A] whitespace-nowrap">
-                            Visual
-                        </button>
-                        <button onclick="switchEditorTab('code')" id="tab-code" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors whitespace-nowrap">
-                            Code
-                        </button>
-                        <button onclick="switchEditorTab('preview')" id="tab-preview" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors whitespace-nowrap">
-                            Preview
-                        </button>
-                        <button onclick="switchEditorTab('marketplace')" id="tab-marketplace" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors whitespace-nowrap">
-                            Marketplace
-                        </button>
-                    </div>
-
-                    <!-- Visual Preview Panel -->
-                    <div id="panel-visual" class="flex-1 bg-[#FAF9F6] p-2 md:p-4 overflow-auto relative min-h-0">
-                        <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden editor-panel">
-                            <iframe id="visualPreview" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
-                        </div>
-                        
-                        <!-- Visual Edit Panel (shown when element is selected) -->
-                        <div id="visualEditPanel" class="absolute top-12 right-2 md:right-6 bg-white rounded-xl border border-[#1A1A1A]/10 shadow-lg p-3 md:p-4 hidden w-64 z-10">
-                            <div class="flex items-center justify-between mb-3">
-                                <h4 class="text-sm font-bold">Edit Element</h4>
-                                <button onclick="closeVisualEditPanel()" class="text-neutral-400 hover:text-black">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                </button>
-                            </div>
-                            <div id="visualEditContent">
-                                <!-- Dynamic content based on selected element -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Code Editor Panel -->
-                    <div id="panel-code" class="flex-1 bg-[#1E1E1E] p-2 md:p-4 overflow-auto hidden min-h-0">
-                        <div id="monacoEditorContainer" class="rounded-xl overflow-hidden editor-panel"></div>
-                    </div>
-
-                    <!-- Preview Panel -->
-                    <div id="panel-preview" class="flex-1 bg-[#FAF9F6] p-2 md:p-4 overflow-auto hidden min-h-0">
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-sm font-bold text-[#1A1A1A]">Preview</h3>
-                            <button onclick="openPreviewInNewTab()" class="text-xs bg-[#1A1A1A] text-[#FAF9F6] px-3 py-1.5 rounded-lg hover:bg-neutral-800 transition-colors">
-                                Open in new tab
-                            </button>
-                        </div>
-                        <div class="bg-white rounded-xl border border-[#1A1A1A]/10 shadow-sm overflow-hidden editor-panel flex-1">
-                            <iframe id="previewFrame" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
-                        </div>
-                    </div>
-
-                    <!-- Marketplace Panel -->
-                    <div id="panel-marketplace" class="flex-1 bg-[#FAF9F6] p-2 md:p-4 overflow-auto hidden min-h-0">
-                        <div id="marketplaceContent" class="flex items-center justify-center h-full"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
 
     <!-- Save Confirmation Modal -->
     <div id="saveModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
