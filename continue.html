@@ -53,7 +53,7 @@
     <!-- Project Selection View -->
     <main class="w-full max-w-4xl">
         <div class="text-center mb-8 md:mb-12">
-            <h1 class="text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight leading-[0.9] text-[#1A1A1A] mb-4">
+            <h1 id="headingText" class="text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight leading-[0.9] text-[#1A1A1A] mb-4">
                 Select a project to continue to...
             </h1>
         </div>
@@ -98,6 +98,14 @@
         function parseURLParams() {
             const urlParams = new URLSearchParams(window.location.search);
             redirectDestination = urlParams.get('redirect') || 'dashboard';
+            
+            // Update heading based on redirect destination
+            const headingText = document.getElementById('headingText');
+            if (redirectDestination === 'marketplace') {
+                headingText.textContent = 'Select a project to continue to Marketplace';
+            } else {
+                headingText.textContent = 'Select a project to continue to Dashboard';
+            }
         }
 
         // Load user's access from Supabase
@@ -204,15 +212,28 @@
         // Select Project and Redirect
         function selectProject(projectId) {
             const projectData = allProjects.find(p => p.id === projectId);
-            
+
             if (!projectData) {
                 alert('Project not found');
                 return;
             }
-            
+
+            // Show loading spinner
+            const projectsGrid = document.getElementById('projectsGrid');
+            projectsGrid.innerHTML = `
+                <div class="col-span-full text-center py-12">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A1A1A]"></div>
+                    <p class="text-neutral-500 mt-4 text-sm md:text-base">Please wait a moment...</p>
+                </div>
+            `;
+
             // Build redirect URL with project and destination
             const redirectUrl = `index.html?project=${projectData.repo}&redirect=${redirectDestination}`;
-            window.location.href = redirectUrl;
+            
+            // Small delay to show the spinner before redirecting
+            setTimeout(() => {
+                window.location.href = redirectUrl;
+            }, 500);
         }
 
         // Logout
