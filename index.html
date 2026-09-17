@@ -967,6 +967,59 @@
             <button id="appModalUninstallButton" onclick="uninstallCurrentApp()" class="hidden w-full bg-red-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-600 transition-colors">
                 Uninstall
             </button>
+            <button onclick="reportAppIssue()" class="w-full mt-3 bg-neutral-200 text-[#1A1A1A] px-6 py-3 rounded-lg font-bold hover:bg-neutral-300 transition-colors flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                Report Issue
+            </button>
+        </div>
+    </div>
+
+    <!-- Report Bug Modal -->
+    <div id="reportBugModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 md:p-4 z-[100]">
+        <div class="bg-white rounded-xl p-4 md:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h4 class="text-base md:text-lg font-bold">Report Issue</h4>
+                <button onclick="hideReportBugModal()" class="text-neutral-400 hover:text-black">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-[#1A1A1A] mb-2">What are you reporting?</label>
+                    <select id="reportType" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A1A1A]">
+                        <option value="app-information">App Information Issue</option>
+                        <option value="installation-failure">Installation Failure</option>
+                        <option value="bug">Bug</option>
+                        <option value="feature-request">Feature Request</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-[#1A1A1A] mb-2">What App are you reporting?</label>
+                    <select id="reportApp" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A1A1A]">
+                        <option value="searchy">Searchy</option>
+                        <option value="biscuit">Biscuit</option>
+                        <option value="clarity">Clarity</option>
+                        <option value="questiontest">Question Test</option>
+                        <option value="forcetest">Force Failure Test</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-[#1A1A1A] mb-2">Description</label>
+                    <textarea id="reportDescription" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A1A1A] resize-none" rows="4" placeholder="Please describe the issue in detail..."></textarea>
+                </div>
+
+                <button onclick="submitReport()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-lg font-bold hover:bg-neutral-800 transition-colors">
+                    Submit Report
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1765,6 +1818,8 @@
         }
         
         function navigateToApp(appName) {
+            // Set current app for reporting
+            currentInstallApp = appName;
             // Update app cards to show current installation status
             updateAppCards();
             // Show app info modal
@@ -1896,6 +1951,46 @@
                 modalContent.style.opacity = '';
                 appInfoModalTimeout = null;
             }, 300);
+        }
+
+        function reportAppIssue() {
+            // Close app info modal
+            hideAppInfoModal();
+
+            // Pre-select the current app in the report modal
+            const reportAppSelect = document.getElementById('reportApp');
+            if (reportAppSelect && currentInstallApp) {
+                reportAppSelect.value = currentInstallApp;
+            }
+
+            // Show report bug modal
+            const reportBugModal = document.getElementById('reportBugModal');
+            reportBugModal.classList.remove('hidden');
+        }
+
+        function hideReportBugModal() {
+            const reportBugModal = document.getElementById('reportBugModal');
+            reportBugModal.classList.add('hidden');
+
+            // Clear form
+            document.getElementById('reportDescription').value = '';
+        }
+
+        function submitReport() {
+            const reportType = document.getElementById('reportType').value;
+            const reportApp = document.getElementById('reportApp').value;
+            const reportDescription = document.getElementById('reportDescription').value;
+
+            if (!reportDescription.trim()) {
+                alert('Please provide a description of the issue.');
+                return;
+            }
+
+            // In a real implementation, this would send the report to a server
+            console.log('Report submitted:', { reportType, reportApp, reportDescription });
+
+            alert('Thank you for your report! We will look into it.');
+            hideReportBugModal();
         }
         
         let currentInstallApp = null;
