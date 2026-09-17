@@ -980,7 +980,7 @@
     <div id="reportBugModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 md:p-4 z-[100]">
         <div class="bg-white rounded-xl p-4 md:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-4">
-                <h4 class="text-base md:text-lg font-bold">Report Issue</h4>
+                <h4 class="text-base md:text-lg font-bold">Report Concern</h4>
                 <button onclick="hideReportBugModal()" class="text-neutral-400 hover:text-black">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -988,10 +988,13 @@
                 </button>
             </div>
 
-            <div class="space-y-4">
+            <form action="https://formspree.io/f/mppwzkrw" method="POST" class="space-y-4">
+                <input type="hidden" name="_subject" value="New Bug Report from James Studio Client Dashboard">
+                <input type="hidden" name="user_email" id="formUserEmail">
+
                 <div>
-                    <label class="block text-sm font-bold text-[#1A1A1A] mb-2">What are you reporting?</label>
-                    <select id="reportType" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A1A1A]">
+                    <label class="block text-sm font-bold text-[#1A1A1A1A] mb-2">What are you reporting?</label>
+                    <select name="report_type" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A1A1A]">
                         <option value="app-information">App Information Issue</option>
                         <option value="installation-failure">Installation Failure</option>
                         <option value="bug">Bug</option>
@@ -1002,7 +1005,8 @@
 
                 <div>
                     <label class="block text-sm font-bold text-[#1A1A1A] mb-2">What App are you reporting?</label>
-                    <select id="reportApp" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A1A1A]">
+                    <select name="app_name" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A1A1A]">
+                        <option value="">-- Select an app --</option>
                         <option value="searchy">Searchy</option>
                         <option value="biscuit">Biscuit</option>
                         <option value="clarity">Clarity</option>
@@ -1013,13 +1017,13 @@
 
                 <div>
                     <label class="block text-sm font-bold text-[#1A1A1A] mb-2">Description</label>
-                    <textarea id="reportDescription" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A1A1A] resize-none" rows="4" placeholder="Please describe the issue in detail..."></textarea>
+                    <textarea name="description" class="w-full bg-[#FAF9F6] border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A1A1A] resize-none" rows="4" placeholder="Please describe the issue in detail..."></textarea>
                 </div>
 
-                <button onclick="submitReport()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-lg font-bold hover:bg-neutral-800 transition-colors">
+                <button type="submit" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-lg font-bold hover:bg-neutral-800 transition-colors">
                     Submit Report
                 </button>
-            </div>
+            </form>
         </div>
     </div>
 
@@ -1967,9 +1971,17 @@
             hideAppInfoModal();
 
             // Pre-select the current app in the report modal
-            const reportAppSelect = document.getElementById('reportApp');
+            const reportAppSelect = document.querySelector('#reportBugModal select[name="app_name"]');
             if (reportAppSelect && currentInstallApp) {
                 reportAppSelect.value = currentInstallApp;
+            }
+
+            // Set user email in hidden field
+            const userEmailField = document.getElementById('formUserEmail');
+            if (userEmailField && currentUser?.email) {
+                userEmailField.value = currentUser.email;
+            } else if (userEmailField) {
+                userEmailField.value = localStorage.getItem('userEmail') || '';
             }
 
             // Show report bug modal
@@ -1981,6 +1993,14 @@
             // Do not pre-select any app when opening from marketplace
             const reportBugModal = document.getElementById('reportBugModal');
             reportBugModal.classList.remove('hidden');
+
+            // Set user email in hidden field
+            const userEmailField = document.getElementById('formUserEmail');
+            if (userEmailField && currentUser?.email) {
+                userEmailField.value = currentUser.email;
+            } else if (userEmailField) {
+                userEmailField.value = localStorage.getItem('userEmail') || '';
+            }
         }
 
         function hideReportBugModal() {
@@ -1988,24 +2008,10 @@
             reportBugModal.classList.add('hidden');
 
             // Clear form
-            document.getElementById('reportDescription').value = '';
-        }
-
-        function submitReport() {
-            const reportType = document.getElementById('reportType').value;
-            const reportApp = document.getElementById('reportApp').value;
-            const reportDescription = document.getElementById('reportDescription').value;
-
-            if (!reportDescription.trim()) {
-                alert('Please provide a description of the issue.');
-                return;
+            const form = reportBugModal.querySelector('form');
+            if (form) {
+                form.reset();
             }
-
-            // In a real implementation, this would send the report to a server
-            console.log('Report submitted:', { reportType, reportApp, reportDescription });
-
-            alert('Thank you for your report! We will look into it.');
-            hideReportBugModal();
         }
         
         let currentInstallApp = null;
