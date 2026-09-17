@@ -1810,6 +1810,16 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Report Issue Section -->
+                    <div class="mt-8 pt-6 border-t border-[#1A1A1A]/10">
+                        <button onclick="openReportBugModal()" class="w-full bg-neutral-200 text-[#1A1A1A] px-6 py-3 rounded-lg font-bold hover:bg-neutral-300 transition-colors flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                            Report Issue
+                        </button>
+                    </div>
                 </div>
             `;
 
@@ -1963,6 +1973,12 @@
             }
 
             // Show report bug modal
+            const reportBugModal = document.getElementById('reportBugModal');
+            reportBugModal.classList.remove('hidden');
+        }
+
+        function openReportBugModal() {
+            // Do not pre-select any app when opening from marketplace
             const reportBugModal = document.getElementById('reportBugModal');
             reportBugModal.classList.remove('hidden');
         }
@@ -3612,7 +3628,7 @@
             }
             
             projectsGrid.innerHTML = projects.map(project => `
-                <div class="bg-white p-6 rounded-2xl border border-[#1A1A1A]/10 hover:border-[#1A1A1A] transition-all shadow-sm">
+                <div class="bg-white p-6 rounded-2xl border border-[#1A1A1A]/10 hover:border-[#1A1A1A] transition-all shadow-sm cursor-pointer" onclick="viewProject(${project.id})">
                     <div class="flex items-start justify-between mb-4">
                         <div class="w-12 h-12 rounded-full bg-neutral-100 flex items-center justify-center">
                             <svg class="w-6 h-6 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
