@@ -3517,7 +3517,7 @@
             }
             
             projectsGrid.innerHTML = projects.map(project => `
-                <div class="bg-white p-6 rounded-2xl border border-[#1A1A1A]/10 hover:border-[#1A1A1A] transition-all cursor-pointer shadow-sm" onclick="viewProject(${project.id})">
+                <div class="bg-white p-6 rounded-2xl border border-[#1A1A1A]/10 hover:border-[#1A1A1A] transition-all shadow-sm">
                     <div class="flex items-start justify-between mb-4">
                         <div class="w-12 h-12 rounded-full bg-neutral-100 flex items-center justify-center">
                             <svg class="w-6 h-6 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
@@ -3526,9 +3526,20 @@
                     </div>
                     <h3 class="text-xl font-bold mb-2">${project.name}</h3>
                     <p class="text-neutral-500 text-sm leading-relaxed mb-4">${project.description}</p>
-                    <div class="flex items-center gap-2 text-xs text-neutral-400">
+                    <div class="flex items-center gap-2 text-xs text-neutral-400 mb-4">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         Last updated: ${project.last_updated || 'Recently'}
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="window.location.href='continue.html?project=${project.repo}&redirect=code'" class="flex-1 min-w-0 bg-[#1A1A1A] text-[#FAF9F6] px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+                            Edit
+                        </button>
+                        <button onclick="window.location.href='continue.html?project=${project.repo}&redirect=marketplace'" class="flex-1 min-w-0 bg-[#FAF9F6] border border-[#1A1A1A]/10 px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider hover:border-[#1A1A1A] transition-colors">
+                            Marketplace
+                        </button>
+                        <button onclick="window.location.href='continue.html?project=${project.repo}&redirect=preview'" class="flex-1 min-w-0 bg-[#FAF9F6] border border-[#1A1A1A]/10 px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider hover:border-[#1A1A1A] transition-colors">
+                            Preview
+                        </button>
                     </div>
                 </div>
             `).join('');
