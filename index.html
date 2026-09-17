@@ -2338,7 +2338,7 @@
 
             // Create app-specific install prompt
             if (currentInstallApp === 'biscuit') {
-                installPrompt = `Add a cookie consent banner to this website. The banner should have a white background, black text, and include "Accept Cookies" and "Decline" buttons. Make it GDPR compliant with a link to privacy policy. First, ask for the banner position using the format [C:"Modal","Bottom Left","Bottom","Top","Bottom Right","Where should the cookie consent banner appear?"]. Then ask if they have a privacy policy using [C:"Yes","No","Do you have a privacy policy?"]. If they answer "Yes", ask for the privacy policy URL using [Q:"What is your privacy policy URL?"]. If they answer "No", fail the installation using [F:"Installation failed: Your site will not be GDPR compliant without a privacy policy. Please create a privacy policy before continuing with this installation."]. DO NOT add instructions or questions as comments in the HTML. Return the complete HTML in a code block. Add this to the existing HTML.`;
+                installPrompt = `Add a cookie consent banner to this website. The banner should have a white background, black text, and include "Accept Cookies" and "Decline" buttons. Make it GDPR compliant with a link to privacy policy. First, ask for the banner position using the format [C:"Modal","Bottom Left","Bottom","Top","Bottom Right","Where should the cookie consent banner appear?"]. After they answer, ask if they have a privacy policy using [C:"Yes","No","Do you have a privacy policy?"]. If they answer "Yes", ask for the privacy policy URL using [Q:"What is your privacy policy URL?"]. If they answer "No", fail the installation using [F:"Installation failed: Your site will not be GDPR compliant without a privacy policy. Please create a privacy policy before continuing with this installation."]. IMPORTANT: After receiving an answer to the first question (banner position), you MUST ask the second question about the privacy policy. Do not complete the installation until you have the privacy policy URL (if they have one) or until you have failed (if they don't have one). DO NOT add instructions or questions as comments in the HTML. Return the complete HTML in a code block. Add this to the existing HTML.`;
             } else if (currentInstallApp === 'searchy') {
                 installPrompt = `Add comprehensive SEO optimization to this website to help it rank on Google. Searchy is an SEO tool that helps improve your website's visibility in search engines like Google. Include: 1) Proper meta tags (title, description, keywords), 2) Open Graph tags for social sharing, 3) Structured data/Schema.org markup, 4) XML sitemap reference, 5) Robots.txt file, 6) Google Search Console verification meta tag. If you need the Google Search Console verification code, ask the user using the format [I:"Searchy is an SEO tool that helps your site rank on Google. I need your Google Search Console verification code to complete the installation. To get your verification code: 1) Go to Google Search Console (search.google.com/search-console), 2) Select your property or add a new one, 3) Go to Settings > Verification, 4) Choose 'HTML tag' method, 5) Copy the content value from the meta tag (it looks like a long string of characters). This is your verification code."] [Q:"What is your Google Search Console verification code?"]. When the user provides their answer, validate that it looks like a valid Google Search Console verification code - it should be a long alphanumeric string (typically 20+ characters with letters and numbers mixed). If the user provides something that doesn't look like a valid verification code (e.g., just numbers, gibberish, a URL, "I don't know", empty response, or anything obviously wrong), fail the installation using [F:"Invalid Google Search Console verification code. Please provide a valid verification code from Google Search Console Settings > Verification > HTML tag method. The code should be a long alphanumeric string found in the content='...' attribute of the meta tag."]. DO NOT add instructions or questions as comments in the HTML. Return the complete HTML in a code block. Add this to the existing HTML.`;
             } else if (currentInstallApp === 'clarity') {
@@ -2414,24 +2414,30 @@
                         const textAnswer = document.getElementById('aiQuestionAnswer');
                         
                         if (choiceButtons) {
-                            let buttonsHTML = choices.map(choice => 
+                            let buttonsHTML = choices.map(choice =>
                                 `<button onclick="selectChoice('${choice}')" class="flex-1 bg-[#1A1A1A] text-[#FAF9F6] px-4 py-3 rounded-lg text-sm font-bold hover:bg-neutral-800 transition-colors mb-2">
                                     ${choice}
                                 </button>`
                             ).join('');
-                            
+
                             buttonsHTML += `
                                 <button onclick="skipQuestion()" class="flex-1 bg-neutral-200 text-[#1A1A1A] px-4 py-3 rounded-lg text-sm font-bold hover:bg-neutral-300 transition-colors">
                                     Skip
                                 </button>
                             `;
-                            
+
                             choiceButtons.innerHTML = buttonsHTML;
                             choiceButtons.classList.remove('hidden');
                         }
-                        
+
                         if (textAnswer) {
                             textAnswer.classList.add('hidden');
+                        }
+
+                        // Hide the Continue button when showing choice buttons
+                        const continueButton = document.querySelector('#installStepQuestion button[onclick="submitAIAnswer()"]');
+                        if (continueButton) {
+                            continueButton.classList.add('hidden');
                         }
 
                         // Store the question that was asked
@@ -2490,6 +2496,12 @@
                         
                         if (textAnswer) {
                             textAnswer.classList.remove('hidden');
+                        }
+
+                        // Show the Continue button when showing text input
+                        const continueButton = document.querySelector('#installStepQuestion button[onclick="submitAIAnswer()"]');
+                        if (continueButton) {
+                            continueButton.classList.remove('hidden');
                         }
 
                         // Show instructions if provided
@@ -2599,6 +2611,12 @@
             }
             if (textAnswer) {
                 textAnswer.classList.remove('hidden');
+            }
+
+            // Show the Continue button when switching to text input
+            const continueButton = document.querySelector('#installStepQuestion button[onclick="submitAIAnswer()"]');
+            if (continueButton) {
+                continueButton.classList.remove('hidden');
             }
 
             // Hide question step and return to installation
