@@ -2303,10 +2303,10 @@
                         responseText = JSON.stringify(response);
                     }
 
-                    // Check for AI failure format [F:"reason"]
+                    // Check for AI failure format [F:"reason"] - check this FIRST
                     const failureMatch = responseText.match(/\[F:"([^"]+)"\]/);
                     if (failureMatch) {
-                        // AI reported failure
+                        // AI reported failure - this takes priority over questions
                         const failureReason = failureMatch[1];
                         console.log('AI installation failed:', failureReason);
                         return { failed: true, reason: failureReason };
