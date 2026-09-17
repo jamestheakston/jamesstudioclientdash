@@ -3345,7 +3345,7 @@
         }
 
         // Logout
-        async function logout() {
+        window.logout = async function() {
             try {
                 if (SupabaseClient) {
                     await SupabaseClient.auth.signOut();
