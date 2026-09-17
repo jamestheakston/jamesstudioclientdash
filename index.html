@@ -1908,6 +1908,7 @@
         let currentInstallPrompt = ''; // Store current install prompt
         let currentFile = null; // Store current file being edited { path, sha }
         let originalHTMLBeforeInstall = null; // Store original HTML before installation
+        let lastQuestionAsked = null; // Store the last question that was asked
 
         // Animation state tracking
         let appInfoModalTimeout = null;
@@ -2366,13 +2367,13 @@
                     
                     // Handle skip response
                     if (userAnswer === 'SKIP') {
-                        fullPrompt = currentInstallPrompt + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nConversation context: ' + installAIContext + '\n\nUser chose to skip this question. Continue with the installation without this information. IMPORTANT: You may ask another question if needed, or complete the installation. Always return the complete updated HTML code in a html code block if you have made changes to the HTML. Return the entire file content, not just partial changes.';
+                        fullPrompt = currentInstallPrompt + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nConversation context: ' + installAIContext + '\n\nLast question asked: ' + (lastQuestionAsked || 'N/A') + '\n\nUser chose to skip this question. Continue with the installation without this information. IMPORTANT: You may ask another question if needed, or complete the installation. Always return the complete updated HTML code in a html code block if you have made changes to the HTML. Return the entire file content, not just partial changes.';
                     } else {
-                        fullPrompt = currentInstallPrompt + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nConversation context: ' + installAIContext + '\n\nUser\'s answer to your question: ' + userAnswer + '\n\nPlease continue with the installation based on this answer. IMPORTANT: You may ask another question if needed, or complete the installation. Always return the complete updated HTML code in a html code block if you have made changes to the HTML. Return the entire file content, not just partial changes.';
+                        fullPrompt = currentInstallPrompt + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nConversation context: ' + installAIContext + '\n\nLast question asked: ' + (lastQuestionAsked || 'N/A') + '\n\nUser\'s answer to your question: ' + userAnswer + '\n\nPlease continue with the installation based on this answer. IMPORTANT: If no more questions are needed, complete the installation and return the final HTML code block. If you need more information, ask another question. Always return the complete updated HTML code in a html code block if you have made changes to the HTML. Return the entire file content, not just partial changes.';
                     }
                 } else {
                     // First attempt at installation
-                    fullPrompt = installPrompt + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nIMPORTANT: Always return the complete updated HTML code in a html code block if you have made changes to the HTML. Return the entire file content, not just partial changes. If you need information from the user to complete the installation, you can use [Q:"your question here"] for text answers or [C:"choice1","choice2","your question"] for multiple choice questions. You may ask multiple questions sequentially - ask one question, wait for the answer, then ask the next if needed. Always return the complete updated HTML code in a html code block if you have made changes to the HTML. Return the entire file content, not just partial changes.';
+                    fullPrompt = installPrompt + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nIMPORTANT: Always return the complete updated HTML code in a html code block if you have made changes to the HTML. Return the entire file content, not just partial changes. If you need information from the user to complete the installation, you can use [Q:"your question here"] for text answers or [C:"choice1","choice2","your question"] for multiple choice questions. You may ask multiple questions sequentially - ask one question, wait for the answer, then ask the next if needed. If you don't need any information, just return the HTML code block and complete the installation. Always return the complete updated HTML code in a html code block if you have made changes to the HTML. Return the entire file content, not just partial changes.';
                 }
 
                 try {
@@ -2438,6 +2439,9 @@
                             textAnswer.classList.add('hidden');
                         }
 
+                        // Store the question that was asked
+                        lastQuestionAsked = question;
+
                         // Store conversation context with choice format
                         installAIContext = responseText
                             .replace(/\[C:"(.+)"\]/, '')
@@ -2502,6 +2506,9 @@
                             instructionsElement.classList.add('hidden');
                         }
 
+                        // Store the question that was asked
+                        lastQuestionAsked = question;
+
                         // Store conversation context (remove the instructions and question from the response)
                         installAIContext = responseText
                             .replace(/\[I:"[^"]+"\]/, '')
@@ -2545,10 +2552,20 @@
                     if (extractedHTML && monacoEditor) {
                         monacoEditor.setValue(extractedHTML);
                         updateVisualPreview();
+                        console.log('Code generation completed');
+                        return { success: true };
+                    } else {
+                        // No HTML in response - if we had a conversation, the AI needs to ask another question
+                        if (installAIContext) {
+                            console.log('No HTML in response, but conversation context exists - AI may need to ask another question');
+                            // Return to allow the AI to ask another question
+                            return { needsInput: true };
+                        } else {
+                            // No conversation context and no HTML - this is an error
+                            console.log('No HTML in response and no conversation context');
+                            return { failed: true, reason: 'AI did not return valid HTML code' };
+                        }
                     }
-
-                    console.log('Code generation completed');
-                    return { success: true };
                 } catch (error) {
                     console.error('AI generation error:', error);
                     throw new Error('AI generation failed');
@@ -2625,8 +2642,9 @@
                 }
 
                 if (result && !result.needsInput) {
-                    // Clear AI context since installation is complete
+                    // Clear AI context and last question since installation is complete
                     installAIContext = null;
+                    lastQuestionAsked = null;
 
                     // Continue with remaining installation steps
                     completeInstallStep(3, 0);
