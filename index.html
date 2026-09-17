@@ -787,6 +787,7 @@
                                     <p id="aiQuestionInstructions" class="text-xs text-neutral-600 mb-2 hidden"></p>
                                     <p id="aiQuestionText" class="text-sm text-[#1A1A1A] font-medium mb-3"></p>
                                     <textarea id="aiQuestionAnswer" class="w-full bg-white border border-[#1A1A1A]/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A1A1A] transition-colors resize-none" rows="3" placeholder="Your answer..."></textarea>
+                                    <div id="aiChoiceButtons" class="hidden flex flex-col gap-2"></div>
                                 </div>
                                 
                                 <button onclick="submitAIAnswer()" class="w-full bg-[#1A1A1A] text-[#FAF9F6] px-6 py-3 rounded-lg font-bold hover:bg-neutral-800 transition-colors">
@@ -2258,7 +2259,7 @@
 
             // Create app-specific install prompt
             if (currentInstallApp === 'biscuit') {
-                installPrompt = `Add a cookie consent banner to this website. The banner should be at the bottom of the page, have a white background, black text, and include "Accept Cookies" and "Decline" buttons. Make it GDPR compliant with a link to privacy policy. If you need specific privacy policy URL or other details, ask the user using the format [I:"instructions"] [Q:"question"]. DO NOT add instructions or questions as comments in the HTML. Return the complete HTML in a code block. Add this to the existing HTML.`;
+                installPrompt = `Add a cookie consent banner to this website. The banner should be at the bottom of the page, have a white background, black text, and include "Accept Cookies" and "Decline" buttons. Make it GDPR compliant with a link to privacy policy. First, ask if they have a privacy policy using the format [C:"Yes","No","Do you have a privacy policy?"]. If they answer "Yes", ask for the privacy policy URL using [Q:"What is your privacy policy URL?"]. If they answer "No", fail the installation using [F:"Installation failed: Your site will not be GDPR compliant without a privacy policy. Please create a privacy policy before continuing with this installation."]. DO NOT add instructions or questions as comments in the HTML. Return the complete HTML in a code block. Add this to the existing HTML.`;
             } else if (currentInstallApp === 'searchy') {
                 installPrompt = `Add comprehensive SEO optimization to this website to help it rank on Google. Searchy is an SEO tool that helps improve your website's visibility in search engines like Google. Include: 1) Proper meta tags (title, description, keywords), 2) Open Graph tags for social sharing, 3) Structured data/Schema.org markup, 4) XML sitemap reference, 5) Robots.txt file, 6) Google Search Console verification meta tag. If you need the Google Search Console verification code, ask the user using the format [I:"Searchy is an SEO tool that helps your site rank on Google. I need your Google Search Console verification code to complete the installation. To get your verification code: 1) Go to Google Search Console (search.google.com/search-console), 2) Select your property or add a new one, 3) Go to Settings > Verification, 4) Choose 'HTML tag' method, 5) Copy the content value from the meta tag (it looks like a long string of characters). This is your verification code."] [Q:"What is your Google Search Console verification code?"]. DO NOT add instructions or questions as comments in the HTML. Return the complete HTML in a code block. Add this to the existing HTML.`;
             } else if (currentInstallApp === 'clarity') {
@@ -2279,10 +2280,16 @@
                 if (installAIContext) {
                     // We have a previous conversation, include the user's answer
                     const userAnswer = document.getElementById('aiQuestionAnswer').value;
-                    fullPrompt = currentInstallPrompt + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nConversation context: ' + installAIContext + '\n\nUser\'s answer to your question: ' + userAnswer + '\n\nPlease continue with the installation based on this answer. IMPORTANT: Complete the installation now and return the final HTML code block. Do not ask any more questions - this is the user\'s response to your question. Always return the complete updated HTML code in a html code block if you have made changes to the HTML. Return the entire file content, not just partial changes.';
+                    
+                    // Handle skip response
+                    if (userAnswer === 'SKIP') {
+                        fullPrompt = currentInstallPrompt + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nConversation context: ' + installAIContext + '\n\nUser chose to skip this question. Continue with the installation without this information. IMPORTANT: You may ask another question if needed, or complete the installation. Always return the complete updated HTML code in a html code block if you have made changes to the HTML. Return the entire file content, not just partial changes.';
+                    } else {
+                        fullPrompt = currentInstallPrompt + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nConversation context: ' + installAIContext + '\n\nUser\'s answer to your question: ' + userAnswer + '\n\nPlease continue with the installation based on this answer. IMPORTANT: You may ask another question if needed, or complete the installation. Always return the complete updated HTML code in a html code block if you have made changes to the HTML. Return the entire file content, not just partial changes.';
+                    }
                 } else {
                     // First attempt at installation
-                    fullPrompt = installPrompt + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nIMPORTANT: Always return the complete updated HTML code in a html code block if you have made changes to the HTML. Return the entire file content, not just partial changes. If you need information from the user to complete the installation, format your question as [Q:"your question here"] in your response. IMPORTANT: After receiving a user answer, complete the installation and return the final HTML - do not ask more questions.';
+                    fullPrompt = installPrompt + '\n\nHere is the current website HTML:\n' + currentHTML + '\n\nIMPORTANT: Always return the complete updated HTML code in a html code block if you have made changes to the HTML. Return the entire file content, not just partial changes. If you need information from the user to complete the installation, you can use [Q:"your question here"] for text answers or [C:"choice1","choice2","your question"] for multiple choice questions. You may ask multiple questions sequentially - ask one question, wait for the answer, then ask the next if needed. Always return the complete updated HTML code in a html code block if you have made changes to the HTML. Return the entire file content, not just partial changes.';
                 }
 
                 try {
@@ -2312,6 +2319,73 @@
                         return { failed: true, reason: failureReason };
                     }
 
+                    // Check for AI choice format [C:"choice1","choice2","question"]
+                    const choiceMatch = responseText.match(/\[C:"([^"]+)","([^"]+)","([^"]+)"\]/);
+                    if (choiceMatch && !installAIContext) {
+                        // Found a choice question, show choice step
+                        const choice1 = choiceMatch[1];
+                        const choice2 = choiceMatch[2];
+                        const question = choiceMatch[3];
+                        
+                        document.getElementById('aiQuestionText').textContent = question;
+                        
+                        // Show choice buttons instead of text input
+                        const choiceButtons = document.getElementById('aiChoiceButtons');
+                        const textAnswer = document.getElementById('aiQuestionAnswer');
+                        
+                        if (choiceButtons) {
+                            choiceButtons.innerHTML = `
+                                <button onclick="selectChoice('${choice1}')" class="flex-1 bg-[#1A1A1A] text-[#FAF9F6] px-4 py-3 rounded-lg text-sm font-bold hover:bg-neutral-800 transition-colors mb-2">
+                                    ${choice1}
+                                </button>
+                                <button onclick="selectChoice('${choice2}')" class="flex-1 bg-[#1A1A1A] text-[#FAF9F6] px-4 py-3 rounded-lg text-sm font-bold hover:bg-neutral-800 transition-colors mb-2">
+                                    ${choice2}
+                                </button>
+                                <button onclick="skipQuestion()" class="flex-1 bg-neutral-200 text-[#1A1A1A] px-4 py-3 rounded-lg text-sm font-bold hover:bg-neutral-300 transition-colors">
+                                    Skip
+                                </button>
+                            `;
+                            choiceButtons.classList.remove('hidden');
+                        }
+                        
+                        if (textAnswer) {
+                            textAnswer.classList.add('hidden');
+                        }
+
+                        // Store conversation context with choice format
+                        installAIContext = responseText
+                            .replace(/\[C:"[^"]+","[^"]+","[^"]+"\]/, '')
+                            .trim();
+                        
+                        // Store that this was a choice question
+                        installAIContext += ' [CHOICE_QUESTION]';
+
+                        // Show question step
+                        const step2 = document.getElementById('installStep2');
+                        const questionStep = document.getElementById('installStepQuestion');
+
+                        step2.style.opacity = '0';
+                        step2.style.transition = 'opacity 0.3s ease-out';
+
+                        await new Promise(resolve => setTimeout(resolve, 300));
+
+                        step2.classList.add('hidden');
+                        step2.style.opacity = '';
+                        step2.style.transition = '';
+
+                        questionStep.classList.remove('hidden');
+                        questionStep.style.opacity = '0';
+                        questionStep.style.transition = 'opacity 0.3s ease-out';
+
+                        await new Promise(resolve => setTimeout(resolve, 50));
+
+                        questionStep.style.opacity = '1';
+                        questionStep.style.transition = '';
+
+                        // Return a special flag to indicate we need user input
+                        return { needsInput: true };
+                    }
+
                     // Check for AI question format [Q:"question"] and optional instructions [I:"instructions"]
                     const instructionsMatch = responseText.match(/\[I:"([^"]+)"\]/);
                     const questionMatch = responseText.match(/\[Q:"([^"]+)"\]/);
@@ -2320,6 +2394,18 @@
                         const question = questionMatch[1];
                         document.getElementById('aiQuestionText').textContent = question;
                         document.getElementById('aiQuestionAnswer').value = '';
+
+                        // Show text input instead of choice buttons
+                        const choiceButtons = document.getElementById('aiChoiceButtons');
+                        const textAnswer = document.getElementById('aiQuestionAnswer');
+                        
+                        if (choiceButtons) {
+                            choiceButtons.classList.add('hidden');
+                        }
+                        
+                        if (textAnswer) {
+                            textAnswer.classList.remove('hidden');
+                        }
 
                         // Show instructions if provided
                         const instructionsElement = document.getElementById('aiQuestionInstructions');
@@ -2388,11 +2474,33 @@
             }
         }
         
+        function selectChoice(choice) {
+            const textAnswer = document.getElementById('aiQuestionAnswer');
+            textAnswer.value = choice;
+            submitAIAnswer();
+        }
+
+        function skipQuestion() {
+            const textAnswer = document.getElementById('aiQuestionAnswer');
+            textAnswer.value = 'SKIP';
+            submitAIAnswer();
+        }
+
         async function submitAIAnswer() {
             const answer = document.getElementById('aiQuestionAnswer').value.trim();
             if (!answer) {
                 alert('Please provide an answer to continue.');
                 return;
+            }
+
+            // Reset UI elements for next question
+            const choiceButtons = document.getElementById('aiChoiceButtons');
+            const textAnswer = document.getElementById('aiQuestionAnswer');
+            if (choiceButtons) {
+                choiceButtons.classList.add('hidden');
+            }
+            if (textAnswer) {
+                textAnswer.classList.remove('hidden');
             }
 
             // Hide question step and return to installation
