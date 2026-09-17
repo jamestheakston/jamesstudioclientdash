@@ -923,9 +923,6 @@
                         <button onclick="switchEditorTab('marketplace')" id="tab-marketplace" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors whitespace-nowrap">
                             Marketplace
                         </button>
-                        <button onclick="toggleFileBrowser()" id="fileBrowserButton" class="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-neutral-400 hover:text-[#1A1A1A] transition-colors whitespace-nowrap">
-                            📁 Files
-                        </button>
                     </div>
 
                     <!-- Visual Preview Panel -->
@@ -969,25 +966,6 @@
                     <!-- Marketplace Panel -->
                     <div id="panel-marketplace" class="flex-1 bg-[#FAF9F6] p-2 md:p-4 overflow-auto hidden min-h-0">
                         <div id="marketplaceContent" class="flex items-center justify-center h-full"></div>
-                    </div>
-                </div>
-
-                <!-- File Browser Panel (Right Side) -->
-                <div id="fileBrowserPanel" class="hidden w-80 bg-white border-l border-[#1A1A1A]/10 flex flex-col absolute right-0 top-0 bottom-0 z-20 transition-all duration-300 shadow-xl">
-                    <div class="p-4 border-b border-[#1A1A1A]/10">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-sm font-bold text-[#1A1A1A]">File Browser</h3>
-                            <button onclick="toggleFileBrowser()" class="text-neutral-400 hover:text-black">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="flex-1 overflow-auto p-4">
-                        <div id="fileBrowserContent" class="space-y-2">
-                            <div class="text-center py-8 text-neutral-400 text-sm">
-                                Loading files...
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -1447,159 +1425,6 @@
             }
         }
 
-        // Toggle file browser panel
-        function toggleFileBrowser() {
-            const fileBrowserPanel = document.getElementById('fileBrowserPanel');
-            const fileBrowserButton = document.getElementById('fileBrowserButton');
-
-            if (fileBrowserPanel.classList.contains('hidden')) {
-                fileBrowserPanel.classList.remove('hidden');
-                fileBrowserButton.classList.add('border-[#1A1A1A]', 'text-[#1A1A1A]');
-                fileBrowserButton.classList.remove('border-transparent', 'text-neutral-400');
-                loadProjectFiles();
-            } else {
-                fileBrowserPanel.classList.add('hidden');
-                fileBrowserButton.classList.remove('border-[#1A1A1A]', 'text-[#1A1A1A]');
-                fileBrowserButton.classList.add('border-transparent', 'text-neutral-400');
-            }
-        }
-
-        // Load project files from GitHub
-        async function loadProjectFiles(path = '') {
-            const fileBrowserContent = document.getElementById('fileBrowserContent');
-
-            if (!currentProject || !currentProject.repo) {
-                fileBrowserContent.innerHTML = '<div class="text-center py-8 text-neutral-400 text-sm">No project selected</div>';
-                return;
-            }
-
-            try {
-                fileBrowserContent.innerHTML = '<div class="text-center py-8 text-neutral-400 text-sm">Loading files...</div>';
-
-                const endpoint = path
-                    ? `/repos/${currentProject.repo}/contents/${path}`
-                    : `/repos/${currentProject.repo}/contents/`;
-
-                const response = await SupabaseClient.functions.invoke('github-api', {
-                    body: {
-                        endpoint: endpoint,
-                        method: 'GET'
-                    }
-                });
-
-                if (response.error) {
-                    throw new Error(response.error.message || 'Failed to load files');
-                }
-
-                const files = response.data;
-                if (!Array.isArray(files)) {
-                    // Single file/directory
-                    displayFileBrowser([files], path);
-                } else {
-                    displayFileBrowser(files, path);
-                }
-            } catch (error) {
-                console.error('Error loading files:', error);
-                fileBrowserContent.innerHTML = '<div class="text-center py-8 text-red-500 text-sm">Failed to load files</div>';
-            }
-        }
-
-        // Display files in browser
-        function displayFileBrowser(files, currentPath) {
-            const fileBrowserContent = document.getElementById('fileBrowserContent');
-            let html = '';
-
-            // Add back button if not in root
-            if (currentPath) {
-                const parentPath = currentPath.split('/').slice(0, -1).join('/');
-                html += `
-                    <div class="flex items-center gap-2 p-2 hover:bg-[#FAF9F6] rounded-lg cursor-pointer transition-colors" onclick="loadProjectFiles('${parentPath}')">
-                        <svg class="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                        <span class="text-sm text-[#1A1A1A]">..</span>
-                    </div>
-                `;
-            } else {
-                // Add back button to go to root
-                html += `
-                    <div class="flex items-center gap-2 p-2 hover:bg-[#FAF9F6] rounded-lg cursor-pointer transition-colors" onclick="loadProjectFiles('')">
-                        <svg class="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></svg>
-                        <span class="text-sm text-[#1A1A1A]">🏠 Root</span>
-                    </div>
-                `;
-            }
-
-            // Sort files: folders first, then files
-            const sortedFiles = files.sort((a, b) => {
-                if (a.type === b.type) return a.name.localeCompare(b.name);
-                return a.type === 'dir' ? -1 : 1;
-            });
-
-            sortedFiles.forEach(file => {
-                const icon = file.type === 'dir'
-                    ? '<svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></svg>'
-                    : '<svg class="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>';
-
-                const clickHandler = file.type === 'dir'
-                    ? `onclick="loadProjectFiles('${currentPath ? currentPath + '/' + file.name : file.name}')"`
-                    : `onclick="loadFileIntoEditor('${file.path}', '${file.sha}')"`;
-
-                html += `
-                    <div class="flex items-center gap-2 p-2 hover:bg-[#FAF9F6] rounded-lg cursor-pointer transition-colors" ${clickHandler}>
-                        ${icon}
-                        <span class="text-sm text-[#1A1A1A] truncate">${file.name}</span>
-                    </div>
-                `;
-            });
-
-            fileBrowserContent.innerHTML = html;
-        }
-
-        // Load file into editor
-        async function loadFileIntoEditor(filePath, sha) {
-            try {
-                // First try to get from draft branch (editable version)
-                let response = await SupabaseClient.functions.invoke('github-api', {
-                    body: {
-                        endpoint: `/repos/${currentProject.repo}/contents/${filePath}?ref=draft`,
-                        method: 'GET'
-                    }
-                });
-
-                // If draft doesn't have the file, get from main branch
-                if (response.error || !response.data) {
-                    response = await SupabaseClient.functions.invoke('github-api', {
-                        body: {
-                            endpoint: `/repos/${currentProject.repo}/contents/${filePath}`,
-                            method: 'GET'
-                        }
-                    });
-                }
-
-                if (response.error) {
-                    throw new Error(response.error.message || 'Failed to load file');
-                }
-
-                const fileData = response.data;
-                if (fileData.content) {
-                    // Decode base64 content
-                    const content = atob(fileData.content);
-                    if (monacoEditor) {
-                        monacoEditor.setValue(content);
-                        currentFile = { path: filePath, sha: fileData.sha };
-                        // Switch to code editor
-                        switchEditorTab('code');
-                        // Update preview if it's an HTML file
-                        if (filePath.endsWith('.html') || filePath.endsWith('.htm')) {
-                            updateVisualPreview();
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading file:', error);
-                alert('Failed to load file');
-            }
-        }
-        
         // Switch between visual and code editor tabs
         function switchEditorTab(tab) {
             const visualPanel = document.getElementById('panel-visual');
